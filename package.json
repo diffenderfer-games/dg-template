@@ -10,7 +10,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "sync-docs": "node scripts/sync-docs.mjs",
-    "sync-hub-server": "cd ../diffenderfer-games/next && npx tsx --conditions=source tools/sync-hub-server.ts",
+    "sync-hub-server": "cd ../diffenderfer-games/next && node --conditions=source --import tsx tools/sync-hub-server.ts",
     "hub-doctor": "hub-doctor"
   },
   "game": {
