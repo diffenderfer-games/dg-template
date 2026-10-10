@@ -17,7 +17,13 @@
     "type": "static",
     "title": "My Game",
     "description": "Describe your game here — shows on the catalog card.",
-    "labels": ["arcade", "2d", "phone", "controller", "single-player"],
+    "labels": [
+      "arcade",
+      "2d",
+      "phone",
+      "controller",
+      "single-player"
+    ],
     "build": "npm run build",
     "serveDir": "dist",
     "menuPosition": "top-right",
@@ -26,7 +32,7 @@
     "changes": []
   },
   "dependencies": {
-    "@diffenderfer-games/hub": "2.0.0-next.1",
+    "@diffenderfer-games/hub": "2.0.0-next.2",
     "pixi.js": "^8.6.0"
   },
   "devDependencies": {
