@@ -1,7 +1,7 @@
 # Multiplayer & social: friends, invites, rooms and chat
 
 > **Canonical copy:** this file lives in the hub repo (`diffenderfer-games/docs/multiplayer.md`).
-> `npm run sync-hub` copies it into every game. Edit the hub's copy, never a game's.
+> `npm run sync-docs` copies it into dg-template games. Edit the hub's copy, never a game's.
 > Background and decisions: the hub's `docs/plans/multiplayer.md` (the plan) and
 > `docs/plans/multiplayer-impl.md` (the wire contract).
 
@@ -35,12 +35,12 @@ does all of that. Your game only:
 - **Single-player games can race** with no netcode: declare `game.race`, put a Race button on the menu,
   and build the puzzle from the shared seed ([Races](#14-races-single-player-games-go-multiplayer)).
 
-Import from the vendored client (TypeScript games) or from the hub (plain JS):
+Import from the npm client `@diffenderfer-games/hub` (TypeScript games) or from the hub (plain JS):
 
 ```ts
-import { hub, HubError, ContentRejectedError, OfflineError } from './hub/hub';   // dg-template games
-// import { hub, ContentRejectedError } from '/_hub/hub.js';                     // plain-JS static games
-import type { HubRoom, Launch, RoomInfo, PresenceInput } from './hub/hub';        // types come along too
+import { hub, HubError, ContentRejectedError, OfflineError } from '@diffenderfer-games/hub'; // dg-template games
+// import { hub, ContentRejectedError } from '/_hub/hub.js';                         // plain-JS static games
+import type { HubRoom, Launch, RoomInfo, PresenceInput } from '@diffenderfer-games/hub'; // types come along too
 ```
 
 Every call below is safe to make before the hub's live runtime (`/_hub/social.js`) has
@@ -81,9 +81,9 @@ your game (browser)                         the hub (same origin)
      (60 s identity ticket)                     chat() / results() / recent() over loopback
 ```
 
-- **The vendored client (`src/hub/hub.ts`) is thin.** `hub.presence`, `hub.social`,
+- **The client (`@diffenderfer-games/hub`) is thin.** `hub.presence`, `hub.social`,
   `hub.mp`, `hub.rooms` and `hub.notify` forward to the runtime the hub injects into
-  every game page (`/_hub/social.js`). So social features update without re-syncing
+  every game page (`/_hub/social.js`). So social features update without upgrading
   your game.
 - **The hub draws the UI:** the Friends card in the menu (it opens the Friends window), player cards, chat, invite
   toasts, the invite picker and notification settings. Your game opens those screens
@@ -472,7 +472,7 @@ Drop-in shape for a static game (TypeScript, dg-template). The `apps-test/mpdemo
 in the hub repo is the complete runnable reference.
 
 ```ts
-import { hub, ContentRejectedError, type HubRoom, type Launch, type RoomInfo } from './hub/hub';
+import { hub, ContentRejectedError, type HubRoom, type Launch, type RoomInfo } from '@diffenderfer-games/hub';
 
 type Intent = { type: 'move'; dx: number; dy: number };          // guest → host
 type GameState = { players: Record<string, { x: number; y: number }>; turn: number; results?: unknown };
@@ -592,9 +592,10 @@ kid-safe chat and trusted results.
    binds `PORT`. See the host's `HANDOFF.md` (process-app contract, path handling).
    The host proxies HTTP **and WebSockets** under `/<slug>/` with the prefix stripped,
    so `/<slug>/ws` reaches your server as `/ws`.
-2. **Vendor the server SDK:** copy the hub's `clients/server/hub-server.mjs` to
-   `server/hub-server.mjs`. `npm run sync-hub` does this when your game has a `server/`
-   directory. It's also served at `/_hub/hub-server.mjs`. It has zero dependencies.
+2. **Copy in the server SDK:** `server/hub-server.mjs` is not on npm. `npm run
+   sync-hub-server` (in dg-template games) copies the build from the sibling host
+   checkout (`../diffenderfer-games`, after `npm ci` in its `next/`). It's also served at
+   `/_hub/hub-server.mjs`. It has zero dependencies.
 3. **Env:** the host injects `GAME_SLUG`, `HUB_URL` (the hub's loopback URL) and
    `HUB_APP_KEY` (your game's private key) into hub-enabled process apps. Without them
    (local dev with no hub), `createHubServer().enabled` is `false` and every call
@@ -659,7 +660,7 @@ await hub.recent([uidA, uidB])       // "played together" (so they can friend ea
 ### Client side (own server)
 
 ```ts
-import { hub, type Launch } from './hub/hub';
+import { hub, type Launch } from '@diffenderfer-games/hub';
 
 let ws: WebSocket | null = null;
 let roomCode: string | null = sessionStorage.getItem('room');

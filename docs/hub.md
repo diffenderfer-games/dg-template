@@ -195,7 +195,7 @@ hub.overlay.autoPause({
 - Lower level: `hub.overlay.on('open' | 'close', cb)` (returns an unsubscribe fn),
   `hub.overlay.isOpen`, `hub.overlay.canPause`, and the window events
   `hub:overlay-open` / `hub:overlay-close`. The stack is a page-wide singleton
-  (`window.__HUB_UI__`), shared by `/_hub/hub.js`, vendored copies and the hub's
+  (`window.__HUB_UI__`), shared by `/_hub/hub.js`, the games' npm clients and the hub's
   social runtime.
 
 Full rules: [`docs/multiplayer.md`](multiplayer.md) §4.
@@ -273,17 +273,21 @@ local guest so play continues.)
 
 ## TypeScript client (recommended for TS games)
 
-For typed games, vendor [`clients/hub.ts`](../clients/hub.ts) into your source
-together with its siblings: `input.ts`, `overlay.ts`, `legacy.ts`, `daily.ts`,
-`uistack.ts`, and `social/rt-types.ts` (types only). dg-template games do this with
-`npm run sync-hub`. It's a dependency-free client with full types for every
-endpoint. No `window.HubSDK` is needed, and there are no ambient globals. The social
-namespaces are thin: they forward to the runtime `/_hub/social.js` that the menu
-loads, so social features update without re-syncing.
+Games with a build step install the client from npm:
+**`@diffenderfer-games/hub`** (its package README has the entry points, errors,
+offline and versioning details). While it is on `2.0.0-next.N` prereleases, pin
+it exactly: `npm install --save-exact @diffenderfer-games/hub@<version>`. It
+has full types for every endpoint, no `window.HubSDK` is needed, and there are
+no ambient globals. Run `npx hub-doctor` in the game's CI (dg-template's
+`npm run hub-doctor`): it fails when the installed client is outside the live
+hub's supported range or the `game.*` block is invalid. Never vendor the
+client's sources. The social namespaces are thin: they forward to the runtime
+`/_hub/social.js` that the menu loads, so social features update without an
+upgrade.
 
 ```ts
-import { hub } from './hub';            // auto-detects slug + API base
-// or: import { Hub } from './hub'; const hub = new Hub({ slug, apiBase });
+import { hub } from '@diffenderfer-games/hub';  // auto-detects slug + API base
+// or: import { createHub } from '@diffenderfer-games/hub'; const hub = createHub({ slug, apiBase });
 
 const { user } = await hub.me();        // user: User | null
 
@@ -479,13 +483,13 @@ way on every device. The hub handles device detection, mouse↔gamepad
 arbitration, virtual on-screen controls for touch, gamepad/menu navigation, an
 on-screen keyboard, and player remapping that persists. It's renderer-agnostic
 (works for fully-Pixi and HTML+Pixi games) because all hub-drawn UI is a DOM
-overlay. Available via the canonical client at `/_hub/hub.js` (or `hub.input`
-from the vendored `clients/hub.ts`).
+overlay. Available as `hub.input` from `/_hub/hub.js` or from the npm package
+`@diffenderfer-games/hub`.
 
 ### Declare and read
 
 ```ts
-import { hub } from '/_hub/hub.js';   // or the vendored clients/hub.ts
+import { hub } from '/_hub/hub.js';   // or from '@diffenderfer-games/hub' (npm)
 
 hub.input.define({
   groups: {
@@ -1030,8 +1034,10 @@ repo.
   (`lobby`, `players`, `transport: "hub-rooms" | "own-server"`, `invites`, `join`,
   `spectate`, `modes`, `quickChat`, `chatAllow`). The catalog shows an **Online**
   tag, and `GET /games` exposes a summary for the invite picker.
-- **Own-server games** vendor the zero-dependency game-server SDK
-  `clients/server/hub-server.mjs` (also served at `/_hub/hub-server.mjs`). With it
+- **Own-server games** keep a copy of the zero-dependency game-server SDK in
+  `server/hub-server.mjs` (not on npm; served at `/_hub/hub-server.mjs`, built from
+  `next/packages/server/server-sdk`; `npm run sync-hub-server` in the game copies
+  it from the sibling host checkout). With it
   they verify 60-second identity tickets offline, check chat, and post trusted results
   through the loopback-only `/_api/internal/*` routes. The host injects
   `HUB_URL` and `HUB_APP_KEY` into hub-enabled process apps.

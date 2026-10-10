@@ -275,8 +275,9 @@ analytics — with **nothing to set up**. The host injects a style-isolated menu
 (login + navigation) into your pages automatically, and exposes a JSON API at
 `/_api` plus client assets at `/_hub`.
 
-- **Use it:** `import { hub } from '/_hub/sdk.js'` (plain JS) or vendor the
-  fully-typed `clients/hub.ts` into your source (recommended for TS games).
+- **Use it:** `import { hub } from '/_hub/sdk.js'` (plain JS) or install the
+  fully-typed npm package `@diffenderfer-games/hub` (recommended for TS games;
+  pin `2.0.0-next.N` prereleases exactly, and run `npx hub-doctor` in CI).
   Then e.g. `hub.putSave('auto', state)`, `hub.submitScore('points', n)`.
 - **Leaderboards:** declare them in `game.leaderboards` so they show before the
   first score; submit with `hub.submitScore(key, score)`.
@@ -312,7 +313,8 @@ Full contract, endpoint reference, and examples: **`docs/hub.md`**. Online play:
      games stay **static** and use hub relay rooms (`transport: "hub-rooms"`,
      no server code). Only real-time/competitive games that need an
      authoritative server are **process** apps (`transport: "own-server"`);
-     they verify players with hub tickets and vendor `server/hub-server.mjs`.
+     they verify players with hub tickets and keep a copy of
+     `server/hub-server.mjs` (the game-server SDK, not on npm).
 3. Add a complete `game` block to `package.json` with type, title,
    build/start commands, and `serveDir` or `healthPath` as appropriate.
 4. If this is a Vite (or other bundler) project, set `base: './'` (or
