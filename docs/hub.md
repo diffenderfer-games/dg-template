@@ -354,9 +354,11 @@ import { Hub } from './hub';
 const hub = new Hub({ offline: import.meta.env.DEV ? 'always' : 'auto' });
 ```
 
-Offline, **writes apply to the cache and enqueue**, replaying/merging on
-reconnect (saves take the latest, `incr` sums, `max`/scores keep the best);
-stats, saves, profile and leaderboard bests persist locally. Extra surface,
+Offline, **writes apply to the cache and go into the outbox**, replaying in
+order on reconnect (saves take the latest, `incr` sums, `max`/scores keep the
+best); stats, saves, profile, inventory and leaderboard bests persist locally.
+See [Offline and replay](#offline-and-replay) for what replays, the
+guarantees, and how a game queues its own operations. Extra surface,
 matching the injected SDK: `hub.pending()`, `hub.sync()`, `hub.onStatus(cb)`,
 `hub.prefetchAll()`, `hub.isOnline`, and the `hub:online` / `hub:offline` /
 `hub:sync` / `hub:status` window events. `OfflineError` (a `HubError` subclass)
@@ -366,6 +368,118 @@ In `'always'`/dev mode `login`/`signup` still record a local dev user so
 logged-in flows work; analytics buffer and cross-game listings stay safe.
 Nothing throws merely for being offline (except the strictly online-only ops),
 so your game code is identical whether or not the hub is up.
+
+---
+
+## Offline and replay
+
+Calls that change something and can safely wait are queued while the hub
+can't be reached, in a typed **outbox** in `localStorage`
+(`hub:<slug>:outbox:<id>`, one key per operation), and replayed **in order**
+when it is back. Each queued operation has a **kind**; the kind's handler
+performs it, and may make several dependent calls (a later call can use an
+earlier one's reply), so a chain of calls is one operation.
+
+### What replays
+
+The hub registers a kind for everything it can safely replay. Each is one
+call unless noted; the contract lists the endpoints in
+`OFFLINE_REPLAY_ENDPOINTS` (`@diffenderfer-games/hub-contract`), and the
+client's route table carries them as `offline: 'replay'`.
+
+| Client call | Kind | Endpoint | Folds into waiting ops |
+|---|---|---|---|
+| `putSave`, `deleteSave` | `hub.save` | `writeSave`, `deleteSave` | last write to a slot wins (replaces the waiting ones) |
+| `setStat`, `incrStat`, `maxStat` | `hub.stat` | `updateGameStat` | per stat and mode: `incr` adds up, `max` keeps the largest, `set` keeps the last |
+| `submitScore` | `hub.score` | `submitScore` | per board: keeps the best (lowest on `asc` boards) |
+| `setProfile` | `hub.profile` | `setGameProfile` | patches merge |
+| `hub.daily.complete` | `hub.daily` | `completeDailyChallenge` (+ `startDailyChallenge`) | never; a composite op, see below |
+| `grant`, `exchange`, `buy`, `sell` | `hub.grant`, `hub.exchange` | `grantInventoryItems`, `exchangeInventoryItems` | never: every grant counts |
+| `setFavorite` | `hub.favorite` | `setGameFavorite` | last star or unstar of a game wins |
+
+- **Daily:** a day must be *started* online (it needs the hub's signed
+  token), but it can be *completed* offline: `hub.daily.complete()` then
+  resolves `null`, fires `hub:daily-queued`, and `hub:daily-complete` follows
+  when it lands. If the token has expired by then, the op starts the day
+  again for a fresh token and completes with that.
+- **Exchanges** offline are checked against the cached holdings (a 409
+  `HubError` when they can't cover `take`) and applied to them at once; the
+  hub has the last word when the op replays.
+- **Analytics** (`recordPlay`, `heartbeat`, `event`) use their own capped
+  buffer (heartbeats are dropped first) and are sent at least once, without
+  dedupe.
+- **Online-only** (they throw an `OfflineError` or a `HubError` offline):
+  sign-in, social, chat, multiplayer, races, trades with other players,
+  `resetGame`.
+
+### Hooking a game in: `hub.offline`
+
+```ts
+import { hub } from '@diffenderfer-games/hub';
+
+// Once at load, before or after enqueueing: what a 'mygame.finishRun' op does.
+hub.offline.define<{ score: number; level: number }>('mygame.finishRun', async (run, context) => {
+  const { rank } = await context.call('submitScore', { slug: 'mygame', key: 'runs', score: run.score });
+  await context.call('updateGameStat', { slug: 'mygame', key: 'best-rank', value: rank ?? 0, mode: 'max' });
+  // Your own server: send context.key('unlock') so it can dedupe a retry too.
+  await fetch('/mygame/api/unlock', { method: 'POST', headers: { 'x-op': context.key('unlock') }, body: JSON.stringify(run) });
+});
+
+// Whenever it happens, online or not: queued at once, sent as soon as it can be.
+hub.offline.enqueue('mygame.finishRun', { score: 4200, level: 7 });
+
+hub.offline.pending();                                    // waiting ops, oldest first (hub's and yours)
+hub.offline.on('replayed', ({ op, result }) => { /* landed */ });
+hub.offline.on('failed', ({ op, error }) => { /* dropped: tell the player */ });
+hub.offline.on('queued', ({ op }) => { /* queued, or folded into a waiting op */ });
+```
+
+- A definition can be a bare handler, or `{ run, mergeKey, merge, replaces }`
+  to fold new ops into waiting ones the way the hub's kinds do (`replaces:
+  true` = the newest op with the same `mergeKey` replaces the waiting ones;
+  `merge(waiting, incoming)` folds into the newest waiting one).
+- `context.call(name, fields)` calls any hub endpoint by its contract name.
+  Calls to replayable endpoints carry an operation key; **make the same calls
+  in the same order on every try**, since the key is the op's id plus the
+  call's position. `context.attempt` counts tries; `context.isReplay` is
+  `false` when the op ran at once (online, nothing waiting).
+- Kind names starting with `hub.` are the hub's own. Payloads are any JSON.
+  The op's id is in `op.id`.
+- The same events reach the page as `hub:offline-queued`,
+  `hub:offline-replayed` and `hub:offline-failed` window events, and
+  `hub.pending()`, `hub.sync()`, `hub.onStatus()` and `hub:sync` count and
+  drive the outbox as before.
+
+### Guarantees
+
+- **Order:** ops replay one at a time in the order they were queued. Folding
+  keeps an op's place (a replacing save moves to the end). A failing op holds
+  the ops behind it until it lands or is dropped.
+- **Exactly once on the hub:** every call to a replayable endpoint sends its
+  operation key in `x-hub-op`; the hub runs it once per caller and key,
+  answers a repeat with the remembered reply, and keeps keys for **7 days**
+  (`OFFLINE_DEDUPE_TTL_MS`). So a request that landed but whose reply was lost
+  is not applied twice. An op replay has started is never changed by folding.
+  Calls your handler makes elsewhere are at least once: dedupe them with
+  `context.key(step)`.
+- **Failures:** a transport failure (offline) waits for the connection; a
+  passing failure (408, 425, 429, 5xx, or a `TypeError` from your own fetch)
+  retries with backoff (1 s doubling to 60 s, with jitter), up to 8 tries,
+  then drops; any other refusal (400, 401, 403, 404, 409, 413, 422, …) or
+  other thrown error drops the op at once. A dropped op fires `failed` and
+  appears in the `hub:sync` conflicts.
+- **Across reloads and tabs:** the outbox survives reloads and replays on
+  the next load once the hub is reachable. One tab (or client copy on the
+  page) replays at a time, holding a Web Lock (`hub:<slug>:outbox-lease`),
+  or a renewed 15 s `localStorage` lease where Web Locks are missing.
+- **Undefined kinds:** an op whose kind this client hasn't defined holds the
+  queue (so order is kept) until a client that knows it, normally the
+  game's own after its `define`, replays it.
+- **Size cap:** up to 500 ops and about 1 MB of JSON per game. Past that,
+  `enqueue` and offline writes throw a `HubError` with code
+  `offline_queue_full` (status 507); nothing waiting is dropped.
+- **Menu:** the hub menu shows "N changes waiting to sync" and a thin ring on
+  its connection dot while anything waits; **Sync now** pushes at once.
 
 ---
 
@@ -393,8 +507,8 @@ you, so players can install the game (or the whole catalog) as a standalone app.
 On desktop Chrome/Edge it's the address-bar install button; on iOS/Android it's
 "Add to Home Screen"; Safari macOS uses "Add to Dock".
 
-**Data offline (the SDK).** Covered above — local cache + durable queue +
-merge-on-reconnect. Listen for status if you want to surface it yourself:
+**Data offline (the SDK).** Covered above — local cache + the outbox +
+ordered replay on reconnect ([Offline and replay](#offline-and-replay)). Listen for status if you want to surface it yourself:
 
 ```js
 window.addEventListener('hub:offline', () => showBadge('offline'));
@@ -519,7 +633,8 @@ const firing = hub.input.value('shoot') >= 0.5;
 ```
 
 Each input exposes `value`/`raw` (`0..1`), `isDown`, `isUp` (frame-based edges).
-`hub.input.axis(name)` returns `-1..1`; `hub.input.vector(name)` returns
+`hub.input.axis(name)` returns `-1..1` (the axis's `x`, or its `y` when it
+only declares `y`); `hub.input.vector(name)` returns
 `{x,y,mag}` with `mag ≤ 1`.
 
 ### Groups, devices, arbitration
@@ -911,9 +1026,10 @@ if (confirm(`Sell your ${name} for ${price} coins?`)) {
 
 ## Favorites
 
-Players can **star** games — on the home page's game cards or in the menu's game
-list. Starred games sort to the top of both (the home page's other games follow the
-player's chosen sort, *Most played* or *A–Z*, remembered on the device). Stars are stored per account (guests too; they follow a guest through
+Players can **star** games — in a home page card's game sheet (its "⋯" button) or in
+the menu's game list. Starred games sort to the top of both (the home page's other
+games follow the player's chosen sort, *Most played*, *Playing now* or *A–Z*,
+remembered on the device with the rest of the filters). Stars are stored per account (guests too; they follow a guest through
 claim/login) and mirrored to `localStorage`, so the list still renders offline.
 
 ```js
@@ -923,6 +1039,51 @@ await hub.setFavorite('tetrablox', false);         // unstar → { games }
 
 `setFavorite` needs a connection. Only registered games can be starred (404
 otherwise). The menu draws the star buttons, so most games never call these.
+
+## Labels and the home page
+
+List what kind of game yours is in `game.labels`, from a fixed vocabulary (the
+contract exports it as `GAME_LABELS`, display names in `GAME_LABEL_TITLES`):
+
+| Group | Labels |
+|---|---|
+| Genre | `cards` `board` `puzzle` `arcade` `platformer` `real-time-strategy` `physics` `typing` `word` `sports` `racing` |
+| Look | `2d` `3d` |
+| Plays on | `phone` (touch controls) `controller` (gamepad support) `desktop` (keyboard or mouse only) |
+| Players | `multiplayer` `single-player` |
+
+```json
+"game": { "type": "static", "serveDir": "dist", "labels": ["puzzle", "2d", "phone", "controller", "single-player"] }
+```
+
+An unknown label is a warning (`hub-doctor`, the host's boot log), never an
+error; the home page ignores it. The home page's filter bar offers every label at
+least one game uses: any label within a group matches, and every group picked
+must match (*Puzzle* or *Word*, and *Phone*).
+
+The home page (served by dg-host, scripted by `/_hub/home.js`):
+
+- **Cards**: plays, who is playing (a green person per signed-in player, a grey
+  one per guest, collapsed to `×N` above three; counts only), today's daily badge
+  (a green check when done, the wiggly star when not, nothing without dailies), a
+  top-left pill only when the game isn't live (*Offline*, *Updating* during a
+  deploy, *Starting* while its server restarts), and a "⋯" button.
+- **Game sheet** ("⋯"; full screen on phones, a slide-out on wider screens): *Play*
+  (play, star, "tell me when people want to play"), *Leaderboards*, *Daily* (the
+  menu's calendar), *Races* (the player's record) and *Stats*; tabs a game doesn't
+  support are hidden.
+- **Filter bar**: one line with a pill per active choice; it opens to sort (most
+  played, playing now, A–Z), *Starred*, *Daily to play* (today's challenge not done
+  yet), labels and authors. Saved in `localStorage` (`dg:catalog-filters`).
+- **Random**: jumps into a random game among those the filters show (any game that
+  is up when none match).
+- **Footer**: GitHub, About (what the site is and how it keeps kids safe) and the
+  parents' page.
+
+"Tell me when people want to play" is the `lobby_open` notification preference
+(claimed accounts only; at most one alert per game every `lobbyOpenCooldownMs`). It
+fires for a public lobby or race that waited `lobbyOpenDelayMs`, and for anything
+the hub passes to `notifyGameSubscribers(slug, opening)` (tournaments).
 
 ---
 
@@ -1021,10 +1182,14 @@ repo.
     `openInvite({userId?, mode?})`, `openSuggest()`, `openNotify({game?})`,
     `friends()`, `counts()`, `chatMode(userIds?)`, `on(ev, cb)`
   - `hub.mp.onLaunch(cb)`, `onJoinInfo(cb)`, `invite(userId, {mode?})`,
-    `setBusy(busy, {label?})`, `ticket()`, `setJoinInfo(partyId, info)`, `party()`
-  - `hub.rooms.create(opts)` / `join(codeOrId, {spectate?})` / `list({mode?})` →
-    a room handle with `ready/seat/start/send/setState/chat/quick/kick/leave/end`
-    and `on('room'|'msg'|'state'|'chat'|'kicked'|'closed'|'abandoned', cb)`
+    `setBusy(busy, {label?})`, `ticket()`, `setJoinInfo(partyId, info)`, `party()`,
+    `inviteLink()` / `revokeInviteLink(token)` (invite links, `docs/multiplayer.md` §7)
+  - `hub.rooms.create(opts)` / `join(codeOrId, {spectate?})` / `list({mode?})` /
+    `reclaim()` → a room handle with `seats()` and
+    `ready/seat/start/send/setState/chat/quick/kick/leave/end`, and
+    `on('room'|'msg'|'state'|'chat'|'seat'|'kicked'|'closed'|'abandoned', cb)`;
+    `seat` (`away`/`back`/`gone`) is how a game hands a dropped seat to its computer
+    player and back (`docs/multiplayer.md` §8, Resilience)
   - `hub.notify.setQuiet(quiet)`
   - `hub.race.define({start, end?, exit?, hud?})`, `create({params, public?})`, `join(code)`,
     `list()`, `browse()`, `openHistory()`, `history()`, `status(stats, progress?)`,
@@ -1227,6 +1392,8 @@ All under `/_api`. JSON in, JSON out; errors are `{ "error": "..." }` with a
 
 ### Catalog
 - `GET /games` → `{ games:[{slug,title,path,kind,hasImage,hubEnabled,multiplayer}] }` — `multiplayer` is `{transport,players,invites,join,spectate,modes:[{key,title}]}` or `null`
+- `GET /catalog/players` *(public)* → `{ games: { [slug]: {accounts, guests} } }`: how many have each game open right now (counts only, never who; games with nobody are absent; cached 5 s)
+- `GET /games/:slug/me/activity` (auth required) → `{plays, minutesPlayed, firstPlayedAt, lastPlayedAt, windowDays}`: the caller's own plays and visible minutes in the game, within the analytics retention window
 
 ### Favorites (auth required)
 - `GET /favorites` → `{ games:[slug] }` (oldest star first)
@@ -1278,10 +1445,23 @@ fields go through the filter and answer **422** `content_rejected` on refusal.
 ### Multiplayer (`handlers/mp.js`)
 - `POST /mp/invites` `{to, game, mode?}` → `{invite, launchToken, url}` (creates/reuses the inviter's party; 403 `cannot_invite`, 404 `not_multiplayer`, 400 `not_supported` / `bad_mode`, 409 `party_full` / `already_member`)
 - `POST /mp/invites/:id/accept` → `{launchToken, url}` · `POST /mp/invites/:id/decline` → `{ok}` · `DELETE /mp/invites/:id` → `{ok}` (cancel)
-- `GET  /mp/launch/:token` → `{launch:{kind:'host'|'guest'|'join'|'watch', game, mode?, partyId?, party?, joinInfo?, room?, host?, target?}}` (single use, 2 min; 404 `launch_invalid`)
+- `GET  /mp/launch/:token` → `{launch:{kind:'host'|'guest'|'join'|'watch', game, mode?, partyId?, party?, joinInfo?, room?, host?, target?, via?}}` (single use, 2 min; 404 `launch_invalid`)
 - `POST /mp/parties/:id/join-info` (leader) `{info:{k:v} (≤8 keys, values ≤64)}` → `{ok}` · `POST /mp/parties/:id/leave` → `{ok}`
 - `POST /mp/join` `{userId, watch?, fromLobbyOpen?}` → `{launchToken, url}` (from a friend's joinable/watchable presence; 409 `not_joinable`)
+- `POST /mp/links` `{game}` → `{token, url, game, mode?, room, createdBy, expiresAt}` (claimed; an invite link to the room I'm in, reused while it lives; 409 `not_in_room`, 429 `too_many_links`) · `GET /mp/links?game=` → `{links}` (mine, plus links to rooms I host) · `DELETE /mp/links/:token` → `{ok}` (creator or room host)
+- `POST /mp/links/:token/open` → `{launchToken, url}` (a `join` launch while a seat is free, else `watch`, with `via:'link'`; 404 `link_invalid` / `link_room_gone`, 409 `room_full`)
 - `POST /mp/ticket` `{slug}` → `{ticket, expiresAt}` (60 s identity ticket for that game's own server)
+
+### Tournaments (batch-2026-10 R15; game guide: `docs/multiplayer.md` §15)
+- `GET  /play-online` → `{counts:{now, invites, mine, upcoming}, lobbies, gameInvites, tournamentInvites, mine, upcoming}` (anyone; signed out: open tournaments only). The home page's **Play online** card and the menu's row show `counts`; the window lists the rest. `lobbies` are public lobbies and races waiting for a player (claimed hosts who show their presence, nobody across a block); join one with `POST /mp/join {userId, fromLobbyOpen:true}`.
+- `GET  /tournaments?game=` → `{tournaments}` (open ones plus mine, invited or followed; ended ones for 3 days) · `GET /tournaments/:id?key=` → the detail with `players` and the bracket's `matches` (404 `tournament_not_found` for a closed one not shared with me; `key` is a shared link's invite key)
+- `POST /tournaments` (*claimed*) `{games:[slug] (≤8), title? (≤48, content filter), pick?:'fixed'|'random-once'|'random-each', lives?:1|2|3, seeding?:'random'|'rank', visibility?:'open'|'closed', start?:{kind:'filled'}|{kind:'scheduled', at}, minPlayers?, maxPlayers? (2–64), readyMinutes? (1–60, default 10), invite?:[userId]}` → detail. The defaults are the quick public 1v1. 400 `not_supported` (a game without tournaments), 422 (title), 429 (5 a day, 3 open at once).
+- `POST /tournaments/:id/join` `{key?}` (guests too) → detail (starts a `filled` one with enough players; 409 `tournament_closed` / `tournament_full`, 403 `cannot_join` across a block) · `POST /tournaments/:id/leave` → detail (before the start the place is freed; after it the player is out)
+- `PUT /tournaments/:id/follow` (*claimed*) `{leadMinutes?}` → summary (reminder that long before a scheduled start) · `DELETE /tournaments/:id/follow` → `{ok}`
+- Creator: `POST /tournaments/:id/invites` `{userIds}` → `{invited}` (friends only) · `POST /tournaments/:id/start` · `DELETE /tournaments/:id` (cancel; admins too)
+- `POST /tournaments/:id/matches/:match/launch` → `{launchToken, url}`: a `host` launch for the better seed, `guest` for the other, sharing the match's party; the launch carries `tournament:{id, title, match, opponent}`. 409 `match_not_ready`.
+- Socket event `tournament` `{tournament}` (the recipient's own summary) on every change to a tournament they are attached to. Alerts are kind `tournament` (match ready, forfeit warning, "starts in N min", started, ended, invited): a toast with a visible tab, else Web Push for claimed accounts; links are `/?hub_tournament=<id>` (the runtime opens the sheet).
+- Limits (`HUB_LIMITS_JSON`): `tournamentsPerDay` (5), `tournamentsOpenMax` (3), `tournamentTickMs` (5000), `tournamentMatchMaxMs` (90 min), `tournamentMinuteMs` (60000; tests shorten it).
 
 Live traffic (presence, friends/DM/invite events, hub relay rooms `room.*`, party
 chat) is on the WebSocket **`/_ws`**: JSON envelopes `{t:'op', id, op, d}` →
@@ -1293,7 +1473,7 @@ chat) is on the WebSocket **`/_ws`**: JSON envelopes `{t:'op', id, op, d}` →
 Loopback only, no `x-forwarded-for`, headers `x-hub-app: <slug>` + `x-hub-key: <HUB_APP_KEY>`.
 Anything else gets a 404. Use `hub-server.mjs` rather than calling these by hand.
 - `POST /internal/chat` `{userId, text?|quick?, members:[userId], context?}` → `{ok:true, text, quick?, softened?}` or `{ok:false, err}` (never a 422)
-- `POST /internal/results` `{room?, mode?, players:[{userId, place?, won?, stats?, scores?}]}` → `{ok}` (increments `online_games`/`online_wins` + `stats`; `scores` go to `source:"server"` boards only; ≤16 players)
+- `POST /internal/results` `{room?, mode?, players:[{userId, place?, won?, stats?, scores?}], tournament?:{id, match}}` → `{ok}` (increments `online_games`/`online_wins` + `stats`; `scores` go to `source:"server"` boards only; ≤16 players; with `tournament`, decides that ready match when both its players are named and exactly one `won`)
 - `POST /internal/recent` `{userIds}` → `{ok}`
 
 ### Admin (role `admin` only)
@@ -1380,6 +1560,14 @@ game is hosted; the path-segment fallback only kicks in if it's absent.
 ---
 
 ## Changelog
+
+- **2026-10-09** — **Offline and replay.** Writes made offline go into a typed
+  outbox and replay in order, exactly once on the hub (operation keys,
+  deduped for 7 days), across reloads, one tab at a time. Daily completions,
+  inventory grants and exchanges, and stars now queue offline too. Games queue
+  their own operations with `hub.offline.define` / `enqueue` / `pending` /
+  `on`. The menu shows "N changes waiting to sync". See
+  [Offline and replay](#offline-and-replay). npm client only (next prerelease).
 
 - **2026-10-08** — **Touch control layout.** The auto layout is width-aware and
   collision-free: on narrow portrait phones buttons stack in rows above the

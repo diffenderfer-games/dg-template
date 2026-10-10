@@ -31,6 +31,9 @@ does all of that. Your game only:
   emotes. The hub decides; your UI follows `room.info.chatMode` / `hub.social.chatMode()`.
 - **Register `hub.mp.onLaunch` at boot** (within 8 s) if your game has `game.multiplayer`.
 - **Call `hub.mp.setBusy(true)` during a live online match**, and `false` after it.
+- **Leaving never ends the match while a human remains.** When a seat goes `away`, your
+  computer player takes it (or it waits out the grace); on `back` the player has control
+  again ([Resilience](#resilience-away-back-gone)).
 - **Online games ship with the required hub test scenarios** ([Testing](#12-testing-required)).
 - **Single-player games can race** with no netcode: declare `game.race`, put a Race button on the menu,
   and build the puzzle from the shared seed ([Races](#14-races-single-player-games-go-multiplayer)).
@@ -65,6 +68,7 @@ loaded, and when it never loads (offline, `hub: false`, local `vite dev`). See
 12. [Testing (required)](#12-testing-required)
 13. [Definition of done](#13-definition-of-done)
 14. [Races (single-player games go multiplayer)](#14-races-single-player-games-go-multiplayer)
+15. [Tournaments](#15-tournaments)
 
 ---
 
@@ -132,6 +136,7 @@ target: the catalog shows an **Online** tag, and the invite picker lists the gam
     "invites": true,               // appear in the invite picker (default true)
     "join": true,                  // friends may Join from your presence (default true)
     "spectate": false,             // friends may Watch (default false)
+    "tournaments": false,          // plays tournament matches and reports the winner (§15)
     "modes": [{ "key": "ranked", "title": "Ranked", "players": [2, 2] }],   // optional
     "quickChat": ["Nice move!", "Your turn"],                               // optional extra phrases
     "chatAllow": ["shot"]                                                   // optional soften exceptions
@@ -148,6 +153,7 @@ target: the catalog shows an **Online** tag, and the invite picker lists the gam
 | `join` | `true` | Friends see **Join** when your presence says `joinable`. |
 | `spectate` | `false` | Friends see **Watch** when your presence says `watchable`, and `rooms.join(code, {spectate:true})` is allowed (≤20 spectators). |
 | `quickMatch` | `false` | Reserved (quick match isn't built yet). |
+| `tournaments` | `false` | Tournaments can be played in this game: it plays a 1v1 match from a `host`/`guest` launch and reports the winner (§15). Race games don't need it. |
 | `modes` | `[]` | ≤16 entries: `key` matches `[A-Za-z0-9_-]{1,32}`, `title` ≤40 chars, optional `players`. Invites and rooms may name a `mode`; an undeclared mode is `bad_mode`. |
 | `quickChat` | `[]` | ≤24 phrases, each ≤40 chars. Each is checked once at load (surface `quick_phrase`, **no softening**), and a phrase that fails is dropped with a warning in the host log. Ids are `g:<slug>:<index>` (the index in **your** array). |
 | `chatAllow` | `[]` | ≤20 single lowercase words from the hub's **soften list** that your rooms' chat may keep unchanged (e.g. `"shot"` for a pool game). Applies only to your rooms' chat and your server's `hub.chat()`, never to DMs. Words that aren't soften-list entries are dropped at load. You can never allow a reject-list word. |
@@ -287,7 +293,8 @@ interface Launch {
   partyId?: string; party?: Party; joinInfo?: Record<string, string> | null;  // invites
   room?: string;                                                              // join / watch
   host?: PlayerLite;     // guest: who invited you
-  target?: PlayerLite;   // join / watch: whose room
+  target?: PlayerLite;   // join / watch: whose room (or who made the invite link)
+  via?: 'link' | 'rejoin'; // join / watch: opened from an invite link, or taking back a held seat
 }
 ```
 
@@ -297,6 +304,9 @@ interface Launch {
 | `guest` | I **accepted** an invite | Show the lobby. Join `joinInfo` if it's already there, otherwise wait for `hub.mp.onJoinInfo`. |
 | `join` | I tapped **Join** on a friend, or a `lobby_open` notification | Join `launch.room`. |
 | `watch` | I tapped **Watch** | Join `launch.room` as a spectator. |
+| `join`, `via: 'link'` | I opened an **invite link** and a seat was free | Join `launch.room` (the same code path as Join). |
+| `watch`, `via: 'link'` | I opened an invite link to a full or started game | Join `launch.room` as a spectator. |
+| `join`, `via: 'rejoin'` | I **reopened** your game while still holding a seat (reload, closed tab, the hub's Rejoin toast) | Join `launch.room`: the hub hands the seat back. |
 
 **How players arrive:**
 - **From another game or the catalog,** the hub navigates to `/<slug>/<lobby>` with a
@@ -304,6 +314,13 @@ interface Launch {
   redeems it and fires `onLaunch`.
 - **Already in your game,** the launch fires **in place** with no reload. Your
   handler must cope with being in a menu, a lobby or an existing room.
+- **From an invite link** (`/<slug>/<lobby>?hub_link=<token>`), the runtime opens the
+  link (`POST /mp/links/:token/open`), strips it from the URL and fires a `join` or
+  `watch` launch with `via: 'link'`. A dead link shows "That invite link has expired."
+  (or "That game has ended.", or that it's full) and fires no launch.
+- **Back after a reload or a closed tab,** the hub sees the seat the player still holds
+  in this game and fires a `join` launch with `via: 'rejoin'`. On any other page it
+  shows a "Your *game* game is still on" toast with **Rejoin**.
 
 **Rules:**
 
@@ -355,11 +372,35 @@ and [own server §9](#client-side-own-server).
   and empty or 2-hour-idle parties dissolve.
 - **Join info:** the party leader publishes where to connect with
   `hub.mp.setJoinInfo(partyId, { room: code })` (≤8 keys, values ≤64 chars). Every member
-  gets `hub.mp.onJoinInfo({partyId, info})`. **Hub-rooms games get this for free:**
+  on the party's game page gets `hub.mp.onJoinInfo({partyId, info})` (other games' pages
+  don't: the info is where to connect in that game). **Hub-rooms games get this for free:**
   `hub.rooms.create({ partyId })` from the leader sets `{room: code}` automatically.
 - **"Play again"** keeps the party: create a new room with the same `partyId` (or
   `setJoinInfo` with the new code), and members follow `onJoinInfo`.
-- Guests can't invite or be invited. They join by room code or public list.
+- Guests can't invite or be invited. They join by room code, public list or an invite link.
+
+### Invite links
+
+Any player in a room can share a link that drops whoever opens it into that room:
+as a player while a seat is free (lobby), otherwise as a spectator.
+
+- **The hub UI does it for you:** `hub.social.openInvite()` shows an **Invite link**
+  section (Create, Copy, Share, Revoke) when the player is in a room of this game.
+- **Your own button:** `const { url, token, expiresAt } = await hub.mp.inviteLink();`
+  (absolute `url`, reused while it lives) and `await hub.mp.revokeInviteLink(token)`.
+  Rejects with `HubError`: `not_in_room` (open a room first), `too_many_links` (10 live
+  links per account), `rate_limited`, `claim_required` (guests can't make links).
+- **Which room:** a hub room is the seat the player holds; an own-server game's is the
+  `room` its presence reports. Report it honestly with `joinable` / `watchable`: the
+  opener joins when `joinable`, watches when `watchable`, and is told it's full otherwise.
+- **Nothing new to handle:** openers arrive as ordinary `join` / `watch` launches with
+  `via: 'link'` and `target` = the link's creator.
+- **Safety:** links expire after 24 h; the creator or the room's host can revoke them;
+  a block between the opener and the creator (or anyone seated) reads as an expired
+  link; openers get the room's usual chat rules (quick-chat unless everyone is a mutual
+  friend) and are **never** auto-friended. The /parents page explains links.
+- **REST:** `POST /mp/links {game}`, `GET /mp/links?game=`, `DELETE /mp/links/:token`,
+  `POST /mp/links/:token/open` (a launch ticket).
 
 ---
 
@@ -373,7 +414,7 @@ your game.
 
 ```ts
 // create / join / list
-const room = await hub.rooms.create({ mode?, public?: false, maxPlayers?, model?: 'host', partyId? });
+const room = await hub.rooms.create({ mode?, public?: false, maxPlayers?, model?: 'host', hostMigration?: 'grace', partyId? });
 const room = await hub.rooms.join(codeOrId, { spectate?: false });   // 5-char code like 'K7QPA', or room.info.id
 const rooms: RoomInfo[] = await hub.rooms.list({ mode? });           // public rooms in the lobby phase, this game
 
@@ -387,10 +428,13 @@ room.on('room', (info: RoomInfo) => …)               // roster / ready / phase
 room.on('state', (state) => …)                       // shared state changed (the full merged object)
 room.on('msg', ({ from, data, seq, to }) => …)       // a relayed game message (`to` set when addressed to one seat)
 room.on('chat', ({ from, text, quick }) => …)        // a moderated chat line (yours too)
-room.on('abandoned', ({ userId, reason }) => …)      // a seat's grace ran out mid-match
+room.on('seat', ({ userId, status, graceEndsAt, reason }) => …) // 'away' | 'back' | 'gone' (see Resilience)
+room.on('abandoned', ({ userId, reason }) => …)      // a seat's grace ran out mid-match (also seat 'gone')
 room.on('kicked', ({ roomId }) => …)                 // you were kicked (banned for the room's lifetime)
 room.on('ended', ({ room, results }) => …)           // once: the host ended the match; results = what it passed to end()
-room.on('closed', ({ reason }) => …)                 // 'empty'|'ended'|'host_left'|'other_tab'|'moved'|'removed'|'gone'
+room.on('closed', ({ reason }) => …)                 // 'empty'|'ended'|'other_tab'|'moved'|'removed'|'gone' ('host_left' no longer happens)
+room.seats()                                         // RoomSeat[]: { userId, name, avatar, ready, connected, graceEndsAt?, data? }
+const held = await hub.rooms.reclaim();              // the seat I still hold in this game, taken back (or null)
 
 await room.ready(true);                  // lobby ready flag
 await room.seat({ color: 'teal' });      // your seat's data (≤2 KB, game data only, never player text)
@@ -437,22 +481,25 @@ unaddressed messages and state only, and can't send.
 
 ### Lobby, reconnect, spectators, ending
 
-- **Lobby:** seats are `{userId, name, avatar, ready, connected, data?}`. The host
-  migrates to the longest-seated player if the host leaves **before** start. If the host
-  leaves **while playing**, the room closes with `host_left`.
+- **Lobby:** seats are `{userId, name, avatar, ready, connected, graceEndsAt?, data?}`.
+  The host role passes to the longest-seated connected player once the host's seat is
+  freed (they left, or their grace ran out). With `hub.rooms.create({ hostMigration: 'drop' })`
+  it passes as soon as the host drops mid-match (for games whose whole truth is in
+  `setState`). A room never closes because its host left.
 - **Socket drops** (wifi blip, laptop sleep) are handled for you: the runtime
   reconnects and re-joins, your seat is reclaimed and you get current state plus the
-  messages you missed. The seat shows `connected: false` meanwhile, and is held **30 s
-  while playing** and **10 s in the lobby**. If the seat can't be reclaimed (the grace
-  ran out, the room closed, or the host restarted), the room fires `closed` with reason
-  `gone`.
-- **Page reloads are yours to handle:** the room isn't re-adopted automatically. Keep
-  the code in `sessionStorage` and call `hub.rooms.join(code)` at boot. Your seat is
-  keyed by user id, so any tab or device reclaims it. A second tab taking the seat
-  closes the first with `other_tab`.
+  messages you missed. The seat shows `connected: false` (with `graceEndsAt`) meanwhile,
+  and is held **3 minutes while playing** and **10 s in the lobby**. If the seat can't
+  be reclaimed (the grace ran out, the room closed, or the host restarted), the room
+  fires `closed` with reason `gone`.
+- **Page reloads and closed tabs:** the hub hands the seat back with a `join` launch
+  (`via: 'rejoin'`), so a game that handles Join needs nothing else.
+  `hub.rooms.reclaim()` does the same on demand. Your seat is keyed by user id, so any
+  tab or device reclaims it. A second tab taking the seat closes the first with
+  `other_tab`.
 - **Abandoned:** when a dropped seat's grace runs out mid-match (or a player leaves or
-  is kicked), everyone gets `abandoned {userId}`. The host decides: an AI takes the seat
-  (preferred), or the player forfeits.
+  is kicked), everyone gets `abandoned {userId}` and `seat` `gone`. The match goes on:
+  the computer keeps the seat (preferred), or the seat forfeits.
 - **Empty rooms** close after 2 minutes, and **ended rooms** 2 minutes after `end()`.
 - **Spectators** (`multiplayer.spectate`) get state and broadcasts, can't chat or send,
   and are capped at 20.
@@ -465,6 +512,47 @@ unaddressed messages and state only, and can't send.
   single-player).
 - **Limits:** 8 seats, 30 msgs/s per seat, 8 KB per message, 32 KB state, 200 open rooms
   per game. Guests may create and join rooms.
+
+### Resilience: away, back, gone
+
+"If someone leaves, the game doesn't end, and they can come back and take control
+from the computer." The hub keeps the room going; your game keeps the seat playing.
+
+| `seat` event | When | What your game does |
+|---|---|---|
+| `away` (`graceEndsAt`) | The player dropped (closed the tab, lost wifi, reloaded) mid-match | The **host** hands the seat to its computer player. No AI? Skip their turns until `back` or `gone` (show "waiting for …"). |
+| `back` | They reclaimed the seat (any tab or device) | Stop the computer for that seat; the player controls it again from the current state. |
+| `gone` (`reason`) | They left, were kicked, or the grace ran out | The computer keeps the seat for the rest of the match (or the seat forfeits). Never end the match while a human remains. |
+
+Rules:
+
+1. **Pick your host migration.** By default (`grace`) a dropped host stays host for the
+   grace (the match waits for their turns, like any away seat with no AI) and the role
+   moves once their seat is freed. If your whole truth is in `setState`, create rooms
+   with `hostMigration: 'drop'` so another player hosts at once (`room.info.hostId`, in a
+   `room` event before the `seat` event). Either way the new host must carry on: from
+   `room.state`, or from a private backup the host keeps sending to the next host
+   (`send(backup, { to })`), never by ending the match.
+2. **Whoever hosts runs the bots.** On every `room` event re-check `room.me.host`;
+   seats with `connected: false` (or that went `gone`) are the host's to play.
+3. **`back` restores control exactly where the game is**: don't reset the seat; the
+   returning player gets the current state with the join.
+4. **Reopen = rejoin:** handle `join` launches (you already do, for Join) and the
+   returning player lands back in their seat.
+5. **Own-server games** do the same on their server: hold a dropped player's seat for
+   the grace (3 min), let the server's AI play it, give it back when the same user id
+   reconnects (their ticket says who they are), and never end a match while a human is
+   connected. Report the room in presence so invite links can find it.
+
+```ts
+room.on('seat', ({ userId, status }) => {
+  if (status === 'away' || status === 'gone') bots.take(userId);  // only the host acts on it
+  if (status === 'back') bots.release(userId);
+});
+room.on('room', (info) => { if (room.me.host) bots.adoptAll(info.seats.filter((s) => !s.connected)); });
+```
+
+`apps-test/mpdemo` is the reference: its host "clicks" for away seats.
 
 ### Skeleton: host-authoritative hub-room game
 
@@ -965,6 +1053,14 @@ need scenario 5 (pausing).
    seat is held and reclaimed with current state.
 8. **Suspended player** can't create, join or see the room, and the game shows a
    friendly message and stays playable offline.
+9. **Resilience:** mid-match, close B's tab. A gets `seat` `away`; the computer plays
+   B's seat (or the seat waits, for games without AI) and the match does **not** end.
+   B reopens the game: B is back in the same room and seat (`via: 'rejoin'`), A gets
+   `back`, the computer stops and B's input counts again. Repeat with the **host**
+   dropping: the host role moves and the match goes on.
+10. **Invite link:** A makes a link (the hub's invite dialog or `hub.mp.inviteLink()`);
+    C (not a friend) opens it and takes the free seat; once started, D opens it and
+    watches; the room is quick-chat only; after A revokes it, opening it says it expired.
 
 Game-specific scenarios go on top (spectator joins mid-round, AI takeover after
 `abandoned`, results reach a server-source board, …).
@@ -1166,12 +1262,13 @@ Online games, additionally:
       delivered text only; rejections keep the draft and show `hint`; softened text shows the
       ✨ hint; `chatMode` drives text box vs chips vs hidden.
 - [ ] No player-typed text crosses `send` / `setState` / your socket.
-- [ ] Reconnect: socket drops and reloads reclaim the seat; `abandoned` is handled
-      (AI or forfeit).
+- [ ] Resilience: leaving never ends a match while a human remains; `seat` `away` hands the
+      seat to the computer (or it waits), `back` gives control back; reloads rejoin through a
+      `join` launch; a new host carries on from `room.state`.
 - [ ] Suspended / guest / offline players get a friendly message, never a crash.
 - [ ] Own-server: tickets verified on the server (fresh ticket per connect); results via
       `hub.results()`; competitive boards are `"source": "server"`.
-- [ ] `tests/hub/` covers the 8 required scenarios and passes against `startHost`.
+- [ ] `tests/hub/` covers the 10 required scenarios and passes against `startHost`.
 
 ---
 
@@ -1327,4 +1424,73 @@ show as a colour swatch in the HUD and on the result card.
 - [ ] Input locked until `startAt`, and after `end`.
 - [ ] Works on a 390 px phone with the HUD showing (leave room at the top, or pick another `hud.place`).
 - [ ] A `tests/hub/` race scenario (two players race; give up → the other wins).
+
+---
+
+## 15. Tournaments
+
+Players start tournaments from **Play online** (the home page card, the menu's row,
+or `hub.social.openPlayOnline()`): a bracket of 1v1 matches in one game, or a random
+game from a set (once, or per match). Single elimination, or double/triple
+elimination with **redemption brackets** for players who have lost; seeded at random
+or by wins in those games; started at a set time or as soon as enough players sign
+up; **open** (listed on the site, anyone signs up, guests too) or **closed** (seen
+only by invited friends and holders of the creator's link). The quickest is two taps:
+**Quick 1v1** → pick a game → a public 1v1, single elimination, listed for anyone.
+
+A match that is ready must be played within its window (default 10 minutes): the
+absent player is warned shortly before the deadline, then forfeits to the one who has
+the game open; if neither turned up, the better seed goes through. A match that started
+(or with both players there) runs until its result, or 90 minutes, after which the
+better seed goes through. Players who have blocked each other never meet.
+
+### 15.1 Which games
+
+| Game | What it must do |
+|---|---|
+| **Race games** (`game.race` for two racers) | Nothing. A match is a race the hub referees, from an ordinary race launch (`mode: 'race'`). |
+| **Hub-room and own-server games** | Declare `"tournaments": true` in `game.multiplayer` (players must include 2, invites on), play the match from the launch below, and report the winner. |
+
+### 15.2 The match launch
+
+A ready match is the same as the better seed inviting the other player: the better
+seed gets a **`host`** launch and the other a **`guest`** launch, sharing a two-player
+party the hub forms for the match. Your existing invite handling (§6, §7) already
+plays it: the host creates the room with `partyId` (hub rooms share it with the
+party), the guest joins via `joinInfo`. The launch also carries:
+
+```ts
+launch.tournament = { id: number; title: string; match: string; opponent: PlayerLite | null };
+```
+
+Show it if you like ("Saturday Cup: your match against Sam"). A tournament match is
+**one game**: don't offer "Play again" in its room, and when you leave a finished match
+room before the next match's launch, open a new room for it (the old one has ended).
+
+### 15.3 Reporting the winner
+
+- **Hub rooms:** the room's host ends the match with the winner's hub user id as soon
+  as the game is over: `room.end({ ...yourResults, winnerId })`. Only a `winnerId` of
+  one of the two players counts; no `winnerId` (a draw, or a computer player won)
+  leaves the match to the clock, which then settles it for the better seed.
+- **Own-server games:** your server posts its trusted result with the launch's
+  tournament: `hubServer.results({ players: [{ userId, won: true }, { userId }], tournament: { id, match } })`
+  (the `hub-server.mjs` SDK; `POST /internal/results`). The client passes
+  `launch.tournament` on to your server with the room it joins. Both players must be named and exactly one must have won.
+- **Races:** nothing to do.
+
+Reference: `apps-test/mpdemo` (the most clicks wins; `room.end({ count, winnerId })`),
+and Clue (`src/online/match-result.ts`).
+
+**Trust.** As with races, a hub room's result comes from its host's browser; the hub
+checks that the winner is one of the match's players and decides each match once.
+Own-server results are trusted (your server saw the game); race results are refereed
+by the hub.
+
+### 15.4 Testing
+
+`HUB_LIMITS_JSON: '{"tournamentMinuteMs":1000}'` makes every tournament "minute"
+(ready windows, warnings, reminders) last a second. The hub's
+`test/e2e/tournaments.test.mjs` creates a quick 1v1 from the home page, signs a guest
+up, plays the match in MP Demo, and lets a ready window run out.
 
