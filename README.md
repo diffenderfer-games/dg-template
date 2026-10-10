@@ -61,7 +61,8 @@ npm run build    # produces dist/  (what the catalog serves)
 index.html            Vite entry
 vite.config.ts        base:'./' (required — games mount under /<slug>/)
 package.json          the `game` block the catalog reads (incl. `changes`: the
-                      player-facing "What's new" list; add a line per visible change)
+                      player-facing "What's new" list; add a line per visible change,
+                      and `labels`: tags for the catalog filter, see below)
 src/
   main.ts             starter game — Pixi + hub input + saves + leaderboard + daily
 scripts/sync-docs.mjs re-copies the three docs below from ../diffenderfer-games
@@ -80,6 +81,13 @@ it reads `CLAUDE.md`. Or do it yourself: rewrite `src/main.ts`, set your
 `import { hub } from '@diffenderfer-games/hub'` for online features and input. See `CLAUDE.md`
 and `docs/hub.md`. Online games (invites, rooms, chat) follow
 `docs/multiplayer.md`.
+
+Set `game.labels` so players can find the game with the catalog's filter. Use
+only these, chosen from what the code really does: a genre (`cards`, `board`,
+`puzzle`, `arcade`, `platformer`, `real-time-strategy`, `physics`, `typing`,
+`word`, `sports`, `racing`), `2d` or `3d`, `phone` (touch or on-screen controls
+and a phone layout), `controller` (gamepad bindings), `desktop` (only if it
+needs a keyboard or mouse), and `single-player` and/or `multiplayer`.
 
 ## Updating the hub client
 

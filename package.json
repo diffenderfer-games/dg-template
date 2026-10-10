@@ -17,6 +17,7 @@
     "type": "static",
     "title": "My Game",
     "description": "Describe your game here — shows on the catalog card.",
+    "labels": ["arcade", "2d", "phone", "controller", "single-player"],
     "build": "npm run build",
     "serveDir": "dist",
     "menuPosition": "top-right",
