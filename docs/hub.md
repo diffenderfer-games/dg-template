@@ -736,6 +736,35 @@ groups: { menu: {
 }}
 ```
 
+### Focus rings
+
+The input system shows focus only to keyboard and gamepad players. It records
+the last input on `<html>` as `data-hub-input`: `keys` (a key or a gamepad),
+`pointer` (a mouse or pen) or `touch` (a finger; also the starting value on
+touch screens). Typing in a text field and lone modifier keys don't count, so
+an on-screen keyboard never switches it to `keys`.
+
+- The navigation highlight (navigable groups, `autoNavigate`, the hub menu) and
+  the catalog's `gp-focus` tile highlight show only while it is `keys`.
+- While it is `touch`, buttons and links show no focus outline, the browser's
+  own ring included.
+- The ring is a two-tone `box-shadow` (a dark gap, then a light ring) that
+  follows the element's own `border-radius`, so it reads on light and dark
+  buttons. Tune it with CSS variables on your page:
+
+  | Variable | Default | What |
+  |---|---|---|
+  | `--hub-focus-color` | `#fff` | the ring |
+  | `--hub-focus-inner` | `rgba(13, 15, 20, 0.85)` | the gap between the element and the ring |
+  | `--hub-focus-width` | `3px` | the ring's width |
+  | `--hub-focus-gap` | `2px` | the gap's width |
+
+A game with its own focus style can key it off the same attribute, for example
+`html[data-hub-input="keys"] .my-btn:focus { … }`, or keep `:focus-visible` and
+drop it on touch screens with `@media (hover: none) and (pointer: coarse)`.
+`FOCUS_RING_SHADOW` (from `@diffenderfer-games/hub/input`) is the ring as a
+`box-shadow` value.
+
 ### Remapping & persistence
 
 Players open **Controls** in the hub menu to rebind any input (capture the next
