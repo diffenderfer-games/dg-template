@@ -32,7 +32,7 @@
     "changes": []
   },
   "dependencies": {
-    "@diffenderfer-games/hub": "2.0.0-next.4",
+    "@diffenderfer-games/hub": "2.0.0-next.5",
     "pixi.js": "^8.6.0"
   },
   "devDependencies": {
