@@ -271,7 +271,7 @@ promise.
 | `hub.getProfile()` | This game's profile for the current user. |
 | `hub.setProfile({ displayName?, data? })` | Update it (`data` is arbitrary JSON). |
 | `hub.listSaves()` | Slot metadata (no payloads). |
-| `hub.getSave(slot)` | `{ save }` — one slot's data, or `save: null`. |
+| `hub.getSave(slot)` | `{ save }` — one slot's data, or `save: null`. Offline it rejects with code `save_unknown` when this device has never seen the hub's copy of the slot (see [Saves offline](#saves-offline)). |
 | `hub.putSave(slot, data, label?)` | Create/overwrite a save slot. |
 | `hub.deleteSave(slot)` | Delete a slot. |
 | `hub.getStats(userId?)` | Stats map; omit `userId` for your own. |
@@ -423,6 +423,22 @@ when it is back. Each queued operation has a **kind**; the kind's handler
 performs it, and may make several dependent calls (a later call can use an
 earlier one's reply), so a chain of calls is one operation.
 
+### Saves offline
+
+The client notes, per game and player, what it last saw of each save slot
+on the hub: from the snapshot `prefetchAll()` loads (it lists every slot),
+from an online `getSave`, and from each write that lands. Offline,
+`getSave(slot)` answers from the device's copy only when it knows the hub's
+copy of that slot, when the device wrote the slot itself and the write is
+still queued, or when the player is the local offline user. Otherwise (a
+fresh device or a cleared browser that hasn't reached the hub yet) it
+**rejects** with a `HubError` whose `code` is `save_unknown` (exported as
+`SAVE_UNKNOWN_CODE`; `isOffline` is `true`) instead of answering
+`save: null`, so a game never mistakes "not loaded" for "no save" and starts
+over on top of the player's real progress. Treat it like any failed pull:
+keep your local state and don't push it up as if it were the cloud copy.
+Queued writes are then checked by the hub when they replay (`base`, above).
+
 ### What replays
 
 The hub registers a kind for everything it can safely replay. Each is one
@@ -441,6 +457,13 @@ client's route table carries them as `offline: 'replay'`.
 | `setFavorite` | `hub.favorite` | `setGameFavorite` | last star or unstar of a game wins |
 | `hub.resume.save`, `hub.resume.clear` | `hub.resume` | `saveResumeSlot`, `clearResumeSlot` | one slot per game: the newest save or clear replaces the waiting one |
 
+- **Saves:** a `putSave` replayed from the queue carries the slot's
+  `updatedAt` on the hub as this device last saw it (`base`, `null` when it
+  saw no save or never saw the slot). When another device has saved that
+  slot since, the hub refuses it with 409 `save_conflict`: the op is dropped,
+  fires `failed` and appears in the `hub:sync` conflicts, and the hub's copy
+  is kept. A write sent at once while online carries no `base` and always
+  lands, as before. See [Saves offline](#saves-offline).
 - **Daily:** a day must be *started* online (it needs the hub's signed
   token), but it can be *completed* offline: `hub.daily.complete()` then
   resolves `null`, fires `hub:daily-queued`, and `hub:daily-complete` follows
@@ -1019,7 +1042,8 @@ restores at once, without asking.
 
 **One slot per player per game; the latest save wins.** It is private: only
 the player who saved it ever sees it (guests too; a guest's runs move into
-their account when they sign in, keeping the newer run per game). Runs nobody
+their account when they log in, unless the account already has a run in
+that game: the account's run is kept). Runs nobody
 touches for **60 days** are deleted, and the menu's **Reset game** deletes
 that game's run too.
 
@@ -1550,10 +1574,14 @@ A guest **isn't a different kind of record** — it's a normal user row. So
   logged-out UI shows the guest name and a "Create account" form that calls this.
 - `hub.login(username, password)` — for a returning player on a new device.
   If they're currently a guest, the server **folds that guest's progress into
-  the account** (saves/profile keep the most recent; stats keep the larger
-  value; leaderboard entries keep the better score) and deletes the guest, so
-  nothing on the device is stranded. The menu reloads after login so each game
-  re-pulls the merged save.
+  the account** and deletes the guest, so nothing on the device is stranded.
+  **The account's own data always wins:** a guest's save slot, profile, resume
+  run or daily day moves only where the account has none; `incrStat` totals
+  add up, `maxStat` bests and leaderboard entries keep the better, `setStat`
+  values stay the account's; coins and items add up; settings stay the
+  account's. The menu reloads after login so each game re-pulls the account's
+  save. (`hub.signup` while a guest works like `claim`: the guest becomes the
+  new account, progress and all.)
 
 `me()` returns `user.guest: true|false` so you can tell them apart. Caveat:
 a guest is tied to the browser cookie — clearing cookies loses an *unclaimed*
@@ -1583,7 +1611,7 @@ All under `/_api`. JSON in, JSON out; errors are `{ "error": "..." }` with a
 ### Auth
 - `POST /auth/guest` (no body) → `{user}` (+ session cookie) — idempotent; mints a guest if none
 - `POST /auth/claim` `{username,password}` → `{user}` — register the current guest (must be a guest)
-- `POST /auth/signup` `{username,password}` → `{user}` (+ session cookie)
+- `POST /auth/signup` `{username,password}` → `{user}` (+ session cookie; a current guest becomes the account)
 - `POST /auth/login` `{username,password}` → `{user}` (+ session cookie; merges a guest if one is active)
 - `POST /auth/logout` → `{ok}`
 - `GET  /me` → `{ user|null, profiles:[{game,displayName}] }` (`user.guest` flags an unclaimed guest)
@@ -1814,6 +1842,14 @@ game is hosted; the path-segment fallback only kicks in if it's absent.
 ---
 
 ## Changelog
+
+- **2026-10-11** — **Saves offline.** Offline, `getSave` rejects with
+  `save_unknown` when the device has never seen the hub's copy of the slot,
+  instead of answering `save: null`; a save write replayed from the offline
+  queue carries `base` (the hub's `updatedAt` it was built on) and the hub
+  refuses it with 409 `save_conflict` when the slot changed since. Logging
+  in from a guest now keeps the account's saves. See
+  [Saves offline](#saves-offline). npm client only (next prerelease).
 
 - **2026-10-09** — **Offline and replay.** Writes made offline go into a typed
   outbox and replay in order, exactly once on the hub (operation keys,
