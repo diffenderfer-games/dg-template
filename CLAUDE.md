@@ -169,6 +169,33 @@ prefer — the hub's input/menu overlays work over both.
 When hosted, the hub also makes your game **installable + offline** (service
 worker + manifest) automatically; nothing to add.
 
+## Checking your work: screenshots (keep the scripts)
+
+Look at the game, don't guess. The template ships two screenshot scripts; **keep
+them in your game and grow them** (a step per screen or flow) so every later
+change can be checked the same way, and don't delete them when you're done.
+
+- `node scripts/shots.mjs [desk|phone]`: builds nothing; run `npm run build`
+  first. Serves `dist/` under `/<slug>/` itself and screenshots desktop
+  (1280×800) and phone (390×844) sizes into `shots/` (git-ignored).
+- `node scripts/shots-hub.mjs <url>`: the same against a local
+  diffenderfer.games (`npm run local` in `../diffenderfer-games/next`) for hub
+  flows: the menu, daily, races, two players in separate browser contexts.
+- Add a test hook on `window` (state, "solve now", "move") so scripts can
+  drive the game quickly. The hub tests in `tests/hub/` can use it too.
+
+**Find a free port first.** This machine usually has many dev servers running,
+other games' and other sessions'. A busy port can mean your browser quietly
+loads a *different game* (a stale `vite preview` answers instead of yours).
+- `shots.mjs` listens on port 0, so the OS picks a free one. Do the same in
+  new scripts.
+- Before `npm run local -- --port N`, run `node scripts/shots-hub.mjs --free-port`.
+  It prints a port whose neighbours are free too, because `npm run local` uses
+  a few next to it.
+- For `vite preview` / `vite dev` on a fixed port, add `--strictPort` and
+  check the output: it fails instead of moving to another port. Stop the
+  servers you started when you're done.
+
 ## Definition of done
 
 - `npm run build` succeeds; `dist/index.html` references `./assets/...` (relative).

@@ -53,6 +53,7 @@ so it runs on no runner at all. A game made from it is private and uses the org 
 npm install
 npm run dev      # play the starter ("collect the coins")
 npm run build    # produces dist/  (what the catalog serves)
+node scripts/shots.mjs   # screenshots of dist/ (desktop + phone) into shots/; see CLAUDE.md
 ```
 
 ## What's here
