@@ -30,6 +30,9 @@ online or not, should pause when hub UI opens. See
   await hub.putSave('auto', { level: 7, gold: 120 });
   const { save } = await hub.getSave('auto');
 
+  // A long single-player run the player can resume from the home page (game.resumable: true).
+  hub.resume.save({ state: { level: 7 }, progress: { label: 'Level 7 of 30', fraction: 7 / 30 } });
+
   // Submit a score — the board is created on first use.
   await hub.submitScore('highscore', 9001, { title: 'High Score' });
   const { entries } = await hub.getLeaderboard('highscore');
@@ -436,6 +439,7 @@ client's route table carries them as `offline: 'replay'`.
 | `hub.daily.complete` | `hub.daily` | `completeDailyChallenge` (+ `startDailyChallenge`) | never; a composite op, see below |
 | `grant`, `exchange`, `buy`, `sell` | `hub.grant`, `hub.exchange` | `grantInventoryItems`, `exchangeInventoryItems` | never: every grant counts |
 | `setFavorite` | `hub.favorite` | `setGameFavorite` | last star or unstar of a game wins |
+| `hub.resume.save`, `hub.resume.clear` | `hub.resume` | `saveResumeSlot`, `clearResumeSlot` | one slot per game: the newest save or clear replaces the waiting one |
 
 - **Daily:** a day must be *started* online (it needs the hub's signed
   token), but it can be *completed* offline: `hub.daily.complete()` then
@@ -891,6 +895,10 @@ hub:
 - shows a **calendar** in the injected menu (in a daily game) — today is a
   wiggly ★, past-incomplete days are plain ★, completed days are ✓; a **wiggly
   star** also rides the menu button while any day is open;
+- puts today's calendar badge on each daily game's row in the menu's game
+  list: tapping it starts today's challenge (in another game through its
+  `?daily=YYYY-MM-DD` deep link, in this game through `play`) and a toast
+  confirms it;
 - adds a cross-game **Daily** section to the home page (per-game day chips +
   a global standing);
 - auto-creates a per-game **"Daily Challenges"** leaderboard ranked by days
@@ -935,12 +943,21 @@ is the same challenge for everyone, because the seed is server-issued.
 | --- | --- |
 | `hub.daily.define({ play })` | Register the day-runner (once, at load). |
 | `hub.daily.active` | The in-progress `{ day, seed, token }`, or null. |
-| `hub.daily.complete(meta?)` | Record the active day with optional metadata. |
+| `hub.daily.complete(meta?)` | Record the active day with optional metadata. Ends the daily run at once (`active` is `null` straight away, whatever the hub answers). |
+| `hub.daily.cancel()` | The player left the daily unfinished (quit, picked another level, started a normal game): end the run without recording it. **Call it** whenever play leaves a daily without `complete`. |
 | `hub.daily.startAndPlay(day)` | Start a specific day (the menu calls this). |
 | `hub.daily.status()` | This game's 30-day window + your completion state. |
 | `hub.daily.all()` | Every daily game + the global standings (home hub). |
 
 Events: `hub:daily-started`, `hub:daily-complete`, `hub:daily-error`.
+
+A daily run lasts from `play` until `complete()` or `cancel()` (or the page
+unloads). The hub can't tell on its own that your game went back to normal
+play, so while `hub.daily.active` is set, other features treat the page as in
+a daily: `hub.resume.save` saves nothing (`blockedBy: 'daily'`, with one
+console warning). If the player can leave a daily any other way than winning
+it, call `hub.daily.cancel()` on that path (a level select, "Free play", a
+new game, quitting to the title).
 
 ---
 
@@ -985,6 +1002,164 @@ menu (`e.detail.user` is the user or `null`). Games that have their own local
 persistence should construct a **cloud-only** client so failures just fall
 through to local rather than to the SDK's own localStorage:
 `new Hub({ offline: 'never' })` and wrap calls in try/catch.
+
+---
+
+## Resume saved games (`hub.resume`)
+
+A long single-player run (a solitaire deal, level 12 of a climb, a skirmish
+against the computer) can be picked up again later, on any device. The game
+auto-saves the run with `hub.resume`; the home page then shows a **Resume**
+card next to *Friends & chat* and *Play online* ("Resume Solitaire and Clue",
+or "Resume 5 games" past three). It opens a window with one row per saved run:
+the game's picture and name, your progress label and bar, "played 2 hours
+ago", a **Resume** button and a discard ×. The hub menu has a matching
+"Resume a saved game" link. Resume opens `/<slug>/?hub_resume=1`, and the game
+restores at once, without asking.
+
+**One slot per player per game; the latest save wins.** It is private: only
+the player who saved it ever sees it (guests too; a guest's runs move into
+their account when they sign in, keeping the newer run per game). Runs nobody
+touches for **60 days** are deleted, and the menu's **Reset game** deletes
+that game's run too.
+
+**Never for online play.** Multiplayer rooms, races and daily challenges are
+not resumable runs: `hub.resume.save` returns `false` and saves nothing while
+the page is in a hub room, a race or a daily (`hub.resume.blockedBy` says
+which). A daily lasts until your game calls `hub.daily.complete()` or
+`hub.daily.cancel()`: call `cancel()` when the player leaves a daily
+unfinished, or resume stays off for the rest of the page (see
+[Daily challenges](#hubdaily-api)). Own-server online games must simply not call it during online play.
+
+### Adopting it (five steps)
+
+1. **Declare it** in `package.json`: `"game": { ..., "resumable": true }`. The
+   hub refuses saves (404) from games that don't, and only lists theirs.
+2. **Save on meaningful changes**, not every frame: a level reached, a card
+   moved, a turn ended, the shop closed. Call it as often as you like; the
+   client keeps the run on the device at once, sends the latest after
+   3 seconds of quiet, sends straight away when the page is hidden or closed,
+   and queues it offline (it replays when the connection is back, once).
+
+   ```ts
+   hub.resume.save({
+     state: { seed, level, board, score },        // what you need to rebuild the run
+     progress: { label: `Level ${level} of 30`, fraction: level / 30 },
+     title: 'Hard mode',                          // optional: names this run
+     version: 2,                                  // your state's shape version
+   });
+   ```
+3. **Clear it when the run ends**: won, lost or quit (`await hub.resume.clear()`).
+   A finished run must not stay on the Resume card.
+4. **Restore at load.** `hub.resume.requested` is a synchronous `true` when the
+   page was opened from the Resume card (the client takes `hub_resume` out of
+   the address bar first, so a reload or shared link doesn't resume again).
+   Read it before you route or draw a title screen:
+
+   ```ts
+   const saved = await hub.resume.load<MyState>({ version: 2 });
+   if (saved && hub.resume.requested) {
+     startFrom(saved);                 // straight back in, no prompt
+   } else if (saved) {
+     showContinueButton(saved);        // your own "Continue level 12?"
+   } else {
+     showTitle();
+   }
+   ```
+   A React or other SPA can read `hub.resume.requested` before mounting its
+   router and send the player straight to `/play/:id`.
+5. **Test it** like `apps-test/resumedemo` (the reference game, "Ten Level
+   Climb", and `test/e2e/resume.test.mjs`).
+
+Static games without a build step get the same API on `window.HubSDK.hub.resume`
+or `import { hub } from '/_hub/hub.js'`.
+
+### What to put in `state`
+
+- Everything needed to rebuild the run exactly, and nothing you can derive:
+  a seed and the moves made, or the board itself; the score, the timer, the
+  RNG state, the player's hand. Not sprites, caches or settings.
+- Any JSON, up to **512 KB** measured as the bytes of its JSON (what the hub
+  stores; over it, `save` throws a `HubError` 413). Most runs need a few KB.
+- **Bigger states** (a long command log): compress it yourself and save the
+  result as a string, then decompress after `load`:
+
+  ```ts
+  const gz = new Blob([JSON.stringify(log)]).stream().pipeThrough(new CompressionStream('gzip'));
+  const base64 = btoa(String.fromCharCode(...new Uint8Array(await new Response(gz).arrayBuffer())));
+  hub.resume.save({ state: { gz: base64 }, progress });
+  ```
+  (For large arrays build the base64 string in chunks.)
+- Nothing secret and nothing other players typed: it is only ever shown back
+  to the same player, but it is plain JSON on the device and the hub.
+
+### Writing good progress labels
+
+The label is the line the player reads on the Resume card, often a kid
+choosing between games. Up to 60 characters (longer is clipped).
+
+| Good | Not good |
+| --- | --- |
+| "Level 12 of 30" | "lvl=12" |
+| "Round 3 of 5" | "state 3" |
+| "Wave 7, 3 lives left" | "Saved at 14:02" (the card already says when) |
+| "34 cards left" | "Klondike" (that's a `title`) |
+
+Give `fraction` (0 to 1) when you can say how far along the run is; the window
+draws a bar. Leave it out for open-ended games.
+
+### Versioning saved state
+
+Pass `version` (a whole number) to `save`, and the same number to
+`load({ version })` / `get({ version })`. When your state's shape changes in a
+way old code can't read, bump it: a run saved with an older version is dropped
+(cleared) and reads as `null`, so the player starts fresh instead of crashing.
+A run saved by a *newer* version (another tab already updated) reads as `null`
+but is kept. Small additive changes (a new optional field) don't need a bump:
+default the missing field when you restore.
+
+### Moving from your own resume slot
+
+Many games already keep a run in a save slot (`putSave('resume' | 'solo' |
+'game' | 'main')`). Migrate once, on load:
+
+```ts
+let saved = await hub.resume.load<MyState>({ version: 1 });
+if (saved === null) {
+  const { save } = await hub.getSave<MyState>('resume');   // your old slot
+  if (save !== null && isRunInProgress(save.data)) {
+    saved = save.data;
+    hub.resume.save({ state: saved, progress: progressOf(saved), version: 1 });
+  }
+  if (save !== null) {
+    await hub.deleteSave('resume');                         // read it once, then drop it
+  }
+}
+```
+
+Keep using your own slots for things that aren't a run in progress (unlocked
+levels, settings, a career).
+
+### API
+
+| Call | What it does |
+| --- | --- |
+| `hub.resume.save({ state, progress: { label, fraction? }, title?, version? })` | Save the run (debounced; works offline). Returns `false` in a race, daily or room. Throws a `HubError` 400 without a label, 413 over 512 KB. |
+| `hub.resume.flush()` | Send a waiting save now (the page does this itself when hidden or closed). |
+| `hub.resume.clear()` | The run ended: delete it (works offline). |
+| `hub.resume.load({ version? })` | The saved state, or `null`. The newer of the device's copy and the hub's wins. |
+| `hub.resume.get({ version? })` | The same with `{ state, progress, title, version, savedAt }`. |
+| `hub.resume.requested` | `true` when opened from the Resume card. Synchronous. |
+| `hub.resume.blockedBy` | `'race'`, `'daily'`, `'room'` or `null`. |
+| `hub.resume.list()` / `discard(slug)` | The player's runs across games / discard one (the home page's window; online only). |
+
+Offline, the save is the `hub.resume` outbox kind (endpoints `saveResumeSlot`
+and `clearResumeSlot`); a new save or clear replaces the waiting one. The
+outbox entry stays small: it sends the run kept on the device
+(`hub:<slug>:resume` in `localStorage`), which is also what `load` and the
+home page's card read while the hub can't be reached. A save that reaches the
+hub after a newer one from another device is not applied, and a late clear
+never deletes a run saved after it.
 
 ---
 
@@ -1424,6 +1599,12 @@ All under `/_api`. JSON in, JSON out; errors are `{ "error": "..." }` with a
 - `GET    /games/:slug/saves/:slot` → `{ save|null }`
 - `PUT    /games/:slug/saves/:slot` `{data,label?}` → `{ok,updatedAt}`
 - `DELETE /games/:slug/saves/:slot` → `{ok}`
+
+### Resume (auth required; see [Resume saved games](#resume-saved-games-hubresume))
+- `GET    /games/:slug/resume` → `{ resume: {state,progress:{label,fraction},title,version,updatedAt}|null }`
+- `PUT    /games/:slug/resume` `{state,progress:{label,fraction?},title?,version?,savedAt?}` → `{ok,updatedAt,applied}` (404 unless `game.resumable`; 413 over 512 KB, the only route allowed a body over 256 KB; 60 saves a minute per player)
+- `DELETE /games/:slug/resume[?before=<ms>]` → `{ok}`
+- `GET    /me/resume` → `{ games:[{game,gameTitle,path,hasImage,progress,title,version,updatedAt}] }` (any session; no state; empty when signed out)
 
 ### Stats
 - `GET  /games/:slug/stats` → `{stats}` (own, auth) — or `?user=<id>` (public)
