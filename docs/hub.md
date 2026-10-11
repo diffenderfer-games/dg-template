@@ -229,9 +229,16 @@ for it.
   never plays, so game tests aren't covered by it. On localhost,
   `?hub_intro=auto` applies the normal rules anyway and `?hub_intro=spin`
   (or `orbit`, `draw`, `warp`) plays that style every time.
-- **Cost:** the menu decides and paints the empty backdrop; the animation is
-  a separate module (`/_hub/intro.js`) loaded only when it plays, and the
-  wordmark's font (Exo 2) is fetched only then, as a tiny subset.
+- **No flash of the game first:** the host puts a tiny inline script and
+  style at the top of your page's `<head>`, before your own styles and
+  scripts. It makes the same decision at once and, when an intro is due, puts
+  `hub-intro-cover` on `<html>`, painting the intro's empty backdrop from the
+  first paint. The menu takes it over (or removes it when the intro won't
+  play). If the menu never loads (an ad blocker), the cover lifts at
+  `DOMContentLoaded`, since the menu, a deferred module, would have run by then.
+- **Cost:** the inline cover is about 1.5 KB; the animation is a separate
+  module (`/_hub/intro.js`) loaded only when it plays, and the wordmark's font
+  (Exo 2) is fetched only then, as a tiny subset.
 
 ### Opting out
 
