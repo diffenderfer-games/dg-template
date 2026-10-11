@@ -200,6 +200,39 @@ hub.overlay.autoPause({
 
 Full rules: [`docs/multiplayer.md`](multiplayer.md) §4.
 
+### The game intro
+
+Before a game, the menu plays a short animated D-and-G logo (under three
+seconds) over the page while the game loads underneath. Games need no code
+for it.
+
+- **When:** on the first load of each game page in a visit (sessionStorage,
+  per slug), not on reloads in the same visit. Never on the home page,
+  `/_admin` or `/parents`. One of four styles (spin, orbit, draw, warp) is
+  picked at random each time.
+- **The game keeps loading and running.** The intro is an overlay
+  (`#hub-intro-root`, last in `<html>`) that never blocks your scripts. If
+  your game is ready first, the intro still finishes, but it's short.
+- **Skipping:** a tap, click, any key or a gamepad button jumps to the exit.
+  While it shows, pointer, touch and key events are stopped on `window` in the
+  capture phase, so your game never gets the skip press.
+- **Pausing:** it counts as hub UI (`reason: 'menu'` on `hub.overlay`), so a
+  game that adopted `autoPause` and is already running pauses behind it, and
+  your `play` input group is held until it ends.
+- **Reduced motion:** players who prefer reduced motion get a plain fade in
+  and out of the still logo.
+- **Turning it off:** signed-in (claimed) players switch off **Show the intro
+  before games** in the hub menu under **Settings**. It is stored on the
+  account (`GET`/`PUT /_api/me/settings`, `{ showIntro }`), so it stays off on
+  every device they sign in on. Guests always see it.
+- **Under automation** (`navigator.webdriver`, as in puppeteer suites) it
+  never plays, so game tests aren't covered by it. On localhost,
+  `?hub_intro=auto` applies the normal rules anyway and `?hub_intro=spin`
+  (or `orbit`, `draw`, `warp`) plays that style every time.
+- **Cost:** the menu decides and paints the empty backdrop; the animation is
+  a separate module (`/_hub/intro.js`) loaded only when it plays, and the
+  wordmark's font (Exo 2) is fetched only then, as a tiny subset.
+
 ### Opting out
 
 Add `"hub": false` to the `game` block in your `package.json` and the host
@@ -1431,6 +1464,10 @@ All under `/_api`. JSON in, JSON out; errors are `{ "error": "..." }` with a
 Every route below needs a signed-in, **not suspended** user (403 `suspended`)
 unless marked *public*. *claimed* = not a guest (403 `claim_required`). Text
 fields go through the filter and answer **422** `content_rejected` on refusal.
+
+### Player settings
+- `GET /me/settings` (*public*) → `{ showIntro }`: the hub menu's switches. Guests and signed-out visitors always get `{ showIntro: true }`.
+- `PUT /me/settings` `{ showIntro }` → `{ showIntro }` (*claimed*). Used by the menu only; games don't need it.
 
 ### What's new (`handlers/changes.js`)
 - `GET /changes[?game=slug][&since=ms]` (*public*) → `{ items:[{id,game,title,text,at,new}], unseen, signedIn }`. `game`: that game's notes + the host's (`game: "_hub"`); omitted = every game. Newest first; last 30 days, ≤6 per game, ≤30 total. `since`: used only when signed out (the device's last-cleared time; none = nothing is new).

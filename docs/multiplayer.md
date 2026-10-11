@@ -385,7 +385,11 @@ Any player in a room can share a link that drops whoever opens it into that room
 as a player while a seat is free (lobby), otherwise as a spectator.
 
 - **The hub UI does it for you:** `hub.social.openInvite()` shows an **Invite link**
-  section (Create, Copy, Share, Revoke) when the player is in a room of this game.
+  section when the player is in a room of this game: **Share invite link** makes the
+  link (the first time) and hands it on: the browser's share sheet where there is one,
+  else the clipboard ("Link copied. Paste it to a friend to invite them."), else a
+  dialog with the link selected to copy by hand. **Revoke** kills it. A tournament's
+  invite link (its sheet, for the creator) shares the same way.
 - **Your own button:** `const { url, token, expiresAt } = await hub.mp.inviteLink();`
   (absolute `url`, reused while it lives) and `await hub.mp.revokeInviteLink(token)`.
   Rejects with `HubError`: `not_in_room` (open a room first), `too_many_links` (10 live
