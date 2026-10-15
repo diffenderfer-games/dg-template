@@ -33,6 +33,7 @@ describe('game server', () => {
 
   it('never serves outside dist', () => {
     expect(resolveFile(dist, '/../../etc/passwd')).not.toMatch(/passwd$/);
+    expect(resolveFile(dist, '/%E0%A4%A')).toBeNull();
   });
 
   it('answers /healthz at once (the catalog waits at most 15 s)', async () => {

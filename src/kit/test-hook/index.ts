@@ -6,7 +6,7 @@
  * Read-only fields are always there (the screenshot runner reads them in
  * production builds). Drivers (`newGame`, `setState`, `solveNow`…) are
  * installed only when `window.__HUB_TEST__` is set before load, on localhost,
- * or in dev (weston / GD gating). One name for every game: `__game`.
+ * or in a dev build. One name for every game: `__game`.
  */
 import type { PlayMode } from '../core/activity.ts';
 import type { Json, JsonObject } from '../core/json.ts';
@@ -24,7 +24,7 @@ export type GameHookInfo = {
   snap(): JsonObject;
   /** The game has mounted (`body[data-ready="1"]`). */
   ready(): boolean;
-  /** Sound telemetry: `{ unlocked, host, underruns, maxRenderMs }` (kit/audio). */
+  /** Sound telemetry: `{ unlocked, wantMusic, host, underruns, maxRenderMs }` (kit/audio). */
   audio?(): JsonObject;
 };
 

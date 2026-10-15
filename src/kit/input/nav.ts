@@ -74,7 +74,9 @@ export function setHudInsets(
   const h = typeof innerHeight === 'number' ? innerHeight : 0;
   const top = Math.max(0, ...(bands.top ?? []).map((el) => el.getBoundingClientRect().bottom));
   const bottom = Math.max(0, ...(bands.bottom ?? []).map((el) => h - el.getBoundingClientRect().top));
-  hub.input.setInsets({ top: Math.round(top), bottom: Math.round(bottom) });
+  // Newer than some hub builds (docs/hub.md): guard it.
+  if (typeof hub.input.setInsets === 'function')
+    hub.input.setInsets({ top: Math.round(top), bottom: Math.round(bottom) });
 }
 
 /**

@@ -74,6 +74,8 @@ export class Session<P extends JsonObject, R extends JsonObject> {
   autoplay = false;
   /** The hub's social runtime failed (hub:rt-failed); cleared by hub:rt-ready. */
   onlineDown = false;
+  /** Today's daily is done (the title's "Done today"); refreshed from `hub.daily.status()` on each title. */
+  private dailyDone = false;
   readonly loop: FixedLoop;
   private readonly d: SessionDeps<P, R>;
   private parts: SessionParts<P, R> | null = null;
@@ -147,6 +149,20 @@ export class Session<P extends JsonObject, R extends JsonObject> {
     this.d.screens.show('loading', loadingScreen);
   }
 
+  /** Ask the hub whether today's daily is done; redraw the title if that changed. */
+  private async refreshDailyDone(): Promise<void> {
+    let done: boolean;
+    try {
+      const status = await this.d.hub.daily.status();
+      done = status.completions[status.today] !== undefined;
+    } catch {
+      return; // offline or no dailies: leave it as it was
+    }
+    if (done === this.dailyDone) return;
+    this.dailyDone = done;
+    if (this.screen === 'title') await this.showTitle();
+  }
+
   /** The title screen, with a Continue row when a saved game exists. */
   async showTitle(): Promise<void> {
     const saved = this.d.resume.known ? await this.d.resume.load() : null;
@@ -162,7 +178,7 @@ export class Session<P extends JsonObject, R extends JsonObject> {
           continueRows: rows,
           quickMatch: game.online !== undefined && quickMatch(this.d.hub) !== null,
           daily: game.daily !== undefined,
-          dailyDone: false,
+          dailyDone: this.dailyDone,
           race: game.race !== undefined,
           online: game.online !== undefined,
           onlineDown: this.onlineDown,
@@ -172,6 +188,7 @@ export class Session<P extends JsonObject, R extends JsonObject> {
     );
     if (this.d.hub.isOffline) el.appendChild(h('p.kit-tagline', { 'data-testid': 'offline-note' }, t('offline')));
     game.screens?.title?.(this.ctx, el, { hasContinue: rows.length > 0 });
+    if (game.daily !== undefined) void this.refreshDailyDone();
     this.syncChrome();
   }
 

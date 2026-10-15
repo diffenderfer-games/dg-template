@@ -116,4 +116,16 @@ describe('daily challenges (hub.md "Daily challenges")', () => {
       expect(g.fake.log.count('daily.save')).toBeGreaterThan(0);
     },
   );
+
+  it('the Daily button says "Done today" once today is done (hub.daily.status)', async () => {
+    const g = await bootGame();
+    await g.settle();
+    expect(g.ui.querySelector('[data-testid="daily"]')?.textContent).not.toMatch(/Done today/);
+    await g.fake.daily.start();
+    g.hook.solveNow?.();
+    await g.frames(3);
+    g.hook.toTitle?.();
+    await g.settle();
+    expect(g.ui.querySelector('[data-testid="daily"]')?.textContent).toMatch(/Done today/);
+  });
 });

@@ -10,7 +10,7 @@
  *
  * Fidelity comes from the hub's docs and client source (each fake says
  * which); `tests/kit/testing/contract.test.ts` keeps the types honest and the
- * browser suite `tests/hub/fake-parity.test.ts` compares behaviour.
+ * browser suite `tests/hub/kit/fake-parity.test.ts` compares behaviour.
  */
 import type { HubStatus, ResumeBlocker } from '@diffenderfer-games/hub';
 import { dayKey } from '../core/clock.ts';

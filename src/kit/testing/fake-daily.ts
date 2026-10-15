@@ -110,9 +110,13 @@ export class FakeDaily implements DailyLike {
       return null;
     }
     this.count++;
+    this.completions[challenge.day] = { completedAt: this.count, meta };
     emitWindow('hub:daily-complete', { day: challenge.day }, this.host.events);
     return { ok: true, day: challenge.day, count: this.count, rank: 1 };
   }
+
+  /** Days completed (what `status()` reports). */
+  private readonly completions: DailyStatus['completions'] = {};
 
   cancel(): void {
     this.log.record('daily.cancel');
@@ -120,7 +124,7 @@ export class FakeDaily implements DailyLike {
   }
 
   status(): Promise<DailyStatus> {
-    return Promise.resolve({ enabled: true, today: this.host.today(), completions: {} });
+    return Promise.resolve({ enabled: true, today: this.host.today(), completions: { ...this.completions } });
   }
 
   // ---- drivers -------------------------------------------------------------

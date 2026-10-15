@@ -83,7 +83,13 @@ export function createGameServer(o: {
 
 /** The file for a URL path inside `dist` (never outside it), or index.html for app routes, or null. */
 export function resolveFile(dist: string, pathname: string): string | null {
-  const clean = normalize(decodeURIComponent(pathname)).replace(/^([/\\])+/, '');
+  let decoded: string;
+  try {
+    decoded = decodeURIComponent(pathname);
+  } catch {
+    return null; // a malformed escape is a 404, never a crash
+  }
+  const clean = normalize(decoded).replace(/^([/\\])+/, '');
   const full = join(dist, clean);
   if (!full.startsWith(normalize(dist + sep)) && full !== normalize(dist)) return null;
   if (existsSync(full) && statSync(full).isFile()) return full;

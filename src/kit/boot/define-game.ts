@@ -19,7 +19,7 @@ import { installDaily } from '../daily/index.ts';
 import { controlHints, defineControls, installMenuNav } from '../input/index.ts';
 import { onWindow } from '../core/events.ts';
 import { createKitAudio } from '../audio/kit-audio.ts';
-import { makeBuzz } from '../haptics/index.ts';
+import { hapticsSupported, makeBuzz } from '../haptics/index.ts';
 import { installLaunches } from '../online/launch.ts';
 import { installPause } from '../pause/index.ts';
 import { installRace } from '../race/index.ts';
@@ -108,7 +108,8 @@ export function defineGame<P extends JsonObject, R extends JsonObject>(
     screens,
     today,
     actions: {
-      settings: () => settingsSheet({ settings, rows: () => game.settingsRows?.(ctx) ?? [] }),
+      settings: () =>
+        settingsSheet({ settings, haptics: hapticsSupported(), rows: () => game.settingsRows?.(ctx) ?? [] }),
       howTo: () => howToModal(game.copy.howTo ?? []),
     },
   });
@@ -231,6 +232,8 @@ export function defineGame<P extends JsonObject, R extends JsonObject>(
     haptic,
   });
   session.attach({ ctx, pause, daily, race, online, controls, audio });
+  // 10. the touch layout follows the width (rotation, resize)
+  offs.push(ctx.onResize((w) => controls.relayout(w)));
 
   const booted = (async () => {
     session.showLoading();
