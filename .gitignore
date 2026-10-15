@@ -1,6 +1,8 @@
 node_modules/
 dist/
+dist-rules/
 .diffenderfer-build-cache
 *.log
 .DS_Store
 shots/
+.tmp/

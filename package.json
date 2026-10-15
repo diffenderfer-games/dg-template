@@ -8,11 +8,20 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview",
-    "typecheck": "tsc --noEmit",
-    "test": "vitest run",
-    "sync-docs": "node scripts/sync-docs.mjs",
-    "sync-hub-server": "cd ../diffenderfer-games && node --conditions=source --import tsx tools/sync-hub-server.ts",
+    "preview": "vite preview --strictPort",
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.node.json",
+    "test": "vitest run --project kit --project hub-events --project game",
+    "test:slow": "vitest run --project slow",
+    "lint": "eslint .",
+    "format": "prettier -w \"**/*.{ts,json,css,html}\"",
+    "format:check": "prettier --check \"**/*.{ts,json,css,html}\"",
+    "check": "node scripts/kit/check.ts",
+    "kit:check": "node scripts/kit/kit-check.ts",
+    "kit:sync": "node scripts/kit/kit-sync.ts",
+    "kit:hash": "node scripts/kit/kit-hash.ts",
+    "todo": "node scripts/kit/todo.ts",
+    "sync-docs": "node scripts/kit/sync-docs.ts",
+    "sync-hub-server": "node scripts/kit/sync-hub-server.ts",
     "hub-doctor": "hub-doctor"
   },
   "game": {
@@ -35,10 +44,21 @@
   },
   "dependencies": {
     "@diffenderfer-games/hub": "2.0.0-next.5",
-    "pixi.js": "^8.6.0"
+    "pixi.js": "^8.6.0",
+    "three": "^0.186.1"
   },
   "devDependencies": {
-    "typescript": "^5.6.0",
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^22.20.5",
+    "@types/three": "^0.186.0",
+    "esbuild": "^0.25.12",
+    "eslint": "^10.12.0",
+    "jiti": "^2.7.0",
+    "jsdom": "^27.4.0",
+    "prettier": "^3.9.10",
+    "puppeteer-core": "^25.14.0",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.71.2",
     "vite": "^6.0.0",
     "vitest": "^3.2.7"
   }

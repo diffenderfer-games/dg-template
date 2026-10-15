@@ -18,7 +18,8 @@ import { hub } from '@diffenderfer-games/hub';
 // every player. Any deterministic generator works.
 function mulberry32(a: number): () => number {
   return () => {
-    a |= 0; a = (a + 0x6d2b79f5) | 0;
+    a |= 0;
+    a = (a + 0x6d2b79f5) | 0;
     let t = Math.imul(a ^ (a >>> 15), 1 | a);
     t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
@@ -43,10 +44,10 @@ void (async () => {
     groups: {
       play: {
         inputs: {
-          left:   { keys: ['a', 'arrowleft'],  gamepad: { axis: [0, '-'] }, touch: { stick: 'move', axis: 'x-' } },
-          right:  { keys: ['d', 'arrowright'], gamepad: { axis: [0, '+'] }, touch: { stick: 'move', axis: 'x+' } },
-          up:     { keys: ['w', 'arrowup'],    gamepad: { axis: [1, '-'] }, touch: { stick: 'move', axis: 'y-' } },
-          down:   { keys: ['s', 'arrowdown'],  gamepad: { axis: [1, '+'] }, touch: { stick: 'move', axis: 'y+' } },
+          left: { keys: ['a', 'arrowleft'], gamepad: { axis: [0, '-'] }, touch: { stick: 'move', axis: 'x-' } },
+          right: { keys: ['d', 'arrowright'], gamepad: { axis: [0, '+'] }, touch: { stick: 'move', axis: 'x+' } },
+          up: { keys: ['w', 'arrowup'], gamepad: { axis: [1, '-'] }, touch: { stick: 'move', axis: 'y-' } },
+          down: { keys: ['s', 'arrowdown'], gamepad: { axis: [1, '+'] }, touch: { stick: 'move', axis: 'y+' } },
           action: { keys: [' '], gamepad: { button: 0 }, mouse: { button: 0 }, touch: { button: 'a' } },
         },
         axes: { move: { x: ['left', 'right'], y: ['up', 'down'] } },
@@ -75,7 +76,10 @@ void (async () => {
 
   let coin = spawnCoin();
 
-  const hud = new Text({ text: 'Score: 0   Best: 0', style: { fill: '#e8e6df', fontFamily: 'monospace', fontSize: 18 } });
+  const hud = new Text({
+    text: 'Score: 0   Best: 0',
+    style: { fill: '#e8e6df', fontFamily: 'monospace', fontSize: 18 },
+  });
   hud.position.set(12, 12);
   app.stage.addChild(hud);
 
@@ -87,8 +91,11 @@ void (async () => {
   app.stage.addChild(hint);
 
   // Load the cloud/local best for this player (works offline; syncs when online).
-  hub.getSave<{ best: number }>('main').then((r) => {
-    if (r.save && typeof r.save.data.best === 'number') { best = r.save.data.best; updateHud(); }
+  void hub.getSave<{ best: number }>('main').then((r) => {
+    if (r.save && typeof r.save.data.best === 'number') {
+      best = r.save.data.best;
+      updateHud();
+    }
   });
 
   // -------------------------------------------------------------------------
@@ -100,16 +107,17 @@ void (async () => {
   hub.daily.define({
     play(ch) {
       rng = mulberry32(ch.seed >>> 0);
-      dailyTarget = 5 + Math.floor(rng() * 6);   // 5..10 coins — drawn from the seed
+      dailyTarget = 5 + Math.floor(rng() * 6); // 5..10 coins — drawn from the seed
       score = 0;
-      coin.destroy(); coin = spawnCoin();
+      coin.destroy();
+      coin = spawnCoin();
       updateHud();
     },
   });
 
   function spawnCoin(): Graphics {
     const c = new Graphics().circle(0, 0, 11).fill('#38d6ff');
-    const r = dailyTarget ? rng : Math.random;   // seeded layout during a daily
+    const r = dailyTarget ? rng : Math.random; // seeded layout during a daily
     c.position.set(40 + r() * (app.screen.width - 80), 40 + r() * (app.screen.height - 80));
     app.stage.addChild(c);
     return c;
@@ -126,8 +134,12 @@ void (async () => {
   // action game should show its own pause screen instead (resumeOnClose: false).
   let paused = false;
   hub.overlay.autoPause({
-    pause: () => { paused = true; },
-    resume: () => { paused = false; },
+    pause: () => {
+      paused = true;
+    },
+    resume: () => {
+      paused = false;
+    },
     resumeOnClose: true,
   });
 
@@ -135,35 +147,40 @@ void (async () => {
   app.ticker.add((ticker) => {
     if (paused) return;
     const dt = ticker.deltaMS / 1000;
-    const move = hub.input.vector('move');           // { x, y, mag } — same on every device
+    const move = hub.input.vector('move'); // { x, y, mag } — same on every device
     player.x = clamp(player.x + move.x * SPEED * dt, 16, app.screen.width - 16);
     player.y = clamp(player.y + move.y * SPEED * dt, 16, app.screen.height - 16);
 
     if (Math.hypot(player.x - coin.x, player.y - coin.y) < 28) {
       score += 1;
-      coin.destroy(); coin = spawnCoin();
+      coin.destroy();
+      coin = spawnCoin();
       if (dailyTarget) {
         // Daily run: finish when the seeded target is reached. Kept separate
         // from the normal best/leaderboard.
         if (score >= dailyTarget && hub.daily.active) {
           void hub.daily.complete({ score });
           hint.text = 'Daily challenge complete! 🌟';
-          dailyTarget = 0; rng = Math.random;
+          dailyTarget = 0;
+          rng = Math.random;
         }
       } else if (score > best) {
         best = score;
-        hub.putSave('main', { best });                       // cloud save (offline-safe)
-        hub.submitScore('high', best, { title: 'High Score' }); // leaderboard
+        void hub.putSave('main', { best }); // cloud save (offline-safe)
+        void hub.submitScore('high', best, { title: 'High Score' }); // leaderboard
       }
       updateHud();
     }
 
-    if (hub.input.down('action')) {                  // edge: true the frame it's pressed
+    if (hub.input.down('action')) {
+      // edge: true the frame it's pressed
       // example: a one-shot action — replace with yours
     }
   });
 
-  function clamp(n: number, lo: number, hi: number): number { return n < lo ? lo : n > hi ? hi : n; }
+  function clamp(n: number, lo: number, hi: number): number {
+    return n < lo ? lo : n > hi ? hi : n;
+  }
 
   // keep the hint pinned on resize
   window.addEventListener('resize', () => hint.position.set(12, app.screen.height - 26));

@@ -1,0 +1,15 @@
+# Generated or synced: never reformat.
+dist/
+dist-rules/
+shots/
+.tmp/
+node_modules/
+package-lock.json
+kit.json
+HANDOFF.md
+docs/hub.md
+docs/multiplayer.md
+docs/plans/
+# The daily-puzzle kit is owned by its own work stream; it joins the formatter once that settles.
+src/kit/daily-puzzle/
+tests/kit/daily-puzzle/

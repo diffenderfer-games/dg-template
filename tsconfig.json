@@ -1,16 +1,12 @@
 {
+  // The browser side: the game, the kit (minus its Node-only server module) and the unit tests.
+  // Strict everywhere (decision 4). Imports carry their `.ts` extension, so kit files also run
+  // under Node's type stripping (game servers, sims, `node scripts/x.ts`).
+  "extends": "./tsconfig.base.json",
   "compilerOptions": {
-    "target": "ES2022",
-    "module": "ESNext",
-    "moduleResolution": "Bundler",
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
-    "types": ["vite/client"],
-    "noEmit": true,
-    "skipLibCheck": true,
-    "strict": false,
-    "esModuleInterop": true,
-    "resolveJsonModule": true,
-    "allowImportingTsExtensions": true
+    "types": ["vite/client"]
   },
-  "include": ["src", "tests"]
+  "include": ["src", "tests"],
+  "exclude": ["src/kit/server", "tests/kit/server", "tests/hub", "tests/scripts"]
 }

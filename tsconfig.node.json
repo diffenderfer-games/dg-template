@@ -1,0 +1,9 @@
+{
+  // The Node side: scripts, config files, the browser hub suites (node --test) and kit/server.
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "types": ["node"]
+  },
+  "include": ["scripts", "tests/hub", "tests/scripts", "tests/kit/server", "src/kit/server", "*.ts"]
+}
