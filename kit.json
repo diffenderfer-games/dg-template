@@ -41,6 +41,13 @@
         "tests/kit/core/strings.test.ts": "840ab9e0a0a294fcaaba825c9efed194d5fcf25d14e71f9fa6ab16efde7f5295"
       }
     },
+    "daily": {
+      "version": "1.0",
+      "files": {
+        "src/kit/daily/index.ts": "402e0ad3acee3af7e8b5ec96bc7a2ab44f5f5862c60f1ea455f71c95244ba79b",
+        "tests/kit/daily/daily.test.ts": "23c0c2bc93102380e074a50a4e44b4792e9a473989f97adec74bfadc0a9fea95"
+      }
+    },
     "daily-puzzle": {
       "version": "1.0",
       "files": {
