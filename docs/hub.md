@@ -935,6 +935,19 @@ hub:
 - auto-creates a per-game **"Daily Challenges"** leaderboard ranked by days
   completed, and a **global** board summing completions across every game.
 
+**When "today" changes.** The daily day is the **UTC date**: a new daily starts
+at **00:00 UTC** (8 pm EDT / 7 pm EST, 5 pm PDT, 9 am in Tokyo). The server says
+which day it is (`today` in `GET /daily` and `GET /games/:slug/daily`), and
+every hub surface uses that one day: the menu button, the month calendar, the
+game rows, the home cards and their taps (`?daily=<day>`), and the home sheet's
+Daily tab (only without an answer from the hub does a surface use the UTC date
+of the device's clock). The calendar lays out daily days as plain dates, so in
+the US evening its "today" ring sits on tomorrow's date, and in Tokyo before
+9 am on yesterday's. Once today's daily is done, the calendar says when the
+next one starts ("New daily in 3h"), and an open menu redraws itself at the
+rollover. Games should do the same: use the `day` the hub hands to `play`, or
+`today` from `hub.daily.status()`, never the local date.
+
 ### Wiring a game (two calls)
 
 ```js
