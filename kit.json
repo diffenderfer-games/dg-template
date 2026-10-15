@@ -70,6 +70,28 @@
         "tests/kit/daily-puzzle/toy.ts": "030dc5be5d832ce138afc14a2a4b99644b297c2ccc9cdf68b2c687eb7412bf0c"
       }
     },
+    "input": {
+      "version": "1.0",
+      "files": {
+        "src/kit/input/controls.ts": "a549509a306b1bfc977eed60bb750c9f64dc1e5374411aeeed40abb20f425675",
+        "src/kit/input/index.ts": "5469b420c7e3e748b55e46f320a6c0a214400bd5590f4daf9250a6765b1bc59f",
+        "src/kit/input/nav.ts": "b34e61e909cc4056f168c5fc72df9d47cc9ab283ff4f02973ec2ca20d33494a9",
+        "tests/kit/input/input.test.ts": "a89fb29e2d377c9f422b49ee772b4c9230324b42c2d532d94fc5c5ec7a39a13e"
+      }
+    },
+    "layout": {
+      "version": "1.0",
+      "files": {
+        "src/kit/layout/index.ts": "ec155a2adc57d34ef00b00c237bd55e2fa13abc37cf5f0a08cd79a31a1542281",
+        "tests/kit/layout/layout-loop.test.ts": "0f5009e25d0f716f428244eaa703ac19a26a7f32c8ca8b86341cd58b56d047f7"
+      }
+    },
+    "loop": {
+      "version": "1.0",
+      "files": {
+        "src/kit/loop/index.ts": "2397ea8bfa4cdb4ff4a356601d4b3683c31c1b640842be63e1c33b6731e75bbb"
+      }
+    },
     "pause": {
       "version": "1.0",
       "files": {
