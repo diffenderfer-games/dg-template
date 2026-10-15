@@ -189,10 +189,13 @@
         "scripts/kit/lib/kit-manifest.ts": "3dd9b442e44bf0f265bdbd3f78332ebce23cf7a058ef6cfc00bea39d1121916d",
         "scripts/kit/lib/modules.ts": "cf336327b276de014facf618ee4122bb29d6706b815e9958235764e37a498b01",
         "scripts/kit/lib/paths.ts": "eff533c813a780dae8389146613b04f627ffa275d46045c98b30bad5149ab9be",
+        "scripts/kit/lib/scaffold.ts": "68651fe35dddbafa525b90d063e7d9cecc8234f607b833d511a135e2420c24f3",
+        "scripts/kit/new-game.ts": "230c2751263ea1a59cc94246f5e9391323a34355a58655f4b5977870a8e92d2e",
         "scripts/kit/sync-docs.ts": "f20e8320cd8f215d821ecaa9e8506d86c944ab2cba86c194c7a3bbb886505aad",
         "scripts/kit/sync-hub-server.ts": "0958cdd9fb7b15cce99d2ae44f8a4a8aae49d6f36cda48d36812c6fbc533fe9b",
         "scripts/kit/todo.ts": "0073a800d874b467654c7d62140852a3ac64c407a3ba79a9ad4156b2d6336707",
-        "tests/scripts/kit-scripts.test.ts": "3ae194aa1e88e5e6c5442c96bc3b60fd8e270e2073b26c03cda21cdb97f4ac6f"
+        "tests/scripts/kit-scripts.test.ts": "3ae194aa1e88e5e6c5442c96bc3b60fd8e270e2073b26c03cda21cdb97f4ac6f",
+        "tests/scripts/scaffold.test.ts": "3a5b3744c740d4a1d3227645070b137dba6e2341bd5aaf4c90518c36ccd55e9e"
       }
     },
     "settings-ui": {
