@@ -695,7 +695,7 @@ kid-safe chat and trusted results.
    so `/<slug>/ws` reaches your server as `/ws`.
 2. **Copy in the server SDK:** `server/hub-server.mjs` is not on npm. `npm run
    sync-hub-server` (in dg-template games) copies the build from the sibling host
-   checkout (`../diffenderfer-games`, after `npm ci` in its `next/`). It's also served at
+   checkout (`../diffenderfer-games`, after `npm ci` there). It's also served at
    `/_hub/hub-server.mjs`. It has zero dependencies.
 3. **Env:** the host injects `GAME_SLUG`, `HUB_URL` (the hub's loopback URL) and
    `HUB_APP_KEY` (your game's private key) into hub-enabled process apps. Without them
@@ -1085,7 +1085,7 @@ It lives in the hub repo (a sibling checkout, `../diffenderfer-games`), in
 
 | Helper | What |
 |---|---|
-| `server.mjs` → `startHost({ apps, env, quiet })` | Boots a **real** host (`node src/index.js`) with `HUB_TEST=1`, a temp data dir, a temp apps dir (your dirs linked in) and a free port. Resolves to `{ url, port, dataDir, appsDir, logs, stop }`. It builds your game like production does. Pass `quiet: false` to see the log. |
+| `server.mjs` → `startHost({ apps, env, quiet })` | Boots a **real** site (dg-hub and dg-host from their TypeScript sources, behind one port routed like production) with `HUB_TEST=1`, a temp data dir, a temp apps dir (your dirs linked in) and a free port. Resolves to `{ url, port, dataDir, appsDir, logs, stop }`. It builds your game like production does. Pass `quiet: false` to see the log. |
 | `server.mjs` → `MPDEMO_DIR` | The hidden demo game (`apps-test/mpdemo`): a second game to invite from or jump to, and the reference hub-rooms implementation. |
 | `client.mjs` → `player(url, name)` / `guest(url)` | A claimed account (password `password1`) or a guest, as an `ApiClient` with its own cookie jar: `.get/.post/.put/.del(path, body)` → `{status, body}` (paths are under `/_api`), `.user`, and `.ws()` → a `/_ws` client (`op(name, d)`, `next(ev)`, `drain()`, `waitClose()`). |
 | `client.mjs` → `befriend(a, b)` | Request + accept, so `a` and `b` are mutual friends. |
@@ -1224,9 +1224,9 @@ test('a suspended player cannot use online play', async () => {
 
 ### Manual testing
 
-- Run the host locally with your game linked in:
-  `cd ../diffenderfer-games && HUB_TEST=1 HOST_PORT=8099 node src/index.js` (symlink or
-  junction your game into its `apps/<slug>`).
+- Run the site locally with your game linked in:
+  `cd ../diffenderfer-games && npm run local -- --only <slug>` (http://localhost:8099; it
+  links every sibling game repo, or just the ones `--only` names).
 - Use **two browsers, or a normal and a private window**: two cookie jars, two
   accounts. Create two claimed accounts, friend them from the hub menu, and walk the
   scenarios. A phone on the LAN makes a good third player.
