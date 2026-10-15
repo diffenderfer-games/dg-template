@@ -38,6 +38,11 @@ on:
   push:
     branches: [main, master]
   workflow_dispatch:
+    inputs:
+      skip_hub_suites:
+        description: Deploy without the hub suites (tests/hub). Logged; use only when the hub test kit itself is broken.
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -47,11 +52,14 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  # hub-doctor (the npm hub client is inside the live hub's supported range, the
-  # game.* block matches the manifest schema, no vendored src/hub/ copy) and a
-  # build. The deploy needs it, so a failing check never deploys. A game that
-  # loads the hub at runtime (no npm hub client) drops this job and the deploy's
-  # needs: line.
+  # The gate (docs/kit/README.md § "CI"): `npm run check` (typecheck, unit tests,
+  # lint, format, kit files unchanged, hub-doctor, build), then the hub suites
+  # (tests/hub: the kit's scenarios against a real test host). The deploy needs
+  # it, so a failing check never deploys.
+  #
+  # The hub suites boot the hub's test kit from a checkout on the runner:
+  # set the org/repo variable DG_HOST to its path (and CHROME_PATH if Chrome
+  # isn't in the default place). Without DG_HOST they are skipped with a warning.
   check:
     # The same push-only guard as the deploy (see there).
     if: >-
@@ -60,15 +68,26 @@ jobs:
       (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
       github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
     runs-on: [self-hosted, Windows]
-    timeout-minutes: 20
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v5
         with:
           node-version: 22
       - run: npm ci --no-audit --no-fund
-      - run: npx hub-doctor
-      - run: npm run build
+      - run: npm run check
+      - name: Hub suites
+        shell: powershell
+        env:
+          DG_HOST: ${{ vars.DG_HOST }}
+          CHROME_PATH: ${{ vars.CHROME_PATH }}
+          SKIP: ${{ github.event_name == 'workflow_dispatch' && inputs.skip_hub_suites }}
+        run: |
+          if ($env:SKIP -eq 'true') { Write-Output "::warning::hub suites skipped by ${{ github.actor }} (workflow_dispatch skip_hub_suites)"; exit 0 }
+          if (-not $env:DG_HOST) { Write-Output "::warning::DG_HOST is not set: hub suites skipped"; exit 0 }
+          if (-not $env:CHROME_PATH) { Remove-Item Env:CHROME_PATH }
+          npm run test:hub
+          if ($LASTEXITCODE -ne 0) { throw "hub suites failed" }
 
   # On the owner's self-hosted Windows runner (DESKTOP-M6EK2BJ), Windows' OpenSSH
   # client. (Its PowerShell steps are Windows PowerShell 5.1: ASCII only.)

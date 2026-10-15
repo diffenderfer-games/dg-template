@@ -1,7 +1,8 @@
 <#
 .SYNOPSIS
-  Asks for a new game's name, creates it from the dg-template, adds a desktop
-  shortcut for it, and drops you into a Claude Code session in the new folder.
+  Asks for a new game's name and look (2D, 3D or no canvas), creates it from
+  the dg-template (npm install + npm run new-game), adds a desktop shortcut
+  for it, and drops you into a Claude Code session in the new folder.
 #>
 
 $ErrorActionPreference = 'Stop'
@@ -45,11 +46,41 @@ function Read-NewGameName {
     }
 }
 
+function Read-Renderer {
+    Write-Host "`nHow does it look?"
+    Write-Host "  1) 2D (PixiJS)  - most games"
+    Write-Host "  2) 3D (three.js)"
+    Write-Host "  3) No canvas    - cards, words, menus (plain HTML)"
+    while ($true) {
+        switch ((Read-Host "Pick 1, 2 or 3 [1]").Trim()) {
+            ''  { return 'pixi' }
+            '1' { return 'pixi' }
+            '2' { return 'three' }
+            '3' { return 'none' }
+            default { Write-Host "Please type 1, 2 or 3." -ForegroundColor Yellow }
+        }
+    }
+}
+
 Write-Host "=== New diffenderfer.games project ===" -ForegroundColor Cyan
 $game = Read-NewGameName
+$renderer = Read-Renderer
 
 Write-Host "`nCreating '$($game.Folder)' from the template..." -ForegroundColor Cyan
-robocopy $templateRoot $game.Path /E /XD .git node_modules dist tools | Out-Null
+robocopy $templateRoot $game.Path /E /XD .git node_modules dist tools shots .tmp | Out-Null
+
+Push-Location $game.Path
+try {
+    Write-Host "Installing packages (a minute or two)..." -ForegroundColor Cyan
+    npm install --no-audit --no-fund
+    if ($LASTEXITCODE -ne 0) { throw "npm install failed" }
+    npm run new-game -- --renderer $renderer --title "$($game.Display)"
+    if ($LASTEXITCODE -ne 0) { throw "npm run new-game failed" }
+} catch {
+    Write-Host "($($_.Exception.Message) - run 'npm install' and 'npm run new-game -- --renderer $renderer' by hand.)" -ForegroundColor DarkYellow
+} finally {
+    Pop-Location
+}
 
 Push-Location $game.Path
 try {
@@ -60,22 +91,6 @@ try {
     Write-Host "(Skipped git init - you can run it by hand later.)" -ForegroundColor DarkYellow
 } finally {
     Pop-Location
-}
-
-$pkgPath = Join-Path $game.Path 'package.json'
-if (Test-Path $pkgPath) {
-    try {
-        $raw = [System.IO.File]::ReadAllText($pkgPath, [System.Text.Encoding]::UTF8)
-        $pkg = $raw | ConvertFrom-Json
-        if ($pkg.game) {
-            $pkg.game.title = $game.Display
-        }
-        $json = $pkg | ConvertTo-Json -Depth 20
-        $utf8NoBom = New-Object System.Text.UTF8Encoding $false
-        [System.IO.File]::WriteAllText($pkgPath, $json, $utf8NoBom)
-    } catch {
-        Write-Host "(Couldn't auto-update the game title in package.json - edit it by hand.)" -ForegroundColor DarkYellow
-    }
 }
 
 & (Join-Path $PSScriptRoot 'New-ClaudeShortcut.ps1') -Path $game.Path -Name $game.Display

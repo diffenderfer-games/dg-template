@@ -38,7 +38,7 @@
     "ci": {
       "version": "1.0",
       "files": {
-        ".github/workflows/deploy.yml": "1ace22caa484ea17f4e09487a25cdbd76ea330c8aec3609eb8d97f65f067847d"
+        ".github/workflows/deploy.yml": "3638b4dbf52a92dbdf7dd97001fde5e9689e1bf93599862f2143365c55f81ac7"
       }
     },
     "config": {
