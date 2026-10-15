@@ -56,9 +56,6 @@ export default tseslint.config(
       'shots/**',
       '.tmp/**',
       'node_modules/**',
-      // Replaced by scripts/kit/shots.ts in P4 of the kit plan; removed then.
-      'scripts/shots.mjs',
-      'scripts/shots-hub.mjs',
       // Owned by the daily-puzzle work stream; linted once it is folded in (see docs/kit/daily-puzzle.md).
       'src/kit/daily-puzzle/**',
       'tests/kit/daily-puzzle/**',

@@ -3,7 +3,7 @@
   "extends": "./tsconfig.base.json",
   "compilerOptions": {
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
-    "types": ["node"]
+    "types": ["node", "vite/client"]
   },
   "include": ["scripts", "tests/hub", "tests/scripts", "tests/kit/server", "src/kit/server", "*.ts"]
 }

@@ -46,7 +46,7 @@
       "files": {
         ".prettierignore": "ea6dd587eaa7a6ca13fb9e7f17cb138a84dacab3988ab70dcebfb5e75f7ac58e",
         ".prettierrc.json": "5c8e5968cb9cbab2fb5607d0648e10f5e10e6675f1fb91753c211a75d63e86a0",
-        "eslint.config.ts": "74f5264602e2188d9f91644bdd8e4563627658f6ad11a1208d345b8a44200c71",
+        "eslint.config.ts": "b5c1765d042161f5661283dd314fcdd3b6131f19433df4e4022442f784348ec1",
         "tsconfig.base.json": "119003d07976fc3f4674671657ed341c38855ded405331658d71ccb635a6a517"
       }
     },
@@ -236,23 +236,36 @@
       "files": {
         "scripts/kit/build-rules.ts": "0338bbc6f11231f21920df0f0e8545a75c25ac67d71bf343e64b546b46e69ce5",
         "scripts/kit/check.ts": "6ce6101fb32634766206a648f33959288c1da6fd1ecc8b646129ca806066feba",
+        "scripts/kit/clean-procs.ts": "2d2aeb74b1c9201b0ea7b3de2ff426d95fd844a76d98743a51f073ad82ec7e54",
+        "scripts/kit/cover.ts": "805c06119cb96c2f427248a6ab390edcdb5379ffa7c776f4cb1e2c1641443f41",
         "scripts/kit/kit-check.ts": "28d69e3dd68168b4ba93ccf3c742cc54a378e4313742e5f5cf91d71acd7b9c3f",
         "scripts/kit/kit-hash.ts": "9ef9fbacd5af9aff8dbd7a73a5a6d5d48a8228cf76004bdf93412dfd67ac113c",
         "scripts/kit/kit-sync.ts": "d0434fe6f2a5711c5166cb413f6017c63b8c5543dbc7e4d5d2c72373e4cd460a",
+        "scripts/kit/lib/browser.ts": "7dfe9e18aa2723a657be5d855b6fe6677ddd6ad50efb03ba94c26d7230f17e95",
         "scripts/kit/lib/game-block.ts": "297de62174a7d1c6a9262d47177cc3fc9d5bd53fbf17554105be7cb4b2812ac4",
+        "scripts/kit/lib/hub-host.ts": "fcc0389f57173ad67f1e272e96999568af428d9998b9a3116f5fe669a769f685",
         "scripts/kit/lib/json-file.ts": "dbf7615f262a4cfaed24444d157ce3a1eb43c38139abf22910b5de63fc39fabc",
         "scripts/kit/lib/kit-manifest.ts": "3dd9b442e44bf0f265bdbd3f78332ebce23cf7a058ef6cfc00bea39d1121916d",
         "scripts/kit/lib/modules.ts": "cf336327b276de014facf618ee4122bb29d6706b815e9958235764e37a498b01",
         "scripts/kit/lib/paths.ts": "eff533c813a780dae8389146613b04f627ffa275d46045c98b30bad5149ab9be",
+        "scripts/kit/lib/ports.ts": "acac054c2d53fbc5f28858a1a96948799f6664a713f129dd94e9ba1ebd335273",
+        "scripts/kit/lib/procs.ts": "092866a7f4f02faf47b7b7c6280ff7152b3ba66fe3c505ec52b36089b0609b10",
         "scripts/kit/lib/scaffold.ts": "2d73591bfe0a2ea63f0d3bc286a3978d52cde90b91b0c0b62539d7afb6a26cdb",
+        "scripts/kit/lib/serve.ts": "cc5fcbe36a1549866e13e707f8e9943366b59c2d23323be63b367df65732a70c",
+        "scripts/kit/local.ts": "75411a2b5ec7ded58125f9afc22ffad73c9ab7e6ee3214e0dd7f5091eda5dc4d",
         "scripts/kit/new-game.ts": "230c2751263ea1a59cc94246f5e9391323a34355a58655f4b5977870a8e92d2e",
+        "scripts/kit/probe.ts": "58ac750eaf6a564ec1882bd7af9cf6dc861124c96506dc4a4a9aa7d4f4485e61",
+        "scripts/kit/sheet.ts": "8c2bc3ecc40be10fb30650eaf7dfdcf28d09f09076ebd4ecfb10d80ffa7ff5d7",
+        "scripts/kit/shots.ts": "376c645e129cb30c5acfdd59606e6768ad6592cfddd068033645cce067b9b14c",
         "scripts/kit/sync-docs.ts": "f20e8320cd8f215d821ecaa9e8506d86c944ab2cba86c194c7a3bbb886505aad",
         "scripts/kit/sync-hub-server.ts": "0958cdd9fb7b15cce99d2ae44f8a4a8aae49d6f36cda48d36812c6fbc533fe9b",
         "scripts/kit/todo.ts": "0073a800d874b467654c7d62140852a3ac64c407a3ba79a9ad4156b2d6336707",
+        "scripts/kit/ui-check.ts": "b007a9643ef52e8441a16804c5cb7a6ceeb53f66cbc59059b12eb89f3b2eac40",
         "scripts/kit/vibration-test.html": "05cbdcd081b7fcc8169d798066d2b4afef0beaa16bb432315f79902d1a0f4290",
         "scripts/kit/world.ts": "1dcccef2fb481bf38c2bb62c0167683efba29cf76ba705caa8464c61634ae6f1",
         "tests/scripts/kit-scripts.test.ts": "3ae194aa1e88e5e6c5442c96bc3b60fd8e270e2073b26c03cda21cdb97f4ac6f",
-        "tests/scripts/scaffold.test.ts": "0fe3b7c81f0588fc16b180e001dfc0a3f10190bf80f3872b190fc438e14748d1"
+        "tests/scripts/scaffold.test.ts": "0fe3b7c81f0588fc16b180e001dfc0a3f10190bf80f3872b190fc438e14748d1",
+        "tests/scripts/shots-lib.test.ts": "1c06da91a4d1cb3dd2272a3939359a07984c117e544c9f7d8dff1bc385e9fc2d"
       }
     },
     "server": {
