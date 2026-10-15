@@ -55,6 +55,9 @@ export const KIT_CSS = `
 .kit-modal-buttons { display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap; }
 .kit-toasts { position: fixed; left: 50%; bottom: calc(var(--kit-bottom) + 12px); transform: translateX(-50%); display: flex;
   flex-direction: column; gap: 8px; width: min(420px, calc(100% - 32px)); z-index: 40; }
+/* Touch play: the on-screen controls own the bottom, so toasts go under the HUD. */
+html[data-controls="touch"] #ui[data-screen="play"] .kit-toasts { bottom: auto; top: calc(var(--kit-top) + 56px); }
+@media (pointer: coarse) { #ui[data-screen="play"] .kit-toasts { bottom: auto; top: calc(var(--kit-top) + 56px); } }
 .kit-toast { background: var(--kit-panel); border-radius: var(--kit-radius); padding: 12px 14px; box-shadow: 0 8px 30px rgba(0,0,0,0.4);
   border-left: 4px solid var(--kit-accent-2); animation: kit-pop .18s ease-out; }
 .kit-toast[data-kind="good"] { border-left-color: var(--kit-accent); }
@@ -70,6 +73,28 @@ export const KIT_CSS = `
 .kit-confetti i { position: absolute; top: -12px; width: 8px; height: 14px; border-radius: 2px; animation: kit-fall 2.4s linear forwards; }
 .kit-in { animation: kit-pop .28s ease-out both; }
 .kit-corner { position: absolute; display: flex; align-items: center; gap: 8px; }
+/* People: faces, names, lobby seats, chat (kit/avatar, kit/online). */
+.kit-face { display: inline-grid; place-items: center; border-radius: 50%; background: var(--kit-accent-2); color: #04202a;
+  font-weight: 800; flex: none; font-size: 0.9em; }
+.kit-face[data-face="silhouette"] { background: #3a4150; }
+.kit-who { display: inline-flex; align-items: center; gap: 8px; }
+.kit-link { background: none; border: 0; padding: 4px 2px; color: inherit; font: inherit; text-decoration: underline; cursor: pointer; }
+.kit-seats { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; width: min(320px, 100%); }
+.kit-seat { display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 0 12px; border-radius: var(--kit-radius);
+  background: rgba(255, 255, 255, 0.05); text-align: left; }
+.kit-seat > .kit-btn { min-height: 40px; padding: 6px 12px; }
+.kit-seat[data-connected="false"] { opacity: 0.6; }
+.kit-seat .kit-tagline { margin: 0 0 0 auto; font-size: 13px; }
+.kit-chat { display: flex; flex-direction: column; gap: 8px; width: min(320px, 100%); text-align: left; }
+.kit-chat-lines { max-height: 30vh; overflow: auto; }
+.kit-chat-lines p { margin: 2px 0; }
+.kit-chat-note { color: var(--kit-warn); font-size: 14px; }
+.kit-chat-note:empty { display: none; }
+.kit-chat-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.kit-chat-chips .kit-btn { min-height: 44px; padding: 6px 12px; font-size: 15px; }
+.kit-chat-form { display: flex; gap: 6px; }
+.kit-chat-input { flex: 1; min-width: 0; min-height: 44px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.2);
+  background: rgba(0,0,0,0.3); color: var(--kit-fg); padding: 0 10px; font: 16px var(--kit-font); }
 @keyframes kit-pop { from { opacity: 0; transform: translateY(6px) scale(0.98); } to { opacity: 1; transform: none; } }
 @keyframes kit-banner { 0% { opacity: 0; transform: translate(-50%, -50%) scale(0.6); } 20% { opacity: 1; transform: translate(-50%, -50%) scale(1.06); }
   80% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, -60%) scale(1); } }

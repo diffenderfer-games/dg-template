@@ -96,6 +96,12 @@ export class OnlineMatch {
     if (o.partyId !== undefined) fireAndForget(this.hub.mp.setJoinInfo(o.partyId, { room: room.info.code }));
   }
 
+  /** Already hosting: give an invite's party this room (multiplayer.md §6: "or share the room you're already in"). */
+  shareRoom(partyId: string): void {
+    const code = this.room?.info.code;
+    if (code !== undefined) fireAndForget(this.hub.mp.setJoinInfo(partyId, { room: code }));
+  }
+
   /** Join a room by code (as a spectator when watching). */
   async join(code: string, spectate = false): Promise<void> {
     this.attach(await this.hub.rooms.join(code, { spectate }));

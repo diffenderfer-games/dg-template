@@ -5,10 +5,23 @@
  */
 import { driversAllowed } from '../core/env.ts';
 import { isJson, type JsonObject } from '../core/json.ts';
-import { installTestHook, type GameTestHook } from '../test-hook/index.ts';
+import { installTestHook, type GameHookDrivers, type GameTestHook } from '../test-hook/index.ts';
+import type { OnlineFlow } from './online-flow.ts';
 import { toast } from '../ui/toast.ts';
 import type { Session } from './session.ts';
 import type { GameContext, GameDefinition } from './types.ts';
+
+/** The online drivers (rooms by code, start). */
+function onlineDrivers(flow: OnlineFlow): GameHookDrivers['online'] {
+  return {
+    host: () => void flow.hostRoom(),
+    join: (code, spectate = false) => void flow.joinRoom(code, spectate),
+    start: () => flow.match.start(),
+    room: () => flow.currentRoom(),
+    seats: () => flow.match.room?.info.seats.length ?? 0,
+    view: () => flow.match.view,
+  };
+}
 
 /** The kit's version (kit.json `kitVersion`). */
 export const KIT_VERSION = '1.0';
@@ -21,6 +34,7 @@ export function installGameHook<P extends JsonObject, R extends JsonObject>(o: {
   slug: string;
   drivers?: boolean;
   audio?: { telemetry(): JsonObject };
+  online?: OnlineFlow | null;
 }): GameTestHook {
   const { game, session, ctx } = o;
   return installTestHook(
@@ -53,6 +67,7 @@ export function installGameHook<P extends JsonObject, R extends JsonObject>(o: {
       },
       toast: (text) => void toast(text),
       extra: game.testHook?.(ctx) ?? {},
+      ...(o.online ? { online: onlineDrivers(o.online) } : {}),
     }),
     { allowDrivers: o.drivers ?? driversAllowed() },
   );

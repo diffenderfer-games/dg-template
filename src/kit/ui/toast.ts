@@ -21,9 +21,11 @@ export function toast(
     stack = h('div.kit-toasts', { 'aria-live': 'polite' });
     root.appendChild(stack);
   }
+  // The same message again replaces the one showing (no stack of repeats).
+  for (const old of stack.querySelectorAll<HTMLElement>('.kit-toast')) if (old.dataset.text === text) old.remove();
   const el = h(
     'div.kit-toast',
-    { 'data-kind': o.kind ?? 'info', 'data-testid': 'toast', role: 'status' },
+    { 'data-kind': o.kind ?? 'info', 'data-testid': 'toast', 'data-text': text, role: 'status' },
     h('span.kit-toast-text', {}, text),
   );
   let cancel = (): void => undefined;

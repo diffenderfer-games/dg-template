@@ -80,7 +80,14 @@ export function createGame(createView: ViewFactory): GameDefinition<Profile, Run
     snap: (run): JsonObject =>
       run === null
         ? { menu: true }
-        : { score: run.score, target: run.target, t: Math.round(run.t), mode: run.mode, over: run.over },
+        : {
+            score: run.score,
+            target: run.target,
+            t: Math.round(run.t),
+            mode: run.mode,
+            over: run.over,
+            seed: run.seed,
+          },
     autoplay: (_ctx, run) => {
       auto = steerToCoin(run);
     },

@@ -71,6 +71,10 @@ export class OnlineFlow {
 
   /** Host a room: the Play online button, a `host` launch (with its party), or a table (world W2). */
   async hostRoom(l?: KitLaunch): Promise<void> {
+    if (this.match.room !== null && this.match.isHost && l?.partyId !== undefined) {
+      this.match.shareRoom(l.partyId); // another invite from the same lobby: share this room
+      return;
+    }
     this.host.enter();
     try {
       await this.match.create({

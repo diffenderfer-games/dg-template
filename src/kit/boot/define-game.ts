@@ -237,7 +237,7 @@ export function defineGame<P extends JsonObject, R extends JsonObject>(
     await game.mount(ctx);
     session.loop.start();
     await routeOnce({ session, daily, profile, resume, clock, search, launches, online, saved });
-    installGameHook({ game, ctx, session, slug, drivers: o.drivers, audio });
+    installGameHook({ game, ctx, session, slug, drivers: o.drivers, audio, online });
     document.body.dataset.ready = '1';
   })();
   const dispose = (): void => {

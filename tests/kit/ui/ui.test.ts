@@ -86,6 +86,14 @@ describe('screens, modals, toasts', () => {
     expect(document.querySelectorAll('[data-testid="toast"]')).toHaveLength(0);
   });
 
+  it('the same message again replaces the one showing', () => {
+    toast('Some progress could not be saved.');
+    toast('Some progress could not be saved.');
+    toast('Another');
+    expect(document.querySelectorAll('[data-testid="toast"]')).toHaveLength(2);
+    clock.advance(3000);
+  });
+
   it('controls are navigable and named', () => {
     expect(button('Play now', () => undefined).dataset.testid).toBe('play-now');
     const picks: number[] = [];

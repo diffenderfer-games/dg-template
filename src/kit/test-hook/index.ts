@@ -42,6 +42,16 @@ export type GameHookDrivers = {
   autoplay(on: boolean): void;
   /** Show a kit toast (the `toast` screenshot). */
   toast(text: string): void;
+  /** Online play: host a room, join one by code, start (host), the room code. */
+  online: {
+    host(): void;
+    join(code: string, spectate?: boolean): void;
+    start(): void;
+    room(): string | null;
+    seats(): number;
+    /** The latest view this player draws. */
+    view(): Json;
+  };
   /** Anything the game adds (src/game/test-hook.ts). */
   extra: Record<string, (...args: Json[]) => Json | void>;
 };
