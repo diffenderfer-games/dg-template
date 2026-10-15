@@ -150,6 +150,13 @@
         "tests/kit/pause/pause.test.ts": "a6bedeb627b8f8d9e9539296ce33682793270c870243575cde19179b7e0f9baa"
       }
     },
+    "race": {
+      "version": "1.0",
+      "files": {
+        "src/kit/race/index.ts": "0c6cf9cef8cc13fcad04b2f62da6e42fdb1d7957a3ab70c51c9aa1d21a341d09",
+        "tests/kit/race/race.test.ts": "701759931f17eb449209ad4a21e8d745b096ac8e36ff4d92b78d7914524f24f1"
+      }
+    },
     "resume": {
       "version": "1.0",
       "files": {
