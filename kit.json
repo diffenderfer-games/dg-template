@@ -70,6 +70,13 @@
         "tests/kit/daily-puzzle/toy.ts": "030dc5be5d832ce138afc14a2a4b99644b297c2ccc9cdf68b2c687eb7412bf0c"
       }
     },
+    "pause": {
+      "version": "1.0",
+      "files": {
+        "src/kit/pause/index.ts": "1b359e9c5746a1965a1dade74016f82380d34f251dc3ea6c64354d5a679cec5b",
+        "tests/kit/pause/pause.test.ts": "a6bedeb627b8f8d9e9539296ce33682793270c870243575cde19179b7e0f9baa"
+      }
+    },
     "resume": {
       "version": "1.0",
       "files": {
