@@ -35,9 +35,21 @@ export type SearchOptions<S, A extends Json> = {
   maxNodes?: number;
   /**
    * The canonical key of taking `action` in `state`, so equivalent lines merge
-   * (a line's key is its steps' keys joined). Default: the action's JSON.
+   * (a line's key is its steps' keys joined). Default: the action's JSON. A
+   * step keyed `''` is left out of its line's identity: lines that differ only
+   * in such steps (cards played on the way, in any order) are one line.
    */
   stepKey?: (state: S, action: A) => string;
+  /**
+   * A canonical key of a state. When set, a state already searched is not
+   * searched again (a transposition: the same position reached by playing the
+   * same cards in another order): the winning ways on from it are remembered
+   * and joined to each route that reaches it, so the count stays exact and
+   * searches with many orderings stay small. Two states may share a key only
+   * when every action does the same thing from both (the remembered actions
+   * are reused as they are), and it assumes `maxDepth` doesn't cut a line short.
+   */
+  stateKey?: (state: S) => string;
 };
 
 /** What a search found. */
@@ -53,45 +65,56 @@ export type SearchResult<A extends Json> = {
 const DEFAULT_DEPTH = 64;
 const DEFAULT_NODES = 200_000;
 
+/** A winning way on from a state: its actions and the step keys that name it. */
+type Suffix<A> = { keys: string[]; line: A[] };
+const SEP = '';
+
 /** Every distinct winning line from `start` (up to `limit`). */
 export function findWinningLines<S, A extends Json>(rules: PuzzleRules<S, A>, start: S, opts: SearchOptions<S, A> = {}): SearchResult<A> {
   const limit = opts.limit ?? Number.POSITIVE_INFINITY;
   const maxDepth = opts.maxDepth ?? DEFAULT_DEPTH;
   const maxNodes = opts.maxNodes ?? DEFAULT_NODES;
   const stepKey = opts.stepKey ?? ((_s: S, a: A) => stableStringify(a));
-  const seen = new Set<string>();
-  const lines: A[][] = [];
-  const line: A[] = [];
-  const keys: string[] = [];
+  /** With a stateKey: the winning ways on from each state already searched. */
+  const memo = new Map<string, Suffix<A>[]>();
   let nodes = 0;
-  let stopped: SearchResult<A>['stopped'] = null;
+  let nodesOut = false;
 
-  const walk = (state: S): void => {
-    if (stopped) return;
-    if (++nodes > maxNodes) { stopped = 'nodes'; return; }
-    if (rules.won(state)) {
-      const key = keys.join('\u0001');
-      if (!seen.has(key)) {
-        seen.add(key);
-        lines.push(line.slice());
-        if (lines.length >= limit) stopped = 'limit';
-      }
-      return;
+  /** The distinct winning ways on from `state` (at most `limit`: that's all a caller ever needs). */
+  const walk = (state: S, depth: number): Suffix<A>[] => {
+    if (nodesOut) return [];
+    if (++nodes > maxNodes) { nodesOut = true; return []; }
+    if (rules.won(state)) return [{ keys: [], line: [] }];
+    if (depth >= maxDepth) return [];
+    const at = opts.stateKey ? opts.stateKey(state) : null;
+    if (at !== null) {
+      const known = memo.get(at);
+      if (known) return known;
+      memo.set(at, []); // (being searched: a way back to it adds nothing)
     }
-    if (line.length >= maxDepth) return;
+    const out: Suffix<A>[] = [];
+    const ids = new Set<string>();
     for (const action of rules.moves(state)) {
       const next = rules.apply(state, action);
       if (next === null) continue;
-      line.push(action);
-      keys.push(stepKey(state, action));
-      walk(next);
-      line.pop();
-      keys.pop();
-      if (stopped) return;
+      const k = stepKey(state, action);
+      for (const suffix of walk(next, depth + 1)) {
+        const keys = k === '' ? suffix.keys : [k, ...suffix.keys];
+        const id = keys.join(SEP);
+        if (ids.has(id)) continue;
+        ids.add(id);
+        out.push({ keys, line: [action, ...suffix.line] });
+        if (out.length >= limit) break;
+      }
+      if (out.length >= limit || nodesOut) break;
     }
+    // a search cut short by the node cap is not remembered as complete
+    if (at !== null && !nodesOut) memo.set(at, out);
+    return out;
   };
-  walk(start);
-  return { lines, nodes, stopped };
+  const found = walk(start, 0);
+  const lines = found.map((s) => s.line);
+  return { lines, nodes, stopped: nodesOut ? 'nodes' : lines.length >= limit ? 'limit' : null };
 }
 
 /** Is the puzzle still winnable from `state`? (The instant-fail check.) */

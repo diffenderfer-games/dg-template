@@ -95,7 +95,8 @@ function checkLines<P extends Json, S, A extends Json>(spec: HarnessSpec<P, S, A
     const key = (a: A): string => (engine.search?.stepKey ? engine.search.stepKey(start, a) : stableStringify(a));
     const firsts = new Set(gen.lines.filter((l) => l.length > 0).map((l) => key(l[0])));
     for (const o of firstMoveOutcomes(engine.rules, start, engine.search)) {
-      if (o.wins && !firsts.has(key(o.action))) problems.push(`first move ${stableStringify(o.action)} wins but starts no reported line`);
+      // a blank-keyed step names no line (see SearchOptions.stepKey), so it can't start a missing one
+      if (o.wins && key(o.action) !== '' && !firsts.has(key(o.action))) problems.push(`first move ${stableStringify(o.action)} wins but starts no reported line`);
     }
   }
 }
