@@ -70,6 +70,15 @@
       ],
       "minMs": 3000
     },
+    "multiplayer": {
+      "lobby": "?mp=lobby",
+      "players": [
+        2,
+        4
+      ],
+      "transport": "hub-rooms",
+      "spectate": true
+    },
     "changes": []
   },
   "dependencies": {

@@ -26,6 +26,10 @@ export function createView(o: { region: () => Region; slug: string }): View {
       t += 1 / 60;
       scene?.draw(run, t);
     },
+    drawOnline(view, me) {
+      t += 1 / 60;
+      scene?.drawOnline(view, me, t);
+    },
     collected(at) {
       scene?.burst(at);
     },

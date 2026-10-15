@@ -11,11 +11,14 @@
  * Every hook is described in docs/kit/hooks.md.
  */
 import type { GameDefinition } from '../kit/boot/index.ts';
+import type { InputLike } from '../kit/core/index.ts';
 import type { JsonObject } from '../kit/core/index.ts';
 import { BOARDS, PROFILE_VERSION, RUN_VERSION } from './config.ts';
+import { audio } from './audio.ts';
 import { controls } from './controls.ts';
 import { daily } from './daily.ts'; // new-game:daily
 import { race } from './race.ts'; // new-game:race
+import { createOnline } from './online.ts'; // new-game:online
 import { newRun, outcome, progress, solve, steerToCoin, step, type StepInput } from './rules.ts';
 import { hud } from './screens/hud.ts';
 import { result } from './screens/result.ts';
@@ -32,6 +35,7 @@ export type ViewFactory = (o: { region: () => Region; slug: string }) => View;
 /** The game's definition, drawn by `createView`. */
 export function createGame(createView: ViewFactory): GameDefinition<Profile, Run> {
   let view: View | null = null;
+  let input: InputLike | null = null;
   /** Set by the autoplay test driver for one step. */
   let auto: StepInput | null = null;
   return {
@@ -43,6 +47,7 @@ export function createGame(createView: ViewFactory): GameDefinition<Profile, Run
     scores: { boards: BOARDS },
 
     async mount(ctx) {
+      input = ctx.hub.input;
       view = createView({ region: () => ctx.region(), slug: ctx.slug });
       await view.mount(ctx.stage);
     },
@@ -84,5 +89,10 @@ export function createGame(createView: ViewFactory): GameDefinition<Profile, Run
     screens: { title, hud, result },
     daily, // new-game:daily
     race, // new-game:race
+    audio,
+    online: createOnline({
+      input: () => input?.vector('move') ?? { x: 0, y: 0 },
+      render: (v, me) => view?.drawOnline?.(v, me),
+    }), // new-game:online
   };
 }

@@ -7,10 +7,14 @@
  */
 import { Graphics, type Container } from 'pixi.js';
 import { ARENA, TUNING } from '../../game/config.ts';
-import type { Run } from '../../game/state.ts';
+import type { OnlineView, Run } from '../../game/state.ts';
 
 /** The scene's display objects. */
-export type CoinScene = { draw(run: Run | null, t: number): void; burst(at: { x: number; y: number }): void };
+export type CoinScene = {
+  draw(run: Run | null, t: number): void;
+  drawOnline(view: OnlineView | null, me: number, t: number): void;
+  burst(at: { x: number; y: number }): void;
+};
 
 /** Build the scene into `world` (arena units) and `fx`. */
 export function createCoinScene(world: Container, fx: Container): CoinScene {
@@ -34,6 +38,16 @@ export function createCoinScene(world: Container, fx: Container): CoinScene {
   world.addChild(coin, player);
   world.setChildIndex(fx, world.children.length - 1);
   const sparks: { g: Graphics; life: number }[] = [];
+  const others: Graphics[] = [];
+  const other = (i: number): Graphics => {
+    let g = others[i];
+    if (!g) {
+      g = new Graphics().roundRect(-half, -half, half * 2, half * 2, 8).fill({ color: 0xffd166 });
+      world.addChildAt(g, world.getChildIndex(player));
+      others[i] = g;
+    }
+    return g;
+  };
   return {
     draw(run, t) {
       const r = run ?? {
@@ -49,6 +63,17 @@ export function createCoinScene(world: Container, fx: Container): CoinScene {
         s.g.scale.set(1 + (0.5 - s.life) * 4);
       }
       while (sparks.length > 0 && (sparks[0]?.life ?? 0) <= 0) sparks.shift()?.g.destroy();
+    },
+    drawOnline(view, me, t) {
+      if (!view) return;
+      let i = 0;
+      for (const p of view.players) {
+        if (p.id === me) player.position.set(p.x, p.y);
+        else other(i++).position.set(p.x, p.y);
+      }
+      others.forEach((g, j) => (g.visible = j < i));
+      coin.position.set(view.coin.x, view.coin.y);
+      coin.scale.set(1 + Math.sin(t * 6) * 0.08);
     },
     burst(at) {
       const g = new Graphics().circle(0, 0, 26).stroke({ color: 0xc8f4ff, width: 5 });

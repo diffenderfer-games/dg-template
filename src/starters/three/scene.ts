@@ -15,14 +15,18 @@ import {
   Vector3,
 } from 'three';
 import { ARENA } from '../../game/config.ts';
-import type { Run } from '../../game/state.ts';
+import type { OnlineView, Run } from '../../game/state.ts';
 import type { ThreeStage } from './stage.ts';
 
 /** Game units → world units. */
 const UNIT = 0.01;
 
 /** The scene's objects. */
-export type OrbScene = { draw(run: Run | null, t: number): void; burst(at: { x: number; y: number }): void };
+export type OrbScene = {
+  draw(run: Run | null, t: number): void;
+  drawOnline(view: OnlineView | null, me: number, t: number): void;
+  burst(at: { x: number; y: number }): void;
+};
 
 /** Build the scene into the stage. */
 export function createOrbScene(stage: ThreeStage): OrbScene {
@@ -57,6 +61,8 @@ export function createOrbScene(stage: ThreeStage): OrbScene {
   ring.visible = false;
   root.add(ring);
   let ringLife = 0;
+  const others: Mesh[] = [];
+  const otherMaterial = new MeshStandardMaterial({ color: 0xffd166, roughness: 0.4 });
   const toWorld = (p: { x: number; y: number }, y: number): Vector3 =>
     new Vector3((p.x - ARENA.width / 2) * UNIT, y, (p.y - ARENA.height / 2) * UNIT);
   const look = new Vector3();
@@ -79,6 +85,31 @@ export function createOrbScene(stage: ThreeStage): OrbScene {
         ring.scale.setScalar(1 + (0.5 - ringLife) * 4);
         ring.visible = ringLife > 0;
       }
+      stage.render();
+    },
+    drawOnline(view, me, t) {
+      if (!view) return;
+      let i = 0;
+      for (const p of view.players) {
+        if (p.id === me) {
+          player.position.copy(toWorld(p, 0.3));
+          continue;
+        }
+        let m = others[i];
+        if (!m) {
+          m = new Mesh(player.geometry, otherMaterial);
+          root.add(m);
+          others[i] = m;
+        }
+        m.position.copy(toWorld(p, 0.3));
+        m.visible = true;
+        i++;
+      }
+      for (let j = i; j < others.length; j++) {
+        const m = others[j];
+        if (m) m.visible = false;
+      }
+      orb.position.copy(toWorld(view.coin, 0.45 + Math.sin(t * 3) * 0.08));
       stage.render();
     },
     burst(at) {

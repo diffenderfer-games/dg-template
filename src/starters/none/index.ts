@@ -45,7 +45,39 @@ export function createView(o: { region: () => Region; slug: string }): View {
   arena.append(coin, player);
   let t = 0;
   let last = '';
+  const others: HTMLElement[] = [];
+  const place = (el: HTMLElement, p: { x: number; y: number }, size: number): void => {
+    el.style.transform = `translate(${p.x - size}px, ${p.y - size}px)`;
+  };
   return {
+    drawOnline(view, me) {
+      if (!view) return;
+      let i = 0;
+      for (const p of view.players) {
+        if (p.id === me) place(player, p, half);
+        else {
+          let el = others[i];
+          if (!el) {
+            el = h('div', {
+              style: {
+                position: 'absolute',
+                width: `${half * 2}px`,
+                height: `${half * 2}px`,
+                background: '#ffd166',
+                'border-radius': '8px',
+              },
+            });
+            arena.append(el);
+            others[i] = el;
+          }
+          el.hidden = false;
+          place(el, p, half);
+          i++;
+        }
+      }
+      others.slice(i).forEach((el) => (el.hidden = true));
+      place(coin, view.coin, r);
+    },
     mount(stage) {
       arena.style.width = `${ARENA.width}px`;
       arena.style.height = `${ARENA.height}px`;

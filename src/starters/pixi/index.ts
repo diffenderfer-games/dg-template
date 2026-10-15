@@ -28,6 +28,13 @@ export function createView(o: { region: () => Region; slug: string }): View {
       scene.draw(run, t);
       stage.render();
     },
+    drawOnline(view, me) {
+      if (!stage || !scene) return;
+      t += 1 / 60;
+      stage.fit(ARENA);
+      scene.drawOnline(view, me, t);
+      stage.render();
+    },
     collected(at) {
       scene?.burst(at);
     },

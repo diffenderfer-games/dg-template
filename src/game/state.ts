@@ -66,3 +66,11 @@ export function isRun(x: Json): x is Run {
     isVec(x.coin)
   );
 }
+
+/** What everyone sees in an online match (src/game/online.ts; no secrets in this game, hide them there in yours). */
+export type OnlineView = {
+  players: { id: number; x: number; y: number; score: number }[];
+  coin: Vec;
+  target: number;
+  winner: number | null;
+};
