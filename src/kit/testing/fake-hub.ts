@@ -76,6 +76,7 @@ export class FakeHub implements HubLike {
     this.overlay = new FakeOverlay(this.log, {
       onOpen: () => this.input.suspendPlay(),
       onClose: () => this.input.releasePlay(),
+      events: this.events,
     });
     this.menu = new FakeMenu(this.log);
     this.progress = new FakeProgress(

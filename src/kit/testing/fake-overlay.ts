@@ -23,9 +23,9 @@ export class FakeOverlay implements OverlayLike {
   private readonly listeners: Record<OverlayEdge, Set<OverlayListener>> = { open: new Set(), close: new Set() };
   private pausable = true;
   private readonly log: CallLog;
-  private readonly hooks: { onOpen(): void; onClose(): void };
+  private readonly hooks: { onOpen(): void; onClose(): void; events: EventTarget };
 
-  constructor(log: CallLog, hooks: { onOpen(): void; onClose(): void }) {
+  constructor(log: CallLog, hooks: { onOpen(): void; onClose(): void; events: EventTarget }) {
     this.log = log;
     this.hooks = hooks;
   }
@@ -105,6 +105,6 @@ export class FakeOverlay implements OverlayLike {
   private emit(edge: OverlayEdge, event: OverlayEvent): void {
     this.log.record(`overlay.${edge}`, event);
     for (const l of [...this.listeners[edge]]) l(event);
-    if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent(`hub:overlay-${edge}`, { detail: event }));
+    this.hooks.events.dispatchEvent(new CustomEvent(`hub:overlay-${edge}`, { detail: event }));
   }
 }
