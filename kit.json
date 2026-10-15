@@ -282,8 +282,10 @@
         "src/kit/testing/fake-storage.ts": "ecc5a9c9a7375d0ee0683e7a376a9d193484f450649f6d181caec5ca3fc45de3",
         "src/kit/testing/index.ts": "7bb3b1e2a2a3df575e6a55ec0f8baa3b556c7047c647e2caf599d1bdb79c5144",
         "src/kit/testing/phases.ts": "449f1e802dcb6b129c2aaeb25e563aa8d665751a2ebc42c7d410c3b6ac84f521",
+        "src/kit/testing/sim.ts": "0777cb76dc7026a0573c1b85b86bc02892e48369b813ad6a9274fc160901a254",
         "tests/kit/testing/contract.test.ts": "7616472b70ab2825e05252adc1084eb4c1a26404fa8e0217d4b840214b971451",
-        "tests/kit/testing/fake-hub.test.ts": "25a172dd782a03ecf57e553f6cda608c3fba710576def17331912742f2d2a34b"
+        "tests/kit/testing/fake-hub.test.ts": "25a172dd782a03ecf57e553f6cda608c3fba710576def17331912742f2d2a34b",
+        "tests/kit/testing/sim.test.ts": "90b2e9bf6a7caa1f83b06bf2de0bf448767644a1c2f01a0e6ef988966c7a6907"
       }
     },
     "turns": {
