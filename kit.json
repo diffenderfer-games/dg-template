@@ -21,10 +21,10 @@
       "files": {
         "src/kit/core/activity.ts": "23f686d66feef6a8180f5b8c488222a63ea59d5c2cefb1e88923c61164fff0eb",
         "src/kit/core/async.ts": "d72c1d9567684509bc9005f98c6a37296d3eb2ad2251d6d7797a89a4e3f17f26",
-        "src/kit/core/clock.ts": "ed8423c2e3a048d6c857d49dbfbe1cd0b83daefe1f533c0ea7bba3f4745eb35a",
+        "src/kit/core/clock.ts": "581eac09dbd929c0017585d6e5cf22562c806ebb4a49ee3bd41b24c9ea97fec8",
         "src/kit/core/emitter.ts": "31392546d66338152ad83756a4eb7662f517ab742db1abf4ff915608a1559668",
         "src/kit/core/env.ts": "5e52cf17a89033b2578217ae2f64270ea0a05c7befd625bfc1c1f99f111b4af6",
-        "src/kit/core/events.ts": "fc998120ff59388f6041e5c5e6bf1dfdebd41ad5a62082a8d3e2521b7e1b88e5",
+        "src/kit/core/events.ts": "f80f93217d4dfd9ec5d1c343d3bde7cb45c2205325bc9e89779ed2b3f818dba6",
         "src/kit/core/hub-like.ts": "6da6f6d2380db87c7a75f2a2251919100e20f676a5cb52ac2e3f84c710e2b625",
         "src/kit/core/index.ts": "a2015deeab70724e1491386061c31d115dd6a0ba5297fb9e9422684f4e6af007",
         "src/kit/core/json.ts": "f194384498d6deb5ab32cea2c6d0654c968b4f1677d4b245abd97cdee289ad98",
@@ -54,33 +54,33 @@
         "src/kit/daily-puzzle/attempts.ts": "f5c7ddcc2911a2830e69db462ed4e27d8b01c50d6d41c6b85b69228dc45d83d3",
         "src/kit/daily-puzzle/days.ts": "6effbc3d1de2220cc2076a926d171a8d12db881344dde9cc9537ad421c33a652",
         "src/kit/daily-puzzle/generate.ts": "ba8618c7e93d76993d513a648b15516f3685e840fdac911d1fade412572e9113",
-        "src/kit/daily-puzzle/harness.ts": "b3801dee7f98cede90543476b8bff2aec450f5a89a509e111aba2407275a2161",
+        "src/kit/daily-puzzle/harness.ts": "74af8f64c3e4018f079796b3054085c849cd17b86a9afabeeb0f6e773840d063",
         "src/kit/daily-puzzle/hub.ts": "317932ee83f97b560ee434a26e51332dca60beea195b9c33e88afa3081d0b92c",
         "src/kit/daily-puzzle/index.ts": "b29b22474045a3cc27cc0f7782a517521ea9a7d5cd77b5b07adbe73748eb5999",
         "src/kit/daily-puzzle/json.ts": "3177da82e02f150bd778f9800b7bfd551d78d06e6abfbcedad746b9dc151c57c",
         "src/kit/daily-puzzle/replay.ts": "d8b7e29db5370e5669cbf8aea87a0af64e3be9b86e2201d330199ce16d27e587",
         "src/kit/daily-puzzle/rng.ts": "e12054dac7f4f76ab510e3694606582e9919d017373c35112abd27fbda4b2a5b",
-        "src/kit/daily-puzzle/search.ts": "e39151126e393f7a021ece977d81b2d21980509910542cb8b67568ed74f48048",
+        "src/kit/daily-puzzle/search.ts": "32abe15be1c34536917baa5dcce5b0a0030505dc32efb80c4beed37dd8d181ae",
         "src/kit/daily-puzzle/version.ts": "e09573b277b859123e4a6689fe0bcff1c4483319cd81b93e7c6de2bfaf996618",
         "tests/kit/daily-puzzle/basics.test.ts": "8f45961ab6af51389ace74e095359289d3e872493ad66af40e214f2c0fd397a7",
         "tests/kit/daily-puzzle/generate.test.ts": "ecfe97dbef7545e3bde9b30a940464fe0ee05ff061cf5352f9c0dce444e97fbc",
         "tests/kit/daily-puzzle/harness.test.ts": "00df0b39d9d683a86263530df543076dbbec12478f49c0595ca97f688443c40f",
         "tests/kit/daily-puzzle/play.test.ts": "7deddb3cfc06b3100299c7fa70ad92edc7b2415a3d9076960c3b18f56702fb38",
-        "tests/kit/daily-puzzle/search.test.ts": "cc0d0a15bd736cba6bb4a06b9e2c5a3acd94a2a70b5b106a4300287e7653ba46",
+        "tests/kit/daily-puzzle/search.test.ts": "9f53eb22b1fe503467708bce56da4972b0f4c873736c872ab35337e489f6e046",
         "tests/kit/daily-puzzle/toy.ts": "030dc5be5d832ce138afc14a2a4b99644b297c2ccc9cdf68b2c687eb7412bf0c"
       }
     },
     "pause": {
       "version": "1.0",
       "files": {
-        "src/kit/pause/index.ts": "1b359e9c5746a1965a1dade74016f82380d34f251dc3ea6c64354d5a679cec5b",
+        "src/kit/pause/index.ts": "947c5cb7fdf55d984f927f1a1b1bc2530c8a33002ee1f51fcb323e9db2937121",
         "tests/kit/pause/pause.test.ts": "a6bedeb627b8f8d9e9539296ce33682793270c870243575cde19179b7e0f9baa"
       }
     },
     "resume": {
       "version": "1.0",
       "files": {
-        "src/kit/resume/index.ts": "a1196fd55736ba4de06b68c9d5aae46313efbc2c55ac0cab7b4aadd6fdbd29cf",
+        "src/kit/resume/index.ts": "9dbc84a99044ce382eead42504a298f43e41b99c5db027fbfe0f81600543e342",
         "tests/kit/resume/resume.test.ts": "28968d0cddda7c64362ccee0520d2884a5d7093159596575c429af77eb048205"
       }
     },
@@ -99,7 +99,7 @@
         "src/kit/save/merge.ts": "6e33c178cc70190f974c2b4d66db318c89891dd4bf0206467d95e83f40f6f8a0",
         "src/kit/save/profile-local.ts": "a9bd6fd0d1e06ab6cb4a4e16dc72549fd0752ef59ff70c5e08eb3705aca4e940",
         "src/kit/save/profile-spec.ts": "bed7aae37f1b4b039a1e6aa86867b3300a9667c107e083a5e573002ae2a431bc",
-        "src/kit/save/profile.ts": "3c051e503b6a7b740a712b712f6136d29b35cc56fe0e5f96c04d0fefa0d3ef67",
+        "src/kit/save/profile.ts": "7e2fa95c5a62aba84533b7cd31a2ce4e374daf5781bd0899f5b6bd96ee2dd0d8",
         "src/kit/save/settings.ts": "2dc512d43de623348446f30fb07eac6cdbcada10e3e79dd462bd09c121c28ea6",
         "tests/kit/save/profile.test.ts": "725a193c1622d147147aa7ad50df89f9f41c8210087b8ba04c58cdd4abeee065",
         "tests/kit/save/settings-merge.test.ts": "b5f3b393ec6b2b951e7eb31a1bb25e57697f5e9f141f654f2b1f9b4774cf792f"
@@ -143,7 +143,7 @@
         "src/kit/testing/calls.ts": "21a8ee3e723c6478ebe71b74174d6149a5232eaff1a1f99155884032215c263f",
         "src/kit/testing/fake-clock.ts": "226acfa621cc69bb6bb7c88f7e0bbf7ca9bcb9f7ba689a8c83d716cb1fdc55a3",
         "src/kit/testing/fake-daily.ts": "64b95abf25f5ee9a105ee0d7a7c9e2b027999ed766eed698724c2514164c11d7",
-        "src/kit/testing/fake-hub.ts": "a3c42753e13fe6d2336235ba32529df77f3c79d553d88d0f6eed1fcdfa3c7c6e",
+        "src/kit/testing/fake-hub.ts": "54452679d54cc67d6fec4c097671ee8b924c42f52219e0f266c2f78eade097a7",
         "src/kit/testing/fake-input.ts": "14325aab336e1e2272a37dd7b7759ad4c88d45005fb049ba0963a66b51d221c1",
         "src/kit/testing/fake-overlay.ts": "5cde59192a031766a8c7cd0e6e93fccae918736f45b9bddd4bb6ef3a0bf1e736",
         "src/kit/testing/fake-planned.ts": "29e42d6f00398d2b0d60df7159fcab8c23138e62bbf077fcda5465c11ab4df57",

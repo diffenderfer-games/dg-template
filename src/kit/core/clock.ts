@@ -36,3 +36,8 @@ export const realClock: Clock = {
     return () => clearTimeout(id);
   },
 };
+
+/** The UTC day key (`YYYY-MM-DD`) of a time: the hub's daily calendar is UTC. */
+export function dayKey(ms: number): string {
+  return new Date(ms).toISOString().slice(0, 10);
+}

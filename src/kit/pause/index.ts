@@ -11,7 +11,9 @@
  * - never pause when `canPause()` is false: in a race (the pause button becomes
  *   "Leave race?") or a live online match (`setBusy` makes the hub skip it too);
  * - pause when the page is hidden (dinodasher, skipbo);
- * - the click that closed the hub menu doesn't reach the game (bubblepop `settleT`).
+ * - the click that closed the hub menu doesn't reach the game (bubblepop `settleT`);
+ * - the hub's on-screen keyboard (reason `keyboard`, typing in the game's own
+ *   text field) doesn't pause: the pause screen would cover the field.
  */
 import type { Clock } from '../core/clock.ts';
 import type { HubLike } from '../core/hub-like.ts';
@@ -83,8 +85,15 @@ export function installPause(
     dispose: () => undefined,
   };
 
+  // Registered before autoPause, so it runs first and the pause callback knows the reason.
+  let reason = '';
+  const stopReason = hub.overlay.on('open', (e) => {
+    reason = e.reason;
+  });
   const stopAuto = hub.overlay.autoPause({
-    pause: () => void handle.pause('hub'),
+    pause: () => {
+      if (reason !== 'keyboard') handle.pause('hub');
+    },
     resume: () => {
       if (why === 'hub') handle.resume();
     },
@@ -107,6 +116,7 @@ export function installPause(
   doc?.addEventListener('visibilitychange', onVisibility);
 
   handle.dispose = () => {
+    stopReason();
     stopAuto();
     stopClose();
     win?.removeEventListener('pointerdown', swallow, true);

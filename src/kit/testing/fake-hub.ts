@@ -13,6 +13,7 @@
  * browser suite `tests/hub/fake-parity.test.ts` compares behaviour.
  */
 import type { HubStatus, ResumeBlocker } from '@diffenderfer-games/hub';
+import { dayKey } from '../core/clock.ts';
 import { emitWindow } from '../core/events.ts';
 import type { HubLike } from '../core/hub-like.ts';
 import { CallLog } from './calls.ts';
@@ -190,7 +191,7 @@ export class FakeHub implements HubLike {
 
   /** Today's UTC day key on the fake clock. */
   today(): string {
-    return new Date(this.clock.now()).toISOString().slice(0, 10);
+    return dayKey(this.clock.now());
   }
 
   /** Why `resume.save` is blocked right now (race, room, daily), like the client. */

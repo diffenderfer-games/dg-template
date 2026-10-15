@@ -12,7 +12,7 @@
  * - an old `getSave` slot migrates once (`legacySlot`), then is deleted.
  */
 import type { Activity } from '../core/activity.ts';
-import { singleFlight, withTimeout } from '../core/async.ts';
+import { fireAndForget, singleFlight, withTimeout } from '../core/async.ts';
 import type { Clock } from '../core/clock.ts';
 import type { HubLike } from '../core/hub-like.ts';
 import { isJson, jsonEqual, type Json, type JsonObject } from '../core/json.ts';
@@ -124,10 +124,10 @@ export function createResume<R extends JsonObject>(
     },
     clear() {
       cached = null;
-      void hub.resume.clear();
+      fireAndForget(hub.resume.clear());
     },
     flush() {
-      void hub.resume.flush();
+      fireAndForget(hub.resume.flush());
     },
     async beforeNewGame() {
       const found = known ? cached : await withTimeout(deps.clock, lookup(), spec.lateMs ?? 8000, null);

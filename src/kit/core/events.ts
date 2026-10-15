@@ -27,6 +27,8 @@ export type HubWindowEvents = {
   'hub:online': Record<string, never>;
   'hub:offline': Record<string, never>;
   'hub:sync': { conflicts: number };
+  /** A queued change was dropped (hub.md "Offline and replay"). */
+  'hub:offline-failed': { error: string };
   'hub:rt-ready': Record<string, never>;
   'hub:rt-failed': Record<string, never>;
   'hub:overlay-open': { reason: string; canPause: boolean };
@@ -64,6 +66,7 @@ const PARSERS: { [K in HubWindowEvent]: (detail: unknown) => HubWindowEvents[K] 
     const conflicts = field(d, 'conflicts');
     return { conflicts: Array.isArray(conflicts) ? conflicts.length : 0 };
   },
+  'hub:offline-failed': (d) => ({ error: strField(d, 'error') }),
   'hub:rt-ready': () => EMPTY,
   'hub:rt-failed': () => EMPTY,
   'hub:overlay-open': (d) => ({ reason: strField(d, 'reason'), canPause: boolField(d, 'canPause', true) }),

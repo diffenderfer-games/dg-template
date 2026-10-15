@@ -171,6 +171,8 @@ export function createProfile<P extends JsonObject>(
       deps.events,
     ),
     onWindow('hub:online', () => state === 'unknown' && void load(), deps.events),
+    // A queued save lost to another device's (409 save_conflict): re-read, merge, push again.
+    onWindow('hub:sync', (d) => d.conflicts > 0 && void load(), deps.events),
     hub.onStatus((s) => {
       if (s.online && state === 'unknown') void load();
     }),
