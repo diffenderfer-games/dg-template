@@ -70,12 +70,26 @@
         "tests/kit/rng/rng.test.ts": "689489fdeaf82b07d5a27486b68884799372ae0ae6d391e2b07a3b292941b1c6"
       }
     },
+    "save": {
+      "version": "1.0",
+      "files": {
+        "src/kit/save/errors.ts": "ceb60421344c41ea884ab9929a2b59275a690dd0f76f06a3d02ef5c6d6c73819",
+        "src/kit/save/index.ts": "b9dd93d0d8dcaa6a36640195b941cf9754a04c93a51547ab1211697383e9522e",
+        "src/kit/save/merge.ts": "6e33c178cc70190f974c2b4d66db318c89891dd4bf0206467d95e83f40f6f8a0",
+        "src/kit/save/profile-local.ts": "a9bd6fd0d1e06ab6cb4a4e16dc72549fd0752ef59ff70c5e08eb3705aca4e940",
+        "src/kit/save/profile-spec.ts": "bed7aae37f1b4b039a1e6aa86867b3300a9667c107e083a5e573002ae2a431bc",
+        "src/kit/save/profile.ts": "3c051e503b6a7b740a712b712f6136d29b35cc56fe0e5f96c04d0fefa0d3ef67",
+        "src/kit/save/settings.ts": "2dc512d43de623348446f30fb07eac6cdbcada10e3e79dd462bd09c121c28ea6",
+        "tests/kit/save/profile.test.ts": "725a193c1622d147147aa7ad50df89f9f41c8210087b8ba04c58cdd4abeee065",
+        "tests/kit/save/settings-merge.test.ts": "b5f3b393ec6b2b951e7eb31a1bb25e57697f5e9f141f654f2b1f9b4774cf792f"
+      }
+    },
     "scripts": {
       "version": "1.0",
       "files": {
         "scripts/kit/check.ts": "6ce6101fb32634766206a648f33959288c1da6fd1ecc8b646129ca806066feba",
         "scripts/kit/kit-check.ts": "28d69e3dd68168b4ba93ccf3c742cc54a378e4313742e5f5cf91d71acd7b9c3f",
-        "scripts/kit/kit-hash.ts": "07aacc73a677cf2fa095c082c7fa00a08b44edb34e44eb85bc024d99139aeecd",
+        "scripts/kit/kit-hash.ts": "9ef9fbacd5af9aff8dbd7a73a5a6d5d48a8228cf76004bdf93412dfd67ac113c",
         "scripts/kit/kit-sync.ts": "d0434fe6f2a5711c5166cb413f6017c63b8c5543dbc7e4d5d2c72373e4cd460a",
         "scripts/kit/lib/game-block.ts": "a2809e25a79b94d3d462ecb24c087c51d6d497bdb9d08fa8f819ed5d63b579e3",
         "scripts/kit/lib/json-file.ts": "dbf7615f262a4cfaed24444d157ce3a1eb43c38139abf22910b5de63fc39fabc",

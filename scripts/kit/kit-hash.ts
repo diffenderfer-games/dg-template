@@ -4,7 +4,7 @@
  * Docs: docs/kit/README.md § "Changing the kit"
  *
  *   npm run kit:hash              # hash the working tree
- *   npm run kit:hash -- --staged  # hash what git will commit (the index), for files it tracks
+ *   npm run kit:hash -- --staged  # hash what git will commit (the index); files not staged are left out
  *
  * It warns when a module's files changed but its version didn't (bump it in
  * scripts/kit/lib/modules.ts and add a CHANGELOG line).
@@ -22,7 +22,7 @@ if (!isTemplate()) {
 
 const staged = process.argv.includes('--staged');
 
-/** The staged text of a tracked file, or null (untracked: hash the working tree). */
+/** The staged text of a file, or null when it isn't in the index. */
 function stagedText(file: string): string | null {
   return stagedOrHead(`:${file}`);
 }
@@ -41,11 +41,9 @@ function stagedOrHead(spec: string): string | null {
 }
 
 function hashOf(file: string): string | null {
-  if (staged) {
-    const text = stagedText(file);
-    if (text !== null) return hashText(text);
-  }
-  return hashFile(join(ROOT, file));
+  if (!staged) return hashFile(join(ROOT, file));
+  const text = stagedText(file);
+  return text === null ? null : hashText(text);
 }
 
 // Compare with the committed kit.json: a module whose files changed since the last commit needs a version bump.
