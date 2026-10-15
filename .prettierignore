@@ -1,7 +1,7 @@
 # Generated or synced: never reformat.
 dist/
 dist-rules/
-shots/
+/shots/
 .tmp/
 node_modules/
 package-lock.json

@@ -44,7 +44,7 @@
     "config": {
       "version": "1.0",
       "files": {
-        ".prettierignore": "ea6dd587eaa7a6ca13fb9e7f17cb138a84dacab3988ab70dcebfb5e75f7ac58e",
+        ".prettierignore": "bb5b37ab66ab05b0c5a9ba5ac270cb3705593615e1a419bf8fb8d66df3988b23",
         ".prettierrc.json": "5c8e5968cb9cbab2fb5607d0648e10f5e10e6675f1fb91753c211a75d63e86a0",
         "eslint.config.ts": "b5c1765d042161f5661283dd314fcdd3b6131f19433df4e4022442f784348ec1",
         "tsconfig.base.json": "119003d07976fc3f4674671657ed341c38855ded405331658d71ccb635a6a517"
@@ -257,6 +257,9 @@
         "scripts/kit/probe.ts": "58ac750eaf6a564ec1882bd7af9cf6dc861124c96506dc4a4a9aa7d4f4485e61",
         "scripts/kit/sheet.ts": "8c2bc3ecc40be10fb30650eaf7dfdcf28d09f09076ebd4ecfb10d80ffa7ff5d7",
         "scripts/kit/shots.ts": "376c645e129cb30c5acfdd59606e6768ad6592cfddd068033645cce067b9b14c",
+        "scripts/kit/shots/context.ts": "4566133179ee0982a3cd375ec82bff830c544c9968d25adcb548bbb630eac70b",
+        "scripts/kit/shots/scenarios.ts": "bd73d5f71248983ad353573a72adc164473f247e7bd191985fc3472e094646c1",
+        "scripts/kit/shots/types.ts": "55a253b877275faa01adfba2ea8087048403da5a460dea3d55f64d5ec2b0bb66",
         "scripts/kit/sync-docs.ts": "f20e8320cd8f215d821ecaa9e8506d86c944ab2cba86c194c7a3bbb886505aad",
         "scripts/kit/sync-hub-server.ts": "0958cdd9fb7b15cce99d2ae44f8a4a8aae49d6f36cda48d36812c6fbc533fe9b",
         "scripts/kit/todo.ts": "0073a800d874b467654c7d62140852a3ac64c407a3ba79a9ad4156b2d6336707",
