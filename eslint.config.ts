@@ -85,7 +85,7 @@ export default tseslint.config(
     rules: { 'no-restricted-globals': ['error', ...STORAGE] },
   },
   {
-    files: ['src/kit/**/*.ts', 'src/game/rules.ts', 'src/game/daily.ts', 'src/game/race.ts'],
+    files: ['src/kit/**/*.ts', 'src/game/rules.ts', 'src/game/daily.ts', 'src/game/race.ts', 'src/game/turns/**/*.ts'],
     ignores: [
       'src/kit/rng/**',
       'src/kit/core/clock.ts',

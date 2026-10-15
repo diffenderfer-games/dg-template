@@ -9,17 +9,32 @@ import { arr, rec, type JsonRecord, type JsonValue } from './json-file.ts';
 export type Renderer = 'pixi' | 'three' | 'none';
 
 /** The optional features a new game may drop. */
-export type Feature = 'daily' | 'race' | 'online' | 'avatar';
+export type Feature = 'daily' | 'race' | 'online' | 'avatar' | 'turns';
 
 /** What `new-game` was asked for. */
 export type NewGameChoice = { renderer: Renderer; drop: Feature[]; title?: string };
 
-/** Remove the lines tagged `// new-game:<feature>` for each dropped feature. */
+/**
+ * Remove, for each dropped feature, the lines tagged `// new-game:<feature>`
+ * and every line from `// new-game:<feature>:start` to `// new-game:<feature>:end`.
+ */
 export function stripFeatureLines(text: string, drop: readonly Feature[]): string {
-  return text
-    .split(/\r?\n/)
-    .filter((line) => !drop.some((f) => line.includes(`// new-game:${f}`)))
-    .join('\n');
+  const out: string[] = [];
+  let skipping: Feature | null = null;
+  for (const line of text.split(/\r?\n/)) {
+    if (skipping !== null) {
+      if (line.includes(`// new-game:${skipping}:end`)) skipping = null;
+      continue;
+    }
+    const start = drop.find((f) => line.includes(`// new-game:${f}:start`));
+    if (start !== undefined) {
+      skipping = start;
+      continue;
+    }
+    if (drop.some((f) => line.includes(`// new-game:${f}`))) continue;
+    out.push(line);
+  }
+  return out.join('\n');
 }
 
 /** The source files each optional feature owns (deleted when dropped). */
@@ -28,6 +43,7 @@ export const FEATURE_FILES: Record<Feature, string[]> = {
   race: ['src/game/race.ts'],
   online: ['src/game/online.ts', 'tests/game/online.test.ts'],
   avatar: ['src/game/avatar.ts'],
+  turns: ['src/game/turns/rules.ts', 'tests/game/turns.test.ts'],
 };
 
 /** The npm dependency each renderer needs (the others are removed). */
@@ -68,7 +84,7 @@ export function parseNewGameArgs(argv: readonly string[]): NewGameChoice {
     throw new Error(`--renderer must be pixi, three or none (got "${renderer}")`);
   }
   const drop: Feature[] = [];
-  for (const f of ['daily', 'race', 'online', 'avatar'] as const) if (argv.includes(`--no-${f}`)) drop.push(f);
+  for (const f of ['daily', 'race', 'online', 'avatar', 'turns'] as const) if (argv.includes(`--no-${f}`)) drop.push(f);
   const title = value('--title');
   return title === undefined ? { renderer, drop } : { renderer, drop, title };
 }

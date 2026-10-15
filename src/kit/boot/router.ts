@@ -19,6 +19,7 @@ import type { DailyHandle } from '../daily/index.ts';
 import type { ResumeSlot } from '../resume/index.ts';
 import type { ProfileStore } from '../save/profile.ts';
 import type { LaunchHandle } from '../online/launch.ts';
+import type { SavedHandle } from '../saved/index.ts';
 import type { OnlineFlow } from './online-flow.ts';
 import type { Session } from './session.ts';
 
@@ -32,6 +33,7 @@ export async function routeOnce<P extends JsonObject, R extends JsonObject>(o: {
   search: string;
   launches: LaunchHandle | null;
   online: OnlineFlow | null;
+  saved: SavedHandle;
 }): Promise<void> {
   const lookup = o.resume.load();
   await withTimeout(o.clock, o.profile.ready(), o.resume.requested ? 8000 : 2500, undefined);
@@ -48,6 +50,7 @@ export async function routeOnce<P extends JsonObject, R extends JsonObject>(o: {
       return;
     }
   }
+  if (o.saved.routeOpened()) return; // an instance opened from "Your games" (hub.saved, saved-games phase 1)
   o.daily?.ready();
   if (o.session.mode !== null) return; // a queued daily started
   if (o.daily !== null && new URLSearchParams(o.search).has('daily')) return; // still being answered

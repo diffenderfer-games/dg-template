@@ -8,6 +8,7 @@ import type { Clock } from '../core/clock.ts';
 import type { HubLike } from '../core/hub-like.ts';
 import { field, type Json } from '../core/json.ts';
 import type { KitLaunch } from '../core/planned.ts';
+import { face } from '../avatar/index.ts';
 import { chatPanel } from '../online/chat.ts';
 import { errText } from '../online/errors.ts';
 import { lobbyScreen } from '../online/lobby.ts';
@@ -104,7 +105,14 @@ export class OnlineFlow {
       'lobby',
       () =>
         lobbyScreen(
-          { info: room.info, isHost: this.match.isHost, me: this.match.me, minPlayers: this.game.minPlayers, chat },
+          {
+            info: room.info,
+            isHost: this.match.isHost,
+            me: this.match.me,
+            minPlayers: this.game.minPlayers,
+            chat,
+            face: (seat) => face(this.hub, { userId: seat.userId, name: seat.name, look: seat.avatar }, 32),
+          },
           {
             start: () => this.match.start(),
             leave: () => this.host.toTitle(),

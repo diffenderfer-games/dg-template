@@ -23,7 +23,10 @@
     "sync-docs": "node scripts/kit/sync-docs.ts",
     "sync-hub-server": "node scripts/kit/sync-hub-server.ts",
     "hub-doctor": "hub-doctor",
-    "new-game": "node scripts/kit/new-game.ts"
+    "new-game": "node scripts/kit/new-game.ts",
+    "build:rules": "node scripts/kit/build-rules.ts",
+    "world:build": "node scripts/kit/world.ts build",
+    "world:check": "node scripts/kit/world.ts check"
   },
   "game": {
     "type": "static",

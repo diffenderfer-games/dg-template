@@ -18,6 +18,12 @@ describe('new-game', () => {
     expect(stripFeatureLines(text, ['daily'])).toBe("import { race } from './race.ts'; // new-game:race\nkeep");
   });
 
+  it('strips start/end blocks too', () => {
+    const text = ['a', '// new-game:online:start', 'online: x({', '}),', '// new-game:online:end', 'b'].join('\n');
+    expect(stripFeatureLines(text, ['online'])).toBe('a\nb');
+    expect(stripFeatureLines(text, [])).toBe(text);
+  });
+
   it('keeps only the chosen renderer package, sets 2d/3d and drops game-block features', () => {
     const pkg = {
       dependencies: { '@diffenderfer-games/hub': '1', 'pixi.js': '8', three: '0.186' },

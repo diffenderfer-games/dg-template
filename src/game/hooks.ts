@@ -15,6 +15,7 @@ import type { InputLike } from '../kit/core/index.ts';
 import type { JsonObject } from '../kit/core/index.ts';
 import { BOARDS, PROFILE_VERSION, RUN_VERSION } from './config.ts';
 import { audio } from './audio.ts';
+import { avatar } from './avatar.ts'; // new-game:avatar
 import { controls } from './controls.ts';
 import { daily } from './daily.ts'; // new-game:daily
 import { race } from './race.ts'; // new-game:race
@@ -90,9 +91,12 @@ export function createGame(createView: ViewFactory): GameDefinition<Profile, Run
     daily, // new-game:daily
     race, // new-game:race
     audio,
+    avatar, // new-game:avatar
+    // new-game:online:start
     online: createOnline({
       input: () => input?.vector('move') ?? { x: 0, y: 0 },
       render: (v, me) => view?.drawOnline?.(v, me),
-    }), // new-game:online
+    }),
+    // new-game:online:end
   };
 }

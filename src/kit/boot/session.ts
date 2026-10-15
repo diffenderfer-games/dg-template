@@ -34,6 +34,8 @@ import type { Screens } from '../ui/screens.ts';
 import { toast } from '../ui/toast.ts';
 import type { RunningAudio } from '../audio/kit-audio.ts';
 import type { OnlineFlow } from './online-flow.ts';
+import type { ContinueRow, SavedHandle } from '../saved/index.ts';
+import { quickMatch } from '../world/index.ts';
 import { loadingScreen, pauseScreen, playScreen, resultScreen, titleScreen, type ScreenActions } from './screens.ts';
 import type { GameContext, GameDefinition, NewRunOpts, Outcome } from './types.ts';
 
@@ -50,6 +52,8 @@ export type SessionDeps<P extends JsonObject, R extends JsonObject> = {
   screens: Screens;
   actions: Pick<ScreenActions, 'settings' | 'howTo'>;
   today(): string;
+  /** "Your games" (hub.saved when the hub has it, else the one saved game). */
+  saved: SavedHandle;
 };
 
 /** The parts defineGame attaches after building them. */
@@ -77,6 +81,7 @@ export class Session<P extends JsonObject, R extends JsonObject> {
   private hud: HTMLElement | null = null;
   private lastSave = 0;
   private finished = false;
+  private rows: ContinueRow[] = [];
 
   constructor(d: SessionDeps<P, R>) {
     this.d = d;
@@ -121,7 +126,12 @@ export class Session<P extends JsonObject, R extends JsonObject> {
     return {
       ...this.d.actions,
       play: () => void this.newGame(),
-      continueSaved: () => void this.continueSaved(),
+      continueSaved: (id) => {
+        const row = this.rows.find((r) => r.id === id);
+        if (row === undefined || row.kind === 'run') void this.continueSaved();
+        else this.d.saved.open(row.id, row.kind);
+      },
+      quickMatch: () => void quickMatch(this.d.hub)?.(),
       daily: () => void this.d.hub.daily.startAndPlay(this.d.today()),
       race: () => this.parts?.race?.create(this.d.game.race?.params?.()),
       raceBrowse: () => this.parts?.race?.browse(),
@@ -141,12 +151,16 @@ export class Session<P extends JsonObject, R extends JsonObject> {
   async showTitle(): Promise<void> {
     const saved = this.d.resume.known ? await this.d.resume.load() : null;
     const { game } = this.d;
+    const rows = (this.rows = await this.d.saved.continueRows(() =>
+      Promise.resolve(saved === null ? null : game.run.progress(saved).label),
+    ));
     const el = this.d.screens.show('title', () =>
       titleScreen(
         {
           title: game.copy.title,
           tagline: game.copy.tagline,
-          continueLabel: saved === null ? null : game.run.progress(saved).label,
+          continueRows: rows,
+          quickMatch: game.online !== undefined && quickMatch(this.d.hub) !== null,
           daily: game.daily !== undefined,
           dailyDone: false,
           race: game.race !== undefined,
@@ -157,7 +171,7 @@ export class Session<P extends JsonObject, R extends JsonObject> {
       ),
     );
     if (this.d.hub.isOffline) el.appendChild(h('p.kit-tagline', { 'data-testid': 'offline-note' }, t('offline')));
-    game.screens?.title?.(this.ctx, el, { hasContinue: saved !== null });
+    game.screens?.title?.(this.ctx, el, { hasContinue: rows.length > 0 });
     this.syncChrome();
   }
 
@@ -307,9 +321,13 @@ export class Session<P extends JsonObject, R extends JsonObject> {
     void this.showTitle();
   }
 
-  /** Keep a normal game in progress for Continue (and push it now on `flush`). */
+  /**
+   * Keep the game in progress for Continue (and push it now on `flush`). A
+   * daily goes to the day's own save once the hub has days in progress
+   * (kit/resume routes it; a no-op before saved-games phase 1).
+   */
   saveForLater(flush = false): void {
-    if (this.mode !== 'normal' || this.run === null || this.finished) return;
+    if ((this.mode !== 'normal' && this.mode !== 'daily') || this.run === null || this.finished) return;
     this.d.resume.save(this.run);
     this.lastSave = this.d.clock.now();
     if (flush) this.d.resume.flush();
@@ -354,7 +372,7 @@ export class Session<P extends JsonObject, R extends JsonObject> {
       this.finish(outcome);
       return;
     }
-    if (this.mode === 'normal' && this.d.clock.now() - this.lastSave >= AUTOSAVE_MS) this.saveForLater();
+    if (this.d.clock.now() - this.lastSave >= AUTOSAVE_MS) this.saveForLater();
   }
 
   private render(alpha: number): void {

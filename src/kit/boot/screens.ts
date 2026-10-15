@@ -15,7 +15,8 @@ import { stagger } from '../ui/juice.ts';
 /** What the screens' buttons do. */
 export type ScreenActions = {
   play: () => void;
-  continueSaved: () => void;
+  continueSaved: (id: string) => void;
+  quickMatch: () => void;
   daily: () => void;
   race: () => void;
   raceBrowse: () => void;
@@ -32,7 +33,10 @@ export type ScreenActions = {
 export type TitleOptions = {
   title: string;
   tagline?: string;
-  continueLabel: string | null;
+  /** Continue rows: the saved game, or every saved instance once the hub has hub.saved. */
+  continueRows: readonly { id: string; label: string }[];
+  /** Quick match (world W2): shown when the hub has it. */
+  quickMatch?: boolean;
   daily: boolean;
   dailyDone: boolean;
   race: boolean;
@@ -44,13 +48,17 @@ export type TitleOptions = {
 /** The title screen. */
 export function titleScreen(o: TitleOptions, a: ScreenActions): HTMLElement {
   const menu = h('div.kit-menu', {});
-  if (o.continueLabel !== null) {
+  o.continueRows.forEach((row, i) =>
     menu.appendChild(
-      button(t('continue'), a.continueSaved, { cls: 'kit-primary', sub: o.continueLabel, testid: 'continue' }),
-    );
-  }
+      button(t('continue'), () => a.continueSaved(row.id), {
+        cls: i === 0 ? 'kit-primary' : undefined,
+        sub: row.label,
+        testid: i === 0 ? 'continue' : `continue-${row.id}`,
+      }),
+    ),
+  );
   menu.appendChild(
-    button(t('play'), a.play, { cls: o.continueLabel === null ? 'kit-primary' : undefined, testid: 'play' }),
+    button(t('play'), a.play, { cls: o.continueRows.length === 0 ? 'kit-primary' : undefined, testid: 'play' }),
   );
   if (o.daily)
     menu.appendChild(button(t('daily'), a.daily, { testid: 'daily', sub: o.dailyDone ? t('dailyDone') : undefined }));
@@ -61,6 +69,7 @@ export function titleScreen(o: TitleOptions, a: ScreenActions): HTMLElement {
   if (o.online) {
     const sub = o.onlineDown === true ? t('onlineNeedsConnection') : undefined;
     menu.appendChild(button(t('online'), a.online, { testid: 'online', disabled: o.onlineDown === true, sub }));
+    if (o.quickMatch === true) menu.appendChild(button(t('quickMatch'), a.quickMatch, { testid: 'quick-match' }));
   }
   menu.appendChild(button(t('settings'), a.settings, { testid: 'settings' }));
   menu.appendChild(button(t('howTo'), a.howTo, { testid: 'howto' }));

@@ -24,6 +24,7 @@ import { installLaunches } from '../online/launch.ts';
 import { installPause } from '../pause/index.ts';
 import { installRace } from '../race/index.ts';
 import { createResume } from '../resume/index.ts';
+import { createSaved } from '../saved/index.ts';
 import { createProfile } from '../save/profile.ts';
 import { createSettings } from '../save/settings.ts';
 import { kitSettingsDefaults, settingsSheet, type KitSettings } from '../settings-ui/index.ts';
@@ -87,7 +88,18 @@ export function defineGame<P extends JsonObject, R extends JsonObject>(
   const resume = createResume(hub, game.run, { activity, clock });
   const today = (): string => dayKey(clock.now());
 
+  const saved = createSaved(
+    hub,
+    {
+      continueRun: () => void session.continueSaved(),
+      resumeDaily: (id) => void hub.daily.resume?.(id),
+      openTurns: () => undefined, // kit/turns: the game's turn screen, once saved-games phase 3 ships
+    },
+    () => session.screen === 'title' && void session.showTitle(),
+  );
+
   const session: Session<P, R> = new Session<P, R>({
+    saved,
     game,
     hub,
     clock,
@@ -224,7 +236,7 @@ export function defineGame<P extends JsonObject, R extends JsonObject>(
     session.showLoading();
     await game.mount(ctx);
     session.loop.start();
-    await routeOnce({ session, daily, profile, resume, clock, search, launches, online });
+    await routeOnce({ session, daily, profile, resume, clock, search, launches, online, saved });
     installGameHook({ game, ctx, session, slug, drivers: o.drivers, audio });
     document.body.dataset.ready = '1';
   })();
