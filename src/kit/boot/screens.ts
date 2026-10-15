@@ -37,6 +37,8 @@ export type TitleOptions = {
   dailyDone: boolean;
   race: boolean;
   online: boolean;
+  /** The hub's social runtime failed to load (hub:rt-failed): online play is off for now. */
+  onlineDown?: boolean;
 };
 
 /** The title screen. */
@@ -56,7 +58,10 @@ export function titleScreen(o: TitleOptions, a: ScreenActions): HTMLElement {
     menu.appendChild(button(t('race'), a.race, { testid: 'race' }));
     menu.appendChild(button(t('raceBrowse'), a.raceBrowse, { testid: 'race-browse' }));
   }
-  if (o.online) menu.appendChild(button(t('online'), a.online, { testid: 'online' }));
+  if (o.online) {
+    const sub = o.onlineDown === true ? t('onlineNeedsConnection') : undefined;
+    menu.appendChild(button(t('online'), a.online, { testid: 'online', disabled: o.onlineDown === true, sub }));
+  }
   menu.appendChild(button(t('settings'), a.settings, { testid: 'settings' }));
   menu.appendChild(button(t('howTo'), a.howTo, { testid: 'howto' }));
   stagger(menu);

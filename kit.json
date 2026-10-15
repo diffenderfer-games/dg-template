@@ -23,13 +23,14 @@
       "version": "1.0",
       "files": {
         "src/kit/boot/context.ts": "4d889d45e7a474f9721cdd8d8058a652dcc0979de3467dc7bb196974d0d98f1b",
-        "src/kit/boot/define-game.ts": "209b2ab7bbb8e833de4636fbc5e051cb2d725c521af10e8bbb97ba2b4c85b709",
+        "src/kit/boot/define-game.ts": "8634476154d9d3eda2d83fbebae22d4938bb0fd7d02142e2b0a5227259219281",
         "src/kit/boot/index.ts": "43e7d5a563cae9c97f05053ddd48ab82f92eaa60cccbea28569fd5e1c5813140",
-        "src/kit/boot/router.ts": "04ad6194a406e38d22a018e30f02b1dd94652e2c3ff0265dbf0c58eaa623dc9e",
-        "src/kit/boot/screens.ts": "2166b3bfa675392583d1d01a68286abecddfec28941da506d70b6bf93117062e",
-        "src/kit/boot/session.ts": "9563506f4192868bfe019d248d6679d3ad8e5a587077e78fe27a08965228ec48",
-        "src/kit/boot/test-hook.ts": "f5bc2dca7dfd911d35f58ce4438097f88435ac8de16141e1aa46188b7e5f2a81",
-        "src/kit/boot/types.ts": "0609c59fb6523f21d232a3d0d37673b2eddae43560c78b02360a62a6904ba511"
+        "src/kit/boot/online-flow.ts": "0ddd85e3b2a515a3166f47cadf83b607c10d457536d2326723740982fe772164",
+        "src/kit/boot/router.ts": "0f3189bdbad16134b7ed2a93c6f2be2e6c92de2c12ba5021ea795602296b49fe",
+        "src/kit/boot/screens.ts": "763b0668945a01e91ca9f100b9427aadd4294dc9d80074ba67e12beba675c9be",
+        "src/kit/boot/session.ts": "a8f3e74d0ff3b38370f26f2ee7e6c1a6fb14304d3149dc73fc257d0e5da6ed93",
+        "src/kit/boot/test-hook.ts": "8c266aac60ea5df0527b95a51c36c46108df5eb8a1bc433372d2444c1dab580e",
+        "src/kit/boot/types.ts": "766d2468ad83e3e3f70025af3df4bfed1c9512c7439e5cf2804be26565017647"
       }
     },
     "ci": {
@@ -243,7 +244,7 @@
     "test-hook": {
       "version": "1.0",
       "files": {
-        "src/kit/test-hook/index.ts": "9348f0cb217eab51b16432ed76fad0e5b053706a65929825b5c7389661e9055b",
+        "src/kit/test-hook/index.ts": "0925343ca07f99b3bbcdd1f325f76a2bcf653fd6dec922dc57152243d9000f3f",
         "tests/kit/test-hook/test-hook.test.ts": "3915d795e2ccacb38add4ceb397590bed31e35d56627223cec1719e288c2fc31"
       }
     },

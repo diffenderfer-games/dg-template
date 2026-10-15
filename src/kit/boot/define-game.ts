@@ -13,12 +13,16 @@ import { createActivity } from '../core/activity.ts';
 import { dayKey, realClock, type Clock } from '../core/clock.ts';
 import type { HubLike } from '../core/hub-like.ts';
 import type { JsonObject } from '../core/json.ts';
-import { localStore, type Store } from '../core/store.ts';
+import { localStore, sessionStore, type Store } from '../core/store.ts';
 import { setKitStrings, t } from '../core/strings.ts';
 import { installDaily } from '../daily/index.ts';
 import { controlHints, defineControls, installMenuNav } from '../input/index.ts';
 import { onWindow } from '../core/events.ts';
+import { createKitAudio } from '../audio/kit-audio.ts';
+import { makeBuzz } from '../haptics/index.ts';
+import { installLaunches } from '../online/launch.ts';
 import { installPause } from '../pause/index.ts';
+import { installRace } from '../race/index.ts';
 import { createResume } from '../resume/index.ts';
 import { createProfile } from '../save/profile.ts';
 import { createSettings } from '../save/settings.ts';
@@ -27,6 +31,7 @@ import { mountUi } from '../ui/root.ts';
 import { Screens } from '../ui/screens.ts';
 import { toast } from '../ui/toast.ts';
 import { buildContext } from './context.ts';
+import { OnlineFlow } from './online-flow.ts';
 import { routeOnce } from './router.ts';
 import { howToModal } from './screens.ts';
 import { Session } from './session.ts';
@@ -93,9 +98,6 @@ export function defineGame<P extends JsonObject, R extends JsonObject>(
     actions: {
       settings: () => settingsSheet({ settings, rows: () => game.settingsRows?.(ctx) ?? [] }),
       howTo: () => howToModal(game.copy.howTo ?? []),
-      race: () => undefined,
-      raceBrowse: () => undefined,
-      online: () => undefined,
     },
   });
 
@@ -110,7 +112,42 @@ export function defineGame<P extends JsonObject, R extends JsonObject>(
     },
     { clock },
   );
-  // 2. the daily: define now; a day that arrives before mount waits
+  // 2. online: launches and join info registered now (the hub's 8 s rule); they wait for mount
+  const online =
+    game.online === undefined
+      ? null
+      : new OnlineFlow(hub, game.online, clock, screens, {
+          enter: () => session.enterOnline(),
+          showPlay: () => session.showPlay(),
+          showResult: (won) => void session.showResult(won, false),
+          toTitle: () => session.toTitle(),
+          get screen() {
+            return session.screen;
+          },
+        });
+  const launches =
+    online === null
+      ? null
+      : installLaunches(hub, {
+          host: (l) => online.hostRoom(l),
+          join: (room, _l, spectate) => online.joinRoom(room, spectate),
+          currentRoom: () => online.currentRoom(),
+        });
+  // 3. the race: define now (the hub calls start on the countdown)
+  const race =
+    game.race === undefined
+      ? null
+      : installRace<R>(hub, {
+          slug,
+          clock,
+          stash: sessionStore,
+          isRun: (x): x is R => game.run.validate(x),
+          onStart: (r, restored) => session.startRace(r, restored),
+          onEnd: () => undefined,
+          onExit: () => session.toTitle(),
+          notify: (text) => void toast(text, { kind: 'warn' }),
+        });
+  // 4. the daily: define now; a day that arrives before mount waits
   const daily =
     game.daily === undefined
       ? null
@@ -124,7 +161,7 @@ export function defineGame<P extends JsonObject, R extends JsonObject>(
           notify: (kind) => toast(kind === 'queued' ? t('dailySavedOffline') : t('dailyOffline')),
           onDeepLinkTimeout: () => void session.showTitle(),
         });
-  // 3. controls and menu navigation
+  // 5. controls and menu navigation
   const controls = defineControls(hub, game.input, typeof innerWidth === 'number' ? innerWidth : 1280);
   installMenuNav(hub, {
     root: ui.root,
@@ -134,7 +171,7 @@ export function defineGame<P extends JsonObject, R extends JsonObject>(
       else if (session.screen === 'result') session.toTitle();
     },
   });
-  // 4. page lifecycle: keep the game in progress and the profile when the page hides or closes
+  // 6. page lifecycle: keep the game in progress and the profile when the page hides or closes
   const onHide = (): void => {
     session.saveForLater(true);
     void profile.flush();
@@ -146,15 +183,25 @@ export function defineGame<P extends JsonObject, R extends JsonObject>(
   document.addEventListener('visibilitychange', onVisibility);
   addEventListener('pagehide', onHide);
   events.addEventListener('hub:reset', onReset);
-  // 5. hub chrome: another bundle hid the menu button while it should show; the offline title; dropped changes
+  const setOnlineDown = (down: boolean): void => {
+    session.onlineDown = down;
+    if (session.screen === 'title') void session.showTitle();
+  };
+  // 7. hub chrome: another bundle hid the menu button while it should show; the offline title; dropped changes
   const offs = [
     onWindow('hub:menu-visibility', () => session.syncChrome(), events),
     onWindow('hub:offline', () => session.screen === 'title' && void session.showTitle(), events),
     onWindow('hub:online', () => session.screen === 'title' && void session.showTitle(), events),
     onWindow('hub:offline-failed', () => void toast(t('syncFailed'), { kind: 'warn' }), events),
-    // 6. control hints follow the device (keys, touch, pad): `html[data-controls]` for CSS and screens
+    onWindow('hub:rt-failed', () => setOnlineDown(true), events),
+    onWindow('hub:rt-ready', () => setOnlineDown(false), events),
+    // 8. control hints follow the device (keys, touch, pad): `html[data-controls]` for CSS and screens
     controlHints(hub, (kind) => (document.documentElement.dataset.controls = kind)),
   ];
+
+  // 9. sound and buzz: unlock on gestures, follow the settings, suspend when hidden
+  const audio = createKitAudio({ hooks: game.audio, settings, clock });
+  const haptic = makeBuzz({ enabled: () => settings.data.haptics, now: () => clock.now() });
 
   const ctx = buildContext({
     hub,
@@ -168,19 +215,23 @@ export function defineGame<P extends JsonObject, R extends JsonObject>(
     session,
     stage: o.stage,
     uiRoot: ui.root,
+    audio,
+    haptic,
   });
-  session.attach({ ctx, pause, daily, controls });
+  session.attach({ ctx, pause, daily, race, online, controls, audio });
 
   const booted = (async () => {
     session.showLoading();
     await game.mount(ctx);
     session.loop.start();
-    await routeOnce({ session, daily, profile, resume, clock, search });
-    installGameHook({ game, ctx, session, slug, drivers: o.drivers });
+    await routeOnce({ session, daily, profile, resume, clock, search, launches, online });
+    installGameHook({ game, ctx, session, slug, drivers: o.drivers, audio });
     document.body.dataset.ready = '1';
   })();
   const dispose = (): void => {
     session.loop.stop();
+    online?.leave();
+    audio.dispose();
     pause.dispose();
     profile.dispose();
     for (const off of offs) off();

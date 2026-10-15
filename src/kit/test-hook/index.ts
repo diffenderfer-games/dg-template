@@ -24,6 +24,8 @@ export type GameHookInfo = {
   snap(): JsonObject;
   /** The game has mounted (`body[data-ready="1"]`). */
   ready(): boolean;
+  /** Sound telemetry: `{ unlocked, host, underruns, maxRenderMs }` (kit/audio). */
+  audio?(): JsonObject;
 };
 
 /** Drivers: reach scenes fast in tests and screenshots. */

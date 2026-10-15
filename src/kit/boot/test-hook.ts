@@ -20,6 +20,7 @@ export function installGameHook<P extends JsonObject, R extends JsonObject>(o: {
   session: Session<P, R>;
   slug: string;
   drivers?: boolean;
+  audio?: { telemetry(): JsonObject };
 }): GameTestHook {
   const { game, session, ctx } = o;
   return installTestHook(
@@ -31,6 +32,7 @@ export function installGameHook<P extends JsonObject, R extends JsonObject>(o: {
       mode: () => session.mode,
       snap: () => game.snap?.(session.run) ?? {},
       ready: () => document.body.dataset.ready === '1',
+      audio: () => o.audio?.telemetry() ?? {},
     },
     () => ({
       newGame: () => void session.newGame(),
