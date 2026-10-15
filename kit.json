@@ -1,0 +1,114 @@
+{
+  "kitVersion": "1.0",
+  "modules": {
+    "ci": {
+      "version": "1.0",
+      "files": {
+        ".github/workflows/deploy.yml": "1ace22caa484ea17f4e09487a25cdbd76ea330c8aec3609eb8d97f65f067847d"
+      }
+    },
+    "config": {
+      "version": "1.0",
+      "files": {
+        ".prettierignore": "ea6dd587eaa7a6ca13fb9e7f17cb138a84dacab3988ab70dcebfb5e75f7ac58e",
+        ".prettierrc.json": "5c8e5968cb9cbab2fb5607d0648e10f5e10e6675f1fb91753c211a75d63e86a0",
+        "eslint.config.ts": "ee248d95923a3b70a76ef966eae86408d8bdfbd195640d1f39d5ba7e139eb83b",
+        "tsconfig.base.json": "119003d07976fc3f4674671657ed341c38855ded405331658d71ccb635a6a517"
+      }
+    },
+    "core": {
+      "version": "1.0",
+      "files": {
+        "src/kit/core/activity.ts": "23f686d66feef6a8180f5b8c488222a63ea59d5c2cefb1e88923c61164fff0eb",
+        "src/kit/core/async.ts": "d72c1d9567684509bc9005f98c6a37296d3eb2ad2251d6d7797a89a4e3f17f26",
+        "src/kit/core/clock.ts": "ed8423c2e3a048d6c857d49dbfbe1cd0b83daefe1f533c0ea7bba3f4745eb35a",
+        "src/kit/core/emitter.ts": "31392546d66338152ad83756a4eb7662f517ab742db1abf4ff915608a1559668",
+        "src/kit/core/env.ts": "5e52cf17a89033b2578217ae2f64270ea0a05c7befd625bfc1c1f99f111b4af6",
+        "src/kit/core/events.ts": "fc998120ff59388f6041e5c5e6bf1dfdebd41ad5a62082a8d3e2521b7e1b88e5",
+        "src/kit/core/hub-like.ts": "6da6f6d2380db87c7a75f2a2251919100e20f676a5cb52ac2e3f84c710e2b625",
+        "src/kit/core/index.ts": "a2015deeab70724e1491386061c31d115dd6a0ba5297fb9e9422684f4e6af007",
+        "src/kit/core/json.ts": "f194384498d6deb5ab32cea2c6d0654c968b4f1677d4b245abd97cdee289ad98",
+        "src/kit/core/log.ts": "5c0ffe1bbe913fd73bab1049d068424e8f9b1d3a2bd68d749e06eaac12678714",
+        "src/kit/core/planned.ts": "ba51d870e33ba949d6c169a05a0294a87dc81de85bd8d000e773a035478b3783",
+        "src/kit/core/store.ts": "e30b5673a73c64df1446ed156467f2a20f548c465de86c779e21d9cccd008e20",
+        "src/kit/core/strings.ts": "c4de5553cf9ff587c2f7d9e8de6f6ca1bda66409c1e17e85c343d41611f37eb2",
+        "src/kit/core/wording.ts": "0c3cf1eb2062f307a9acd6a7aea90f8f954e72db30978ea192bf1a5ae46997b3",
+        "tests/kit/core/activity.test.ts": "395c9759a8ea916d53865a6c528c207feeeaf1e51f5079d8c406f9114f81b614",
+        "tests/kit/core/async.test.ts": "a445e5d51617e9cdf7e84403d1b854db96ef63905e9fe030f4a13178e68a339a",
+        "tests/kit/core/events.test.ts": "271671f477f4e73bcfbc580b463a772c16cb0c144f5852d544a518ac4c88788f",
+        "tests/kit/core/json.test.ts": "4caaa26e01016a59f9ea0507cc1b4bffed54cc176177d5a41e577531a9bab426",
+        "tests/kit/core/store.test.ts": "5321313de2f224c55f616489243dd6d0321a7c958a3db4fcd3b5bbed5dc687e9",
+        "tests/kit/core/strings.test.ts": "840ab9e0a0a294fcaaba825c9efed194d5fcf25d14e71f9fa6ab16efde7f5295"
+      }
+    },
+    "daily-puzzle": {
+      "version": "1.0",
+      "files": {
+        "src/kit/daily-puzzle/attempts.ts": "f5c7ddcc2911a2830e69db462ed4e27d8b01c50d6d41c6b85b69228dc45d83d3",
+        "src/kit/daily-puzzle/days.ts": "6effbc3d1de2220cc2076a926d171a8d12db881344dde9cc9537ad421c33a652",
+        "src/kit/daily-puzzle/generate.ts": "ba8618c7e93d76993d513a648b15516f3685e840fdac911d1fade412572e9113",
+        "src/kit/daily-puzzle/harness.ts": "b3801dee7f98cede90543476b8bff2aec450f5a89a509e111aba2407275a2161",
+        "src/kit/daily-puzzle/hub.ts": "317932ee83f97b560ee434a26e51332dca60beea195b9c33e88afa3081d0b92c",
+        "src/kit/daily-puzzle/index.ts": "b29b22474045a3cc27cc0f7782a517521ea9a7d5cd77b5b07adbe73748eb5999",
+        "src/kit/daily-puzzle/json.ts": "3177da82e02f150bd778f9800b7bfd551d78d06e6abfbcedad746b9dc151c57c",
+        "src/kit/daily-puzzle/replay.ts": "d8b7e29db5370e5669cbf8aea87a0af64e3be9b86e2201d330199ce16d27e587",
+        "src/kit/daily-puzzle/rng.ts": "e12054dac7f4f76ab510e3694606582e9919d017373c35112abd27fbda4b2a5b",
+        "src/kit/daily-puzzle/search.ts": "e39151126e393f7a021ece977d81b2d21980509910542cb8b67568ed74f48048",
+        "src/kit/daily-puzzle/version.ts": "e09573b277b859123e4a6689fe0bcff1c4483319cd81b93e7c6de2bfaf996618",
+        "tests/kit/daily-puzzle/basics.test.ts": "8f45961ab6af51389ace74e095359289d3e872493ad66af40e214f2c0fd397a7",
+        "tests/kit/daily-puzzle/generate.test.ts": "ecfe97dbef7545e3bde9b30a940464fe0ee05ff061cf5352f9c0dce444e97fbc",
+        "tests/kit/daily-puzzle/harness.test.ts": "00df0b39d9d683a86263530df543076dbbec12478f49c0595ca97f688443c40f",
+        "tests/kit/daily-puzzle/play.test.ts": "7deddb3cfc06b3100299c7fa70ad92edc7b2415a3d9076960c3b18f56702fb38",
+        "tests/kit/daily-puzzle/search.test.ts": "cc0d0a15bd736cba6bb4a06b9e2c5a3acd94a2a70b5b106a4300287e7653ba46",
+        "tests/kit/daily-puzzle/toy.ts": "030dc5be5d832ce138afc14a2a4b99644b297c2ccc9cdf68b2c687eb7412bf0c"
+      }
+    },
+    "rng": {
+      "version": "1.0",
+      "files": {
+        "src/kit/rng/index.ts": "9f6bdb152c7abb161edb2c720ffbdf9d75a2665c21814d698bde5242c536b093",
+        "tests/kit/rng/rng.test.ts": "689489fdeaf82b07d5a27486b68884799372ae0ae6d391e2b07a3b292941b1c6"
+      }
+    },
+    "scripts": {
+      "version": "1.0",
+      "files": {
+        "scripts/kit/check.ts": "6ce6101fb32634766206a648f33959288c1da6fd1ecc8b646129ca806066feba",
+        "scripts/kit/kit-check.ts": "28d69e3dd68168b4ba93ccf3c742cc54a378e4313742e5f5cf91d71acd7b9c3f",
+        "scripts/kit/kit-hash.ts": "07aacc73a677cf2fa095c082c7fa00a08b44edb34e44eb85bc024d99139aeecd",
+        "scripts/kit/kit-sync.ts": "d0434fe6f2a5711c5166cb413f6017c63b8c5543dbc7e4d5d2c72373e4cd460a",
+        "scripts/kit/lib/game-block.ts": "a2809e25a79b94d3d462ecb24c087c51d6d497bdb9d08fa8f819ed5d63b579e3",
+        "scripts/kit/lib/json-file.ts": "dbf7615f262a4cfaed24444d157ce3a1eb43c38139abf22910b5de63fc39fabc",
+        "scripts/kit/lib/kit-manifest.ts": "3dd9b442e44bf0f265bdbd3f78332ebce23cf7a058ef6cfc00bea39d1121916d",
+        "scripts/kit/lib/modules.ts": "cf336327b276de014facf618ee4122bb29d6706b815e9958235764e37a498b01",
+        "scripts/kit/lib/paths.ts": "eff533c813a780dae8389146613b04f627ffa275d46045c98b30bad5149ab9be",
+        "scripts/kit/sync-docs.ts": "f20e8320cd8f215d821ecaa9e8506d86c944ab2cba86c194c7a3bbb886505aad",
+        "scripts/kit/sync-hub-server.ts": "0958cdd9fb7b15cce99d2ae44f8a4a8aae49d6f36cda48d36812c6fbc533fe9b",
+        "scripts/kit/todo.ts": "0073a800d874b467654c7d62140852a3ac64c407a3ba79a9ad4156b2d6336707",
+        "tests/scripts/kit-scripts.test.ts": "5b49fc738b5c63e9917e8a24492cff20b4ef4e0aced05b6a3a7ffbabd51ce4ca"
+      }
+    },
+    "testing": {
+      "version": "1.0",
+      "files": {
+        "src/kit/testing/calls.ts": "21a8ee3e723c6478ebe71b74174d6149a5232eaff1a1f99155884032215c263f",
+        "src/kit/testing/fake-clock.ts": "226acfa621cc69bb6bb7c88f7e0bbf7ca9bcb9f7ba689a8c83d716cb1fdc55a3",
+        "src/kit/testing/fake-daily.ts": "64b95abf25f5ee9a105ee0d7a7c9e2b027999ed766eed698724c2514164c11d7",
+        "src/kit/testing/fake-hub.ts": "0c4bfef9e53ffc61914d8789556398e9cd40e0d21b05d16d4dc009d4496642df",
+        "src/kit/testing/fake-input.ts": "14325aab336e1e2272a37dd7b7759ad4c88d45005fb049ba0963a66b51d221c1",
+        "src/kit/testing/fake-overlay.ts": "28b3399601366382975caa82a5512691324394fbcae6c91f229de196b7fc4434",
+        "src/kit/testing/fake-planned.ts": "29e42d6f00398d2b0d60df7159fcab8c23138e62bbf077fcda5465c11ab4df57",
+        "src/kit/testing/fake-progress.ts": "13c0f6f5d92cf97c322c115b9b0376baa23e90d9a1d4dca33b38023619f6524d",
+        "src/kit/testing/fake-race.ts": "08baaa869146d38c024e517651155b9027f539f2b8d2890d51aebb64f4329e03",
+        "src/kit/testing/fake-room-info.ts": "8a7b41df8e5d7c5b18400fd55f39c7d9903ee39fced6b79c24ee77e1dee1d688",
+        "src/kit/testing/fake-room.ts": "2381759f75d0a97d979b4e9d023fd5e0bd5d65db53a89771ce4e7b9e5622a66c",
+        "src/kit/testing/fake-social.ts": "14acc2011bb3050bf23005ff9b27b995b3ecfbcfe70e536f24eb5187a19363ab",
+        "src/kit/testing/fake-storage.ts": "ecc5a9c9a7375d0ee0683e7a376a9d193484f450649f6d181caec5ca3fc45de3",
+        "src/kit/testing/index.ts": "a3d5b276d5eaf82a3f4f5eebc609d47c5d2fff98ab5c71ffb6ccb314dc8a8513",
+        "src/kit/testing/phases.ts": "449f1e802dcb6b129c2aaeb25e563aa8d665751a2ebc42c7d410c3b6ac84f521",
+        "tests/kit/testing/contract.test.ts": "7616472b70ab2825e05252adc1084eb4c1a26404fa8e0217d4b840214b971451",
+        "tests/kit/testing/fake-hub.test.ts": "25a172dd782a03ecf57e553f6cda608c3fba710576def17331912742f2d2a34b"
+      }
+    }
+  }
+}

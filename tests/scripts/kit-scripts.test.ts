@@ -1,0 +1,80 @@
+import { mkdtempSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { describe, expect, it } from 'vitest';
+import { checkBoards, checkChanges, checkLabels, checkWorld } from '../../scripts/kit/lib/game-block.ts';
+import {
+  compareVersions,
+  driftedFiles,
+  hashText,
+  readKitManifest,
+  writeKitManifest,
+} from '../../scripts/kit/lib/kit-manifest.ts';
+import { expandPath, KIT_MODULES, moduleFiles } from '../../scripts/kit/lib/modules.ts';
+
+describe('kit.json: versions and hashes', () => {
+  it('hashes ignore line endings (a CRLF checkout matches the template)', () => {
+    expect(hashText('a\r\nb\r\n')).toBe(hashText('a\nb\n'));
+    expect(hashText('a')).not.toBe(hashText('b'));
+  });
+
+  it('round-trips kit.json and finds edited and missing files', () => {
+    const root = mkdtempSync(join(tmpdir(), 'kit-'));
+    writeFileSync(join(root, 'a.ts'), 'one\n');
+    writeFileSync(join(root, 'b.ts'), 'two\n');
+    writeKitManifest(root, {
+      kitVersion: '1.2',
+      modules: { m: { version: '1.1', files: { 'a.ts': hashText('one\n'), 'b.ts': hashText('two\n'), 'c.ts': 'x' } } },
+    });
+    const back = readKitManifest(root);
+    expect(back?.kitVersion).toBe('1.2');
+    writeFileSync(join(root, 'b.ts'), 'edited\n');
+    const entry = back?.modules.m;
+    expect(entry && driftedFiles(root, entry)).toEqual({ edited: ['b.ts'], missing: ['c.ts'] });
+  });
+
+  it('compares versions numerically', () => {
+    expect(compareVersions('1.10', '1.9')).toBe(1);
+    expect(compareVersions('1.0', '1')).toBe(0);
+    expect(compareVersions('0.9', '1.0')).toBe(-1);
+  });
+
+  it('every module owns its src folder, and expandPath lists files with / separators', () => {
+    const root = mkdtempSync(join(tmpdir(), 'kit-'));
+    expect(expandPath(root, 'nothing')).toEqual([]);
+    expect(KIT_MODULES.core?.paths).toContain('src/kit/core');
+    const core = KIT_MODULES.core;
+    if (core) expect(moduleFiles(process.cwd(), core)).toContain('src/kit/core/clock.ts');
+  });
+});
+
+describe('kit:check: the game block', () => {
+  it("what's new is written for kids", () => {
+    expect(checkChanges(['You can now pause with the Escape key.', { id: 'x', text: 'New levels!' }])).toEqual([]);
+    expect(checkChanges(['Refactored the save code'])[0]).toMatch(/developer talk/);
+    expect(checkChanges(['Fix #12 in the menu'])[0]).toMatch(/developer talk/);
+    expect(checkChanges(['x'.repeat(281)])[0]).toMatch(/280/);
+    expect(checkChanges(['Now you can shoot the rocks'])[0]).toMatch(/violent/);
+    expect(checkChanges([42])[0]).toMatch(/string/);
+  });
+
+  it('labels come from the hub vocabulary', () => {
+    expect(checkLabels(['arcade', '2d', 'phone'])).toEqual([]);
+    expect(checkLabels(['shooter'])[0]).toMatch(/shooter/);
+  });
+
+  it('every board used in code is declared', () => {
+    expect(checkBoards({ leaderboards: { high: { title: 'High' } } }, ['high'])).toEqual([]);
+    expect(checkBoards({}, ['high'])[0]).toMatch(/high/);
+  });
+
+  it('world tables follow world.md §3.1', () => {
+    const ok = { tables: [{ key: 'classic', title: 'Classic', mode: 'classic', players: [2, 4] }] };
+    expect(checkWorld(ok, ['classic'])).toEqual([]);
+    expect(checkWorld(undefined, [])).toEqual([]);
+    const bad = {
+      tables: [{ key: 'no spaces', title: 'A title far longer than allowed', mode: 'nope', players: [0, 9], count: 7 }],
+    };
+    expect(checkWorld(bad, ['classic'])).toHaveLength(5);
+  });
+});
