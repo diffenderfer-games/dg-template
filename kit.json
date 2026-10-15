@@ -95,6 +95,18 @@
         "tests/kit/daily-puzzle/toy.ts": "030dc5be5d832ce138afc14a2a4b99644b297c2ccc9cdf68b2c687eb7412bf0c"
       }
     },
+    "hub-events": {
+      "version": "1.0",
+      "files": {
+        "tests/hub-events/_support/harness.ts": "c5dcc21c387d01c446343c17f61402de2d4e974d9355435ca270112fa32eb751",
+        "tests/hub-events/_support/planned.ts": "f1d15c90427d79921e0deb1bdb001aa65d3e01d61aa2c4b39972551778865c1e",
+        "tests/hub-events/daily.test.ts": "5d46f55f26b3ebd3dbb1888749d7be9364963b47897cc44d42fbfe6d947ccfa3",
+        "tests/hub-events/input.test.ts": "a87bd34fb69ae76228f91785ba4b44b569c16fb3651a2ac2a1d74c98b8643818",
+        "tests/hub-events/overlay.test.ts": "892da1a55d44f77f8987cf26a4d4d0df0d00972170e7030900c159e6ec39304b",
+        "tests/hub-events/progress.test.ts": "f336093be0be5138e3474685fa4c877bc2f65abe10a05771b69d64a86f7bce12",
+        "tests/hub-events/resume.test.ts": "6f2ac2c68b2715b4ccf5e573560d91774dfd923816bbfcd8d7bb95dc42218d45"
+      }
+    },
     "input": {
       "version": "1.0",
       "files": {
