@@ -118,7 +118,7 @@
         "docs/kit/README.md": "fec04b190fed715d4447cdcc87f16174e9f0d5a6e9c9e209acd40f383137c47e",
         "docs/kit/hooks.md": "04791ad5abcd2f4c0269e766f8e5b418a25139eb6d0815244931504f5bd256e2",
         "docs/kit/screenshots.md": "e24b73b6c228d96899be5cb905ea7eddfe7c31f04f4958b59c32fbbece2a232d",
-        "docs/kit/whats-new.md": "941ef2d7f3284f4defcd2438dbc363bd7bbc46425353030957d5b88a7adb6362",
+        "docs/kit/whats-new.md": "48ace741d2625caf352abc2bdc3472ca1ad8733d2755ff378e63e2d11b0812f7",
         "docs/repo-setup.md": "552261537701163f41fb9f5811b679d240398baa1c387cf2279b37a18be3053d"
       }
     },
@@ -280,10 +280,10 @@
         "scripts/kit/lib/paths.ts": "eff533c813a780dae8389146613b04f627ffa275d46045c98b30bad5149ab9be",
         "scripts/kit/lib/ports.ts": "acac054c2d53fbc5f28858a1a96948799f6664a713f129dd94e9ba1ebd335273",
         "scripts/kit/lib/procs.ts": "092866a7f4f02faf47b7b7c6280ff7152b3ba66fe3c505ec52b36089b0609b10",
-        "scripts/kit/lib/scaffold.ts": "2d73591bfe0a2ea63f0d3bc286a3978d52cde90b91b0c0b62539d7afb6a26cdb",
+        "scripts/kit/lib/scaffold.ts": "f2c55b47bdf18b800a27cf0a5f6441816aac932f1af7b6b60951495841e5a454",
         "scripts/kit/lib/serve.ts": "cc5fcbe36a1549866e13e707f8e9943366b59c2d23323be63b367df65732a70c",
         "scripts/kit/local.ts": "75411a2b5ec7ded58125f9afc22ffad73c9ab7e6ee3214e0dd7f5091eda5dc4d",
-        "scripts/kit/new-game.ts": "230c2751263ea1a59cc94246f5e9391323a34355a58655f4b5977870a8e92d2e",
+        "scripts/kit/new-game.ts": "b80b37153168fbac85a1a40dc953a9a585deaedf708acd7fe1ab365da58d1beb",
         "scripts/kit/probe.ts": "58ac750eaf6a564ec1882bd7af9cf6dc861124c96506dc4a4a9aa7d4f4485e61",
         "scripts/kit/sheet.ts": "8c2bc3ecc40be10fb30650eaf7dfdcf28d09f09076ebd4ecfb10d80ffa7ff5d7",
         "scripts/kit/shots.ts": "376c645e129cb30c5acfdd59606e6768ad6592cfddd068033645cce067b9b14c",
@@ -297,7 +297,7 @@
         "scripts/kit/vibration-test.html": "05cbdcd081b7fcc8169d798066d2b4afef0beaa16bb432315f79902d1a0f4290",
         "scripts/kit/world.ts": "1dcccef2fb481bf38c2bb62c0167683efba29cf76ba705caa8464c61634ae6f1",
         "tests/scripts/kit-scripts.test.ts": "3ae194aa1e88e5e6c5442c96bc3b60fd8e270e2073b26c03cda21cdb97f4ac6f",
-        "tests/scripts/scaffold.test.ts": "0fe3b7c81f0588fc16b180e001dfc0a3f10190bf80f3872b190fc438e14748d1",
+        "tests/scripts/scaffold.test.ts": "0b10db42d4faebd33af97c5f9b50c7468f6ac0f80b16ca2dd51531d85f803a5e",
         "tests/scripts/shots-lib.test.ts": "1c06da91a4d1cb3dd2272a3939359a07984c117e544c9f7d8dff1bc385e9fc2d"
       }
     },
@@ -312,7 +312,7 @@
     "settings-ui": {
       "version": "1.0",
       "files": {
-        "docs/kit/settings-ui.md": "62c2666dc2459871a055f5d275af333fa871ca7a1518b7fb04b5b7d0bf1de642",
+        "docs/kit/settings-ui.md": "026c7584ba741347f0a92d866142afffc09e1acd319f0b9bcf9113c82e0ef616",
         "src/kit/settings-ui/index.ts": "147f670d1a6db10e18f5412da52f4378befe82c0ed6501c66105193e13b8e320"
       }
     },

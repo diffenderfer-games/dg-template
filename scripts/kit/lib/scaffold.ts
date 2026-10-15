@@ -73,6 +73,12 @@ export function editPackage(pkg: JsonRecord, c: NewGameChoice): JsonRecord {
   return { ...pkg, dependencies: prune(pkg.dependencies), devDependencies: prune(pkg.devDependencies), game };
 }
 
+/** Put the game's title into src/game/strings.ts (`COPY.title`), so the title screen says it too. */
+export function setCopyTitle(strings: string, title: string): string {
+  const quoted = `'${title.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`;
+  return strings.replace(/^(\s*title: )'[^'\n]*',$/m, (_m, lead: string) => `${lead}${quoted},`);
+}
+
 /** Parse `new-game` arguments (`--renderer pixi --no-daily --no-race --no-online --no-avatar --title "X"`). */
 export function parseNewGameArgs(argv: readonly string[]): NewGameChoice {
   const value = (flag: string): string | undefined => {

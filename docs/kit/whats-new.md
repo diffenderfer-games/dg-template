@@ -1,7 +1,7 @@
 # Writing "What's new"
 
 KIT doc. `game.changes` in `package.json` is the list players see under
-"What's new" ([HANDOFF.md](../HANDOFF.md) and [hub.md](../hub.md)). A
+"What's new" ([HANDOFF.md](../../HANDOFF.md) and [hub.md](../hub.md)). A
 brand-new game starts with it empty.
 
 ## The rule

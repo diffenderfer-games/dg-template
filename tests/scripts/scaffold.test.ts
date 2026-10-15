@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { editPackage, parseNewGameArgs, stripFeatureLines } from '../../scripts/kit/lib/scaffold.ts';
+import { editPackage, parseNewGameArgs, setCopyTitle, stripFeatureLines } from '../../scripts/kit/lib/scaffold.ts';
 
 describe('new-game', () => {
   it('parses the renderer and the features to drop', () => {
@@ -16,6 +16,11 @@ describe('new-game', () => {
     const text =
       "import { daily } from './daily.ts'; // new-game:daily\nimport { race } from './race.ts'; // new-game:race\nkeep";
     expect(stripFeatureLines(text, ['daily'])).toBe("import { race } from './race.ts'; // new-game:race\nkeep");
+  });
+
+  it('puts the title into COPY.title', () => {
+    const src = ['export const COPY = {', "  title: 'Coin Dash',", "  tagline: 'x',", '};'].join('\n');
+    expect(setCopyTitle(src, "Kit's Pixi")).toBe(src.replace("'Coin Dash'", "'Kit\\'s Pixi'"));
   });
 
   it('strips start/end blocks too', () => {

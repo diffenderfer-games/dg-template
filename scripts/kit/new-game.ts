@@ -14,7 +14,7 @@ import { cpSync, existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs
 import { join } from 'node:path';
 import { readJsonFile } from './lib/json-file.ts';
 import { isTemplate, ROOT } from './lib/paths.ts';
-import { editPackage, FEATURE_FILES, parseNewGameArgs, stripFeatureLines } from './lib/scaffold.ts';
+import { editPackage, FEATURE_FILES, parseNewGameArgs, setCopyTitle, stripFeatureLines } from './lib/scaffold.ts';
 
 if (!isTemplate()) {
   console.error('new-game runs once, in a fresh copy of the template (src/starters/ is already gone here).');
@@ -39,6 +39,10 @@ if (choice.drop.length > 0) console.log(`✓ dropped: ${choice.drop.join(', ')}`
 const pkgPath = join(ROOT, 'package.json');
 writeFileSync(pkgPath, `${JSON.stringify(editPackage(readJsonFile(pkgPath), choice), null, 2)}\n`);
 console.log('✓ package.json: renderer packages, labels and the game block');
+if (choice.title !== undefined) {
+  const strings = join(ROOT, 'src', 'game', 'strings.ts');
+  writeFileSync(strings, setCopyTitle(readFileSync(strings, 'utf8'), choice.title));
+}
 
 // 4. the template's own plans
 for (const plan of ['template-kit.md', 'template-kit-migration.md', 'kit-retros.md']) {

@@ -34,7 +34,7 @@ Rows that belong to the device (a colour-blind palette) can use `ctx.settings.se
 
 - Controls are navigable, named and at least 44 px: [docs/hub.md Navigable menus](../hub.md#navigable-menus-the-easy-way).
 - Respect the player's motion preference: [ui.md](ui.md) (juice is off with reduced motion).
-- Sound is unlocked on a gesture and ducked on pause: [docs/audio.md](../audio.md).
+- Sound is unlocked on a gesture and ducked on pause: [docs/audio.md](audio.md).
 
 ## Options / API
 
