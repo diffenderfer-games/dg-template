@@ -591,7 +591,7 @@ manifest/SW/install tags for one app, or set `HUB_PWA=0` to disable the whole
 layer. Service-worker behaviour is controlled by env vars on the host:
 `HUB_SW_VERSION` (unset by default: the caches are named after the client build, so a
 hub release drops them; set it only to force a flush), `HUB_SW_MAX_ENTRIES`,
-and `HUB_SW_CACHEABLE_HOSTS` (the cross-origin allowlist). See `src/config.js`.
+and `HUB_SW_CACHEABLE_HOSTS` (the cross-origin allowlist). See `packages/server/internal/src/config.ts`.
 Each game's registration carries a build stamp (a hash of its page), so a game
 deploy gets a fresh cache too. Same-origin code is always fetched from the network
 first; the cache is used only when the network fails (offline).
@@ -844,8 +844,9 @@ reposition). Overrides save to `localStorage` (offline-safe) and sync to the
 cloud for signed-in players (reserved `__controls` save). They're merged over
 the game's defaults at init — your `define()` stays the source of truth.
 
-> The canonical client `clients/hub.ts` is bundled to `/_hub/hub.js` by esbuild
-> on demand (cached); `/_hub/sdk.js` is a back-compat shim re-exporting it.
+> The canonical client is the npm package `@diffenderfer-games/hub`
+> (`packages/public/hub`); the hub's build bundles it to `/_hub/hub.js`, and
+> `/_hub/sdk.js` is a back-compat shim re-exporting it.
 
 ---
 
@@ -1473,7 +1474,7 @@ repo.
   tag, and `GET /games` exposes a summary for the invite picker.
 - **Own-server games** keep a copy of the zero-dependency game-server SDK in
   `server/hub-server.mjs` (not on npm; served at `/_hub/hub-server.mjs`, built from
-  `next/packages/server/server-sdk`; `npm run sync-hub-server` in the game copies
+  `packages/server/server-sdk`; `npm run sync-hub-server` in the game copies
   it from the sibling host checkout). With it
   they verify 60-second identity tickets offline, check chat, and post trusted results
   through the loopback-only `/_api/internal/*` routes. The host injects
@@ -1540,8 +1541,8 @@ free text fails **closed** (`check_unavailable`) and quick-chat keeps working.
 - **Suspended accounts** keep single-player (saves, stats, daily, profile). Every
   social, multiplayer, suggestion, trade and `players/*` route answers **403
   `{code:'suspended'}`**, and the socket is closed with 4003.
-- Word lists live in `src/hub/safety/lists/` (format and attribution in its
-  `README.md`). The corpora in `test/fixtures/filter/` lock the behaviour in.
+- Word lists live in `packages/server/safety/lists/` (format and attribution in its
+  `README.md`). The corpora in `packages/server/safety/test/fixtures/filter/` lock the behaviour in.
 
 ---
 
@@ -1781,8 +1782,8 @@ Anything else gets a 404. Use `hub-server.mjs` rather than calling these by hand
 
 ## Host configuration (env)
 
-Social and multiplayer knobs, read at boot (`src/config.js` and the modules it
-names). Set them on the systemd unit (see `DEPLOY.md`).
+Social and multiplayer knobs, read at boot and validated by one schema
+(`packages/server/internal/src/config.ts`). Set them on the systemd unit (see `DEPLOY.md`).
 
 | Env | Default | Meaning |
 |---|---|---|
@@ -1893,7 +1894,7 @@ game is hosted; the path-segment fallback only kicks in if it's absent.
   - **Errors:** `HubError` gains `code`/`reason`/`hint`/`retryAfterMs`, plus
     `ContentRejectedError` for 422s.
   - **Opt-in for online games:** `game.multiplayer`.
-  - **Own-server games:** the game-server SDK `clients/server/hub-server.mjs`
+  - **Own-server games:** the game-server SDK `server/hub-server.mjs`
     (tickets, chat, trusted results) and `"source": "server"` leaderboards.
   - **Safety:** a server-side content filter (with softening and an optional
     OpenRouter AI stage) on all player text. It now also covers usernames,
