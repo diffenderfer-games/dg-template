@@ -1,10 +1,15 @@
 # Plan: the dg-template game kit (a complete, standardized starter)
 
-Status: **draft for the user's review (2026-10-14). Planning only: nothing in
-this file is built yet**, except the daily-puzzle kit (`src/kit/daily-puzzle/`),
-which is landing now and becomes the first kit module. The open questions are in
-§12; the answers will go in a "Decisions" section the same way
-`saved-games.md` §11 does it.
+Status: **draft, revised after the user's review (2026-10-15). Planning only:
+nothing in this file is built yet**, except the daily-puzzle kit
+(`src/kit/daily-puzzle/`), the first kit module. The user's answers are in
+§12.1 "Decisions" and override anything above them.
+
+**Existing games are not migrated now.** The approach is to build the kit,
+make a few new games with it, and improve the template's code and context
+(docs, CLAUDE.md) after each one (§10). Moving the existing games onto the kit
+is a future endeavour, planned in
+[template-kit-migration.md](template-kit-migration.md).
 
 > **The ask (the user, trimmed):** *"document common code and unit tests and
 > scripts that could go into dg template to completely flesh common things out.
@@ -20,7 +25,8 @@ which is landing now and becomes the first kit module. The open questions are in
 
 **Sources.** The hub's game-facing docs (`HANDOFF.md`, `docs/hub.md`,
 `docs/multiplayer.md`), the plans `docs/plans/saved-games.md` (with its §11
-decisions) and `docs/plans/daily-puzzles.md`, and a read-only survey of all 28
+decisions), `docs/plans/daily-puzzles.md`, `docs/plans/avatars.md` and
+`docs/plans/world.md`, and a read-only survey of all 28
 game repos plus this template (2026-10-14). The hub is moving from `next/` to its
 repo root, so this plan names **packages** (`@diffenderfer-games/hub`,
 `@diffenderfer-games/hub-contract`, the private `@dg/hub-testkit`) and the
@@ -41,12 +47,12 @@ test-kit files that keep their paths (`test/helpers/*.mjs`,
 - [7. Screenshot tooling](#7-screenshot-tooling)
 - [8. Scripts and tooling](#8-scripts-and-tooling)
 - [9. Docs: what to add, split, merge and rewrite](#9-docs-what-to-add-split-merge-and-rewrite)
-- [10. Migration: how existing games adopt the kit](#10-migration-how-existing-games-adopt-the-kit)
+- [10. Making new games with the kit (the iteration loop)](#10-making-new-games-with-the-kit-the-iteration-loop)
 - [11. Phasing and effort](#11-phasing-and-effort)
-- [12. Open questions for the user](#12-open-questions-for-the-user)
+- [12. Decisions and open questions](#12-decisions-and-open-questions)
 - [Appendix A. Every common piece found](#appendix-a-every-common-piece-found)
-- [Appendix B. Compliance gaps the survey found](#appendix-b-compliance-gaps-the-survey-found)
-- [Appendix C. Hub events and callbacks, with the kit handler and test for each](#appendix-c-hub-events-and-callbacks-with-the-kit-handler-and-test-for-each)
+- [Appendix B. Hub events and callbacks, with the kit handler and test for each](#appendix-b-hub-events-and-callbacks-with-the-kit-handler-and-test-for-each)
+- Separate file: [template-kit-migration.md](template-kit-migration.md) (future: moving existing games onto the kit)
 
 ---
 
@@ -107,13 +113,13 @@ Around those two areas:
 - **A test pyramid:**
   - kit unit tests;
   - one **hub-event unit test for every hub event and callback**, against the
-    `FakeHub` (Appendix C);
+    `FakeHub` (Appendix B);
   - browser hub suites against a real local hub, using the hub's own test kit;
   - multiplayer scenarios;
   - a seeded simulation harness.
 - **A screenshot runner with premade scenarios:** title, intro, menu, gameplay,
   pause, hub menu open, daily started and completed, the "Your games" card,
-  invite received, race HUD, toast. Each runs at phone and desktop sizes, and
+  invite received, race HUD, toast, avatar, table launch. Each runs at phone and desktop sizes, and
   the results go into one contact sheet.
 - **Versioning without an npm package.** A `kit.json` manifest with a kit
   version and a file hash per module. Two scripts use it:
@@ -125,17 +131,33 @@ Around those two areas:
   doc. `CLAUDE.md` becomes a short brief that points at those docs instead of
   repeating `hub.md`.
 
-**Migration.** Games adopt the kit one module at a time, leaf modules first.
-Start with `rng`, `haptics` and `test-hook`; the boot module comes last.
+**The approach: build the kit, then make new games with it.** Existing games
+are not migrated now (the user, 2026-10-15). The order is:
+1. build the kit, the starters, the tests, the screenshot tooling and the docs
+   in the template (P0–P5);
+2. make **a few new games** from the template, each a different shape (§10);
+3. after each one, feed what was learned back into the template: kit code,
+   stubs, docs and CLAUDE.md. Each new game should be faster to make than the
+   one before.
 
-**Pilots:**
-- **sliderush**: small and clean, with a race and a daily.
-- **phase10**: online play, the best existing test kit, and the next turn-game
-  candidate.
-- **dinodasher**: three.js, and it has the daily-progress bug to fix.
+Moving the existing 28 games onto the kit is a future endeavour:
+[template-kit-migration.md](template-kit-migration.md).
 
-**Effort.** About 3 to 4 weeks of agent time for the kit and template. After
-that, roughly half a day to 2 days per game to adopt it.
+**Planned hub work is built in.** Three hub plans, none built yet:
+- `saved-games.md`: days in progress, `hub.saved`, turn games with
+  server-run rules, and "your turn" alerts;
+- `avatars.md`: the look, the renderer, the animator, the designer,
+  `<dg-avatar>` and the Pixi/three.js adapters;
+- `world.md`: `game.world.tables`, `launch.table`, `dg-room@1` room files,
+  the People panel and `setRoster`.
+
+Each gets a kit module, stubs, tests and docs that a new game has out of the
+box (§4.23–§4.26). Anything that needs an unpublished hub API is written
+against a feature check, and its tests are skipped with a reason that names the
+hub phase it waits on.
+
+**Effort.** About 4 weeks of agent time for the kit and template (P0–P5), then
+1 to 2 weeks per new game, with the template improved after each one (§11).
 
 ---
 
@@ -145,11 +167,10 @@ that, roughly half a day to 2 days per game to adopt it.
    - Kit, starters, tests and scripts are all `.ts`.
    - Scripts run with Node's built-in type stripping: `node scripts/x.ts`. It is
      on by default from Node 22.18; this machine has 22.22.
-   - Browser hub suites stay `.mjs` only if the hub's test kit (plain `.mjs`)
-     forces it. Otherwise they are `.ts` too (§6.3).
-   - `tsconfig` turns on `strict: true` for `src/kit` and `src/game`. The
-     template is `strict: false` today; phase10, uno, skipbo and baseball-typer
-     already run strict.
+   - Browser hub suites are `.ts` too (decision 8, §6.3).
+   - **Strict everywhere** (decision 4): `tsconfig` sets `strict: true` for
+     the kit, the game, the tests and the scripts. The template is
+     `strict: false` today.
 2. **Every hub duty comes pre-implemented.** A new game writes only game rules,
    rendering and copy.
    - The kit owns everything the hub docs say every game must do:
@@ -185,10 +206,9 @@ that, roughly half a day to 2 days per game to adopt it.
    - `npm run kit:check` (part of `npm run check`) fails when a game edited a
      kit file.
    - `docs/kit/CHANGELOG.md` lists every change by version.
-   - **Fixes always land in the template first.** The fleet then picks them up
-     with `kit:sync`.
-   - An npm package (`@diffenderfer-games/kit`) stays possible later (Q1). The
-     module boundaries are drawn so that change would be mechanical.
+   - **Fixes always land in the template first.** Games made from the
+     template pick them up with `kit:sync`.
+   - **No npm package** (decision 1).
 6. **The hub stays the source of truth.**
    - The kit wraps `@diffenderfer-games/hub` and never re-implements it: no
      accounts, chat, invites or menus.
@@ -217,6 +237,13 @@ that, roughly half a day to 2 days per game to adopt it.
    version found (Appendix A) and merges in the guards from the others. The
    recent progress-reset audit's fixes become kit tests, so no game can
    regress on them.
+10. **Improve from real use.** The template grows from making new games with
+    it (§10). Each game ends with a retro, and its findings go back into the
+    kit, the stubs, the docs and CLAUDE.md before the next game starts.
+11. **Ready for the planned hub.** The planned hub APIs (saved games, turn
+    games, avatars, world tables) have their kit adapters, stubs, tests and
+    docs in place before the hub ships them. Turning them on is a kit minor
+    version, not a rewrite (§4.23–§4.26).
 
 ---
 
@@ -231,7 +258,7 @@ There are three kinds of file:
 ```
 dg-template/
 ├─ README.md                    GAME  short: what this is, 10-step quick start, links (template keeps the long version in docs/)
-├─ CLAUDE.md                    GAME  agent brief: rules, where things live, the hooks, done-checklist (§9.3)
+├─ CLAUDE.md                    GAME  short agent brief, not synced (decision 12): rules, where things live, links to synced + kit docs (§9.3)
 ├─ HANDOFF.md                   SYNCED from the hub (catalog build/mount rules)
 ├─ kit.json                     KIT   { kitVersion, modules: { name: { version, files: { path: sha256 } } } } – what kit:check verifies
 ├─ package.json                 GAME  scripts (standard set, §8) + the `game` block
@@ -239,7 +266,7 @@ dg-template/
 ├─ vite.config.ts               GAME  base:'./' (required), es2022, worker format 'es', optional /ws proxy for own-server
 ├─ vitest.config.ts             GAME  projects: kit, game, hub-events (jsdom where needed)
 ├─ tsconfig.json                GAME  strict, allowImportingTsExtensions (kit imports './x.ts' so it also runs under node)
-├─ .github/workflows/deploy.yml KIT   the current self-hosted-only deploy (dg-template's), + optional check gate (§8.4)
+├─ .github/workflows/deploy.yml KIT   the current self-hosted-only deploy (dg-template's) + the check and hub-suite gate (§6.6)
 ├─ cover.png                    GAME  catalog tile (make it with `npm run cover`)
 ├─ docs/
 │  ├─ hub.md, multiplayer.md    SYNCED from the hub
@@ -260,7 +287,9 @@ dg-template/
 │  │  ├─ daily-puzzle/          the solver-checked daily kit (landing now; unchanged API)
 │  │  ├─ race/                  hub.race adapter: session, throttled status, reload stash, race-bar offset, leave guard
 │  │  ├─ online/                launch routing, rooms host/guest, successor + host backup, computer seats, wire validation, chat panel, links, presence
-│  │  ├─ turns/                 hub.turns adapter (when the hub ships it): rules-module contract helpers
+│  │  ├─ saved/                 hub.saved adapter: Continue rows, opened/onOpen routing (saved-games phases 0–1)
+│  │  ├─ turns/                 hub.turns adapter + TurnRules helpers, checkTurnRules (saved-games phase 3)
+│  │  ├─ avatar/                seat badges, look-at loop, feelOn, result faces, nameAndFace (avatars.md §11)
 │  │  ├─ scores/                recordResult(): boards + stats with the daily/race suppression rules
 │  │  ├─ audio/                 AudioEngine (buses, unlock, visibility), Sfx primitives, music: worker stream + synth-core contract
 │  │  ├─ haptics/               haptic(strong) – Android vibrate + iOS switch trick, settings-gated, throttled
@@ -270,7 +299,6 @@ dg-template/
 │  │  ├─ ui/                    h() DOM builder, screens, modal/sheet, toast (with actions), buttons/segmented/toggle rows, juice + confetti
 │  │  ├─ settings-ui/           the standard settings sheet (sound, music, haptics, controls hint, reset) + game rows
 │  │  ├─ test-hook/             window.__game: typed, gated, the shape every script and suite uses
-│  │  ├─ cards/                 OPTIONAL: deck/shuffle with saveable RNG, CardArt atlas core, TurnMatch driver, avatars
 │  │  ├─ server/                OPTIONAL own-server: static + SPA + /healthz + /ws upgrade, ticket verify, seat grace
 │  │  └─ testing/               FakeHub, fake clock, fake storage – used by tests only (tree-shaken out of the build)
 │  ├─ game/                     GAME  yours: every file is a stub with TODO(game) comments
@@ -284,14 +312,16 @@ dg-template/
 │  │  ├─ audio.ts               the game's SFX list + music song() (optional)
 │  │  ├─ daily.ts               OPTIONAL: buildDaily(seed, day) / puzzle rules for the daily-puzzle kit
 │  │  ├─ race.ts                OPTIONAL: race params → level; stats of a run
-│  │  ├─ online.ts              OPTIONAL: host/guest messages, computer move, view redaction
+│  │  ├─ online.ts              OPTIONAL: host/guest messages, computer move, view redaction, table options, onReaction
+│  │  ├─ turns/rules.ts         OPTIONAL: the pure TurnRules module the hub runs (bundled by build:rules)
+│  │  ├─ avatar.ts              OPTIONAL: which game events make faces react (feelOn map)
 │  │  └─ test-hook.ts           extra hook fields (solveNow, setState…) merged into window.__game
 │  └─ starters/                 (template only; `new-game` keeps one renderer and deletes this folder)
 │     ├─ pixi/                  Pixi 8 stage, ticker, resize, assets, input binding – copies into src/game/render
 │     └─ three/                 three r186 Stage, quality, adaptive resolution, loop – copies into src/game/render
 ├─ tests/
 │  ├─ kit/                      KIT   unit tests per module (vitest)
-│  ├─ hub-events/               KIT   one test per hub event/callback against FakeHub + the stub game (Appendix C)
+│  ├─ hub-events/               KIT   one test per hub event/callback against FakeHub + the stub game (Appendix B)
 │  ├─ game/                     GAME  rules tests, determinism, sim (stubs + examples)
 │  └─ hub/                      browser suites against a real local hub
 │     ├─ _kit.ts                KIT   the shared header: DG_HOST, e2eEnv, SLUG, L, waitGame, press, room helpers
@@ -300,12 +330,13 @@ dg-template/
 │     ├─ resume.test.ts         KIT   (resumable games) reload → Continue → same state
 │     ├─ daily.test.ts          KIT   (daily games) start → complete → calendar mark; leave → cancel
 │     ├─ race.test.ts           KIT   (race games) two players, countdown, status, finish
-│     └─ online/*.test.ts       KIT   (online games) the 10 multiplayer.md §12 scenarios, parameterized by the hook
+│     └─ online/*.test.ts       KIT   (online games) the 10 multiplayer.md §12 scenarios + table launch, parameterized by the hook
 ├─ scripts/
 │  ├─ kit/                      KIT   shared tooling (§7, §8): shots runner, contact sheet, procs, free-port, probe,
 │  │                                  smoke-prod, ui-survey, kit-sync, kit-check, sync-docs, cover, new-game
 │  ├─ shots.config.ts           GAME  which scenarios to shoot + game-specific steps
 │  └─ sim.ts                    GAME  seeded simulation entry (uses kit/testing + rules.ts)
+├─ world/                       OPTIONAL room.tmj (Tiled) → room.json (dg-room@1) via world:build (world.md §7)
 ├─ server/                      OPTIONAL own-server games only
 │  ├─ server.ts                 GAME  uses kit/server
 │  └─ hub-server.mjs            SYNCED by `npm run sync-hub-server`
@@ -387,7 +418,9 @@ export type GameDefinition<P extends Json, S extends Json, R extends Json> = {
   // Optional features: present → the kit wires them; absent → the kit stays out of the way
   daily?: DailyHooks<R>;          // §4.6
   race?: RaceHooks<R>;            // §4.7
-  online?: OnlineHooks;           // §4.8
+  online?: OnlineHooks;           // §4.8 (rooms or own-server; table options from launch.table, §4.25)
+  turns?: TurnHooks;              // §4.23 (the rules module + turn screen; once the hub ships hub.turns)
+  avatar?: AvatarHooks;           // §4.24 (feelOn map; seats get faces automatically)
   scores?: ScoreSpec;             // §4.10
   audio?: AudioSpec;              // §4.12
   input: InputSpec;               // §4.2 (groups + virtual layouts)
@@ -574,7 +607,7 @@ export interface PauseHandle { readonly paused: boolean; readonly byHub: boolean
   - dinodasher `boot.ts:90`
   - bubblepop's race-aware pause
   - bfme `hubMenu.ts`
-- **Tests** (hub-events; Appendix C):
+- **Tests** (hub-events; Appendix B):
   - overlay open: pause, with `why='hub'`;
   - overlay close with `resumeOnClose`: resume only if the hub caused the
     pause;
@@ -684,6 +717,8 @@ export interface ResumeSlot<R> {
 
 - **Wording:** players see "Continue" and "Your saved game". The kit's strings
   never say "run" (saved-games.md §11).
+- **The full saved-games coverage** (days in progress, turn games, alerts,
+  wording) is in §4.23.
 - **Saved games (planned).** When the hub ships `hub.saved` (phase 0/1 of
   saved-games.md), `kit/resume` adds a `kit/saved` adapter:
   - `continueRows()` returns `hub.saved.list()` mapped to title-screen rows:
@@ -885,6 +920,9 @@ What the kit implements, and where each piece comes from:
     (decision 8: Pop Four, Phase 10, Skip-Bo, Garbage) then means mapping
     them onto the rules module, not rewriting them.
   - Player wording: "Online with Sam · your turn", never "turn game".
+  - What a new game gets for turn games and alerts, and what waits on which
+    hub phase: §4.23. World tables (`launch.table`, Quick match,
+    `setRoster`): §4.25.
 - **Hooks:** `src/game/online.ts`, all stubs. `package.json` holds
   `game.multiplayer`.
 - **Tests** (hub-events; FakeHub drives each launch kind and room event):
@@ -984,8 +1022,23 @@ export function hostMainThread<Msg>(e: AudioEngine, core): MusicStream<Msg>;    
 export function hostWorklet<Msg>(e: AudioEngine, url: string, name: string): Promise<AudioWorkletNode | null>; // OPT-IN, secure contexts only
 ```
 
-**About AudioWorklet and bubblepop.** The ask mentions "the AudioWorklet music
-pattern from bubblepop", but the two sources conflict:
+**The rule (decision 6): music and audio must work over plain http.** Testing
+uses a LAN IP (`http://192.168.x.x:5173`) or an http dev server, not only
+`localhost`. Such a page is **not a secure context**. AudioWorklet
+(`audioWorklet.addModule`) is unavailable there. So:
+- **The default host never needs a secure context.** It is the Web Worker synth
+  feeding PCM buffers to the main thread, which queues them as
+  `AudioBufferSourceNode`s about 2–3 s ahead.
+- **The fallback is the main thread**: the same core driven from the main
+  thread, or a `ScriptProcessorNode`. It is used when Workers fail.
+- **AudioWorklet is used only when `isSecureContext` is true,** and only when
+  the game asks for it. Even then, a failed `addModule` drops to the default.
+- **Tests and the screenshot runner check this.** One test serves the build on
+  the machine's LAN address over http and asserts the music telemetry
+  (`underruns`, `maxRenderMs`). SFX unlock is checked over http too.
+
+**Where bubblepop fits.** The ask mentions "the AudioWorklet music pattern from
+bubblepop", but the two sources conflict:
 
 - bubblepop's music (`src/audio.ts`, `src/music-worklet.ts`,
   `src/music-synth.ts`) runs a sample-accurate `MusicSynth { handle(msg);
@@ -1003,11 +1056,9 @@ pattern from bubblepop", but the two sources conflict:
   1. the **Worker PCM stream**, the default (docs/audio.md; dinodasher's
      version, with two stems, telemetry and a main-thread fallback);
   2. **main thread**, the fallback;
-  3. **AudioWorklet**, opt-in, only when `isSecureContext`.
-- A game writes its song once, as a `MusicCore`, and the host is a setting.
-  bubblepop can keep its worklet with no rule exception, and weston and GD
-  can move their main-thread node graphs into a core. Q6 asks the user to
-  confirm.
+  3. **AudioWorklet**, opt-in, only when `isSecureContext` is true.
+- A game writes its song once, as a `MusicCore`, and the host is chosen at
+  runtime by the rule above.
 
 - **Hooks:**
   - `src/game/audio.ts` lists the SFX by name, as calls to the primitives;
@@ -1029,7 +1080,11 @@ pattern from bubblepop", but the two sources conflict:
   - `MusicStream` schedules chunks back-to-back on sample boundaries and
     counts underruns;
   - a `MusicCore` renders deterministically for a seed (a hash snapshot);
-  - the worklet host is skipped when the context isn't secure.
+  - the worklet host is skipped when the context isn't secure (a fake
+    `isSecureContext=false`), and the Worker host is chosen;
+  - a browser check over `http://<LAN IP>` (not localhost) plays music with
+    no underruns (part of the `test:hub` audio case and the `play`
+    screenshot scenario's telemetry).
 
 ### 4.13 `haptics`
 
@@ -1075,8 +1130,8 @@ export class SeededRng {                                                // savea
   `core/prng.ts`).
 - `daily-puzzle/rng.ts` re-exports from here.
 - **Tests:**
-  - known sequences (golden values matching today's games, so migrated games
-    keep their seeds);
+  - known sequences (golden values matching today's mulberry32, so seeds
+    behave the same as in the existing games);
   - `fork` gives independent streams;
   - `snapshot`/`restore` round-trips;
   - `seedForDay` equals the hub's value for fixed days;
@@ -1192,7 +1247,13 @@ export type KitSettings = { sound: boolean; music: boolean; musicVolume: number;
   - `reducedMotion` turns juice off;
   - focus order works with the gamepad.
 
-### 4.19 `cards` (optional: card and board games)
+### 4.19 `cards`: deferred (decision 13)
+
+**Not built now.** The design below is kept for later. New card and board games
+use `kit/rng` (`SeededRng` for decks), `kit/online` or `kit/turns`, and
+`kit/avatar` (which replaces the old `avatars.ts`), and write their own deck
+and table code. If two or more new games repeat the same card code, the retro
+(§10.2) proposes extracting it.
 
 ```ts
 export class Deck<C> { constructor(cards: C[], rng: SeededRng); draw(n?): C[]; shuffle(): void; snapshot(); static restore() }
@@ -1211,7 +1272,7 @@ export function avatarSvg(seed: number): string; export const BOT_AVATARS: strin
   - avatars from phase10/uno
   - skipbo's DOM-measured Pixi overlay (`rectOf(el)`), documented as a
     pattern
-- This module is optional. `new-game --cards` keeps it.
+- If built later, it would be optional, behind `new-game --cards`.
 - **Tests:**
   - deck determinism and snapshot;
   - `TurnMatch` with a bot takeover mid-turn;
@@ -1239,8 +1300,8 @@ export function installTestHook(ctx: GameContext, extra?: () => Partial<GameTest
   `evaluateOnNewDocument`), on `localhost`, or in dev. That matches weston's
   and GD's practice.
 - **One name for all games: `window.__game`.** That replaces `__p10`,
-  `__uno`, `__sr`, `__bp`, `__GD__`, `__WESTON__` and the rest. Migrated
-  games keep their old name as an alias for one release.
+  `__uno`, `__sr`, `__bp`, `__GD__`, `__WESTON__` and the rest in new games
+  (decision 15).
 - **Extract from:** phase10 `P10Hook` (`src/main.ts:1424-1473`), the typed
   one; sliderush `__sr` for the shape; and the weston/GD gating.
 - **Tests:**
@@ -1257,7 +1318,7 @@ doesn't build i18n. Two cheap steps keep it possible later:
 - Games are encouraged, though not required, to keep their own copy in
   `src/game/strings.ts`.
 
-If the user wants languages later (Q10), add `kit/i18n` with
+Decision 10: no i18n now. If languages are wanted later, add `kit/i18n` with
 `t(key, vars)`, `Intl`-free plurals, and the hub's locale once the hub exposes
 one.
 
@@ -1299,8 +1360,152 @@ export function fakeAudioContext(): AudioContext;
   - A short browser suite (`tests/hub/fake-parity.test.ts`) runs the same
     scenario against FakeHub and against the real local hub, then compares
     the call logs for overlay, daily, race and resume.
-- Q2 asks whether to move FakeHub into the hub package later
-  (`@diffenderfer-games/hub/testing`). §6.2 has the recommendation.
+- Decision 2: FakeHub stays in the template. Moving it into the hub package
+  (`@diffenderfer-games/hub/testing`) remains a later option (§6.2).
+
+### 4.23 `saved`, `turns` and alerts: the saved-games plan, in full
+
+The hub plan `docs/plans/saved-games.md` was approved on 2026-10-15 and none of
+it is built yet. §4.5 and §4.8 sketch the adapters. This section lists every
+§11 decision and says what a new game gets for it.
+
+| Hub plan item (saved-games.md) | What a new game gets out of the box | Waiting on (hub phase) |
+|---|---|---|
+| **Daily instances with day credit**: one per (player, game, day); any number in progress; resuming and winning gives that day's credit even after the 30-day start window (decisions 1–3); `cancel()` becomes pause and `discard()` is give up | `kit/daily` already routes every non-win exit through one `leave()`, so the meaning change is a one-line switch inside the kit. `restore(run)` handles `challenge.saved`. The stub `src/game/daily.ts` has a `TODO(game)` that says "your daily state must be JSON and resumable". Tests: `daily.test.ts` rows 22–28 (Appendix B); the planned rows are skipped until the hub ships. Doc: `docs/kit/daily.md` § "Days in progress" | Phases 0–1 (foundations, dailies in progress), then a kit minor version to turn the planned tests on |
+| **One run per player per game** (`kind:'run'`, today's `hub.resume`, now offline-first and never expiring) | `kit/resume` as specified in §4.5. The API is unchanged, so nothing waits except the expiry text in the docs | Already usable; phase 2 (offline run cut-over) needs no kit change |
+| **`hub.saved`**: list, `opened`, `onOpen`, open, discard, counts, `on('change')`; `?hub_open=<id>` | `kit/saved`: `continueRows()` for the title screen, routing in the boot order (§3.4), and `onOpen` switching without a reload. Stub: `src/game/screens/title.ts` renders the rows the kit passes in. Tests: `saved.test.ts` (row 56). Screenshot: `continue` (§7.2) | Phases 0–1 (`hub.saved` published); until then `kit/saved` falls back to `hub.resume` only |
+| **Turn games, any number per player**: claimed accounts only; strangers in open-seat lobbies; server-run **rules modules** (`game.turns.rules`, a self-contained ESM bundle); the hub owns the RNG; deadlines 1/3/7 days with the computer playing or skipping (decisions 5–7, 9) | `kit/turns` (§4.8): the `TurnGame` adapter and a pure `TurnRules<S, M, V, E, O>` stub at `src/game/turns/rules.ts`, with every method a `TODO(game)` (`setup`, `view`, `toAct`, `apply`, `outcome`, `progress`, plus optional `autoMove`, `migrate`, `eventView`). Also `npm run build:rules`, which bundles it to `dist-rules/rules.mjs` with no imports, as the manifest needs. Tests: `checkTurnRules(rules)` property tests (determinism with the injected RNG; `view` never leaks another seat's secrets; `apply` never throws; JSON ≤ 64 KB; `autoMove` always legal), plus `turns.test.ts` (row 57). Docs: `docs/kit/turns.md` | Phase 3 (turn engine plus the Pop Four pilot): the contract types land in `hub-contract`, and `@dg/hub-testkit` gets its own `checkTurnRules` |
+| **One online implementation** (decision 8): Pop Four, Phase 10, Skip-Bo and Garbage move their online play to turn games, live while everyone is present | A **new** card or board game starts with `kit/turns` as its default online path (`new-game --online turns`). `--online rooms` stays for live, real-time play (Uno's jump-in style), and `--online server` for real-time competitive play | Phase 3 for `--online turns`. Moving the four existing games is in the migration doc |
+| **"Your turn" alerts** (decision 4): on for players who already allow push; the one-time prompt; quiet hours; reminders; nudges | The hub does all of it. The kit adds three things: a "Remind them" button in the turn screen (`TurnGame.nudge`), a per-game bell (`setNotify`), and the rule that alert wording comes only from the hub (the game sends no text). Test: nudge is rate-limited in the UI. Doc: one paragraph in `docs/kit/turns.md` | Phase 4 |
+| **Chat in turn games** (decision 12): moderated free text between friends, quick-chat for everyone else | The `kit/online` chat panel is reused unchanged: `chatMode` decides between on, quick and off | Phase 3 |
+| **Player-facing wording rule**: never "run", "turn game", "instance" or a kind name; only "Continue" / "Your saved game", "Online with Sam · your turn", "Daily challenge · Oct 14"; groups "Your turn", "Daily challenges", "Saved games", "Online games" | `kit/core/strings.ts` has exactly these strings, and the kit renders no other wording. The lint rule (§8.5) flags the banned words in `src/game/**` string literals, and in the `progress()` labels a game returns, which are checked at runtime in dev. Test: `strings.test.ts` | Nothing; it applies now |
+
+### 4.24 `avatar`: the avatars plan
+
+The hub plan `docs/plans/avatars.md` was proposed on 2026-10-14 and none of it
+is built yet. Its §11 lists what dg-template should pick up. The hub provides
+everything below; the kit adds helpers and wiring on top.
+
+**What the hub provides:**
+- **The look:** a versioned, zod-validated data object, with no text, uploads
+  or free drawing.
+- **The wire code:** `AV1…`, carried on every payload that already carries a
+  name.
+- **A seeded default** for players who never designed one.
+- **The renderer** (`@diffenderfer-games/hub/avatar`), which outputs:
+  - SVG strings and elements;
+  - the `<dg-avatar>` custom element;
+  - Canvas 2D;
+  - `ImageBitmap` and data URLs;
+  - the server route `/_hub/avatar/<code>.svg`.
+- **The animator** (`animator(look).pose(t)`, pure and time-based):
+  expressions, look direction, blinking, talking, reactions and `feel`, with
+  reduced motion respected.
+- **Adapters:**
+  - `/avatar/pixi`: `pixiAvatar`, `avatarTexture`, `createAtlas` and
+    `createCrowd`;
+  - `/avatar/three`: `avatarCanvasTexture` and `avatarSprite`.
+
+  Each takes the library as an argument, so the hub has no peer dependency on
+  pixi or three.
+- **The designer**, opened with `hub.avatar.openDesigner()`.
+- **`hub.avatar`:** `mine`, `of`, `many`, `from`, `bot`, `on('change')` and
+  `load`.
+
+**`kit/avatar`** (from avatars.md §11; renderer-neutral, with Pixi and three.js
+helpers in the starters):
+
+```ts
+export function seatBadge(r: AvatarRenderer, seat: { look?: string; userId?: number; name: string }, o?: { size?: number; nameplate?: boolean }): SeatBadge; // head + name plate placed by layout() anchors
+export function useSeatLook(badges: SeatBadge[], activeSeat: () => number | null): () => void;  // every face looks at the active player
+export function feelOn<E extends string>(map: Record<E, Feel>): (event: E, seat: number) => void; // game events → anim.feel ('victim', 'cheer', …)
+export function resultFaces(results: { seat: number; won: boolean }[]): void;                    // winner cheers, others happy/sad
+export function nameAndFace(el: HTMLElement, who: { userId: number; name: string; look?: string }): void; // DOM: <dg-avatar> + name → openPlayer
+export function botLook(seed: string): AvatarRef;   // hub.avatar.bot: stable faces for computer players
+// starters: render/avatar-pixi.ts (pixiAvatar/createAtlas wrapper), render/avatar-three.ts (avatarSprite wrapper)
+```
+
+**What a new game gets out of the box:**
+- **Title-screen demo** (avatars.md §11). The player's bust sits in a corner,
+  blinking and looking at the pointer, with an **Edit** button that calls
+  `hub.avatar.openDesigner()`. It uses `mine()`, the starter's adapter,
+  `animator` and `on('change')` in about 20 lines in
+  `src/game/screens/title.ts`, and it is easy to delete.
+- **Every name the kit renders also shows a face:** lobby seats, the online
+  people list, race results and the "Your games" rows. That follows the rule
+  "show players' avatars wherever you show their names; never draw your own
+  faces for real players" (CLAUDE.md).
+- **Character games** (a hero that isn't the player's face) keep `kit/avatar`
+  out of the hero. That rule is in `docs/kit/avatar.md`.
+- **Stubs:** `src/game/avatar.ts`, a `feelOn` map with `TODO(game)` comments
+  (which game events make faces react).
+- **Tests:**
+  - a vitest snapshot of `render.svg(defaultLook('test'))`, from avatars.md
+    §11;
+  - `seatBadge` falls back to the silhouette for a hidden player;
+  - `feelOn` maps each event;
+  - a hub-event test: `hub.avatar.on('change')` re-renders the badge;
+  - an online suite case: every human seat renders a `<dg-avatar>` or
+    `pixiAvatar`.
+- **Screenshot scenario:** `avatar`, which shows the title bust and a lobby
+  with faces.
+- **Doc:** `docs/kit/avatar.md`.
+
+**Waiting on:**
+- Avatars phases 0–1 (data model, API, renderer and launch art) for the
+  renderer and `hub.avatar`.
+- Phase 2 for the designer.
+- Phase 4 for the Pixi and three.js adapters.
+
+Until the hub pin includes `/avatar`, `kit/avatar` compiles against a type-only
+shim. The title demo then shows the old 24-creature token, and the avatar tests
+are skipped. Then the template's hub pin moves to the first version with
+`/avatar` and `/avatar/pixi` (avatars.md §11).
+
+### 4.25 `world`: tables, `launch.table`, room files, the People panel
+
+The hub plan `docs/plans/world.md` was proposed on 2026-10-14 and none of it is
+built yet. Its §11.3 lists what the template kit should give new games. The
+world itself is hub-owned (Hall, rooms, walking, tables, matchmaking), so a game
+mostly declares data.
+
+| Hub plan item (world.md) | What a new game gets out of the box | Waiting on |
+|---|---|---|
+| **`game.world.tables`** (§3.1): table types (`key`, `title`, `mode`, `players`, `maxWaitSec`, `art`, `count`, `options`), the Any table, `room`, `theme` | `new-game --online …` writes a `game.world` block derived from the game's `multiplayer.modes`, with commented examples for race and own-server tables. `kit:check` validates it the same way `hub-doctor` does (keys, titles of 24 chars at most, player ranges, at most 8 types and 16 tables). The world doc explains the defaults, so most games declare nothing | W2 (contract manifest) |
+| **`launch.table`** (§3.4): `{ id, type, title, options? }` on an ordinary `host`/`guest` launch; for turn games, a `join` launch into a new turn instance | `kit/online`'s launch adapter reads `launch.table?.options` and passes them to `host.start(seats, { mode, table })`. The stub `src/game/online.ts` has a `TODO(game)`: "apply table options (e.g. jump-in rules)". A game that handles invites already handles tables. Tests: `launch.test.ts` gains rows for a table host launch, a table guest launch and a table turn-game join, plus the world.md §3.4 failure case ("That table didn't start": the leader never creates the room) | W2 (`Launch.table` published) |
+| **`hub.mp.quickMatch({ mode? })`** (§3.6): sit at the matching table from inside the game | A "Quick match" button in the kit's online menu, shown when `multiplayer.quickMatch` is set, and the "Finding players… 2/4" state handled by the hub chip | W2 |
+| **`dg-room@1` room files** (§7): a JSON room (tilesets, floor/decor/over layers, solid tiles, props, slots for the door, tables, play area, kiosks and quiet zones, table art, music), authored in Tiled, with limits of 1.5 MB, 64 × 48 tiles and no text | Opt-in, `new-game --world-room`: `world/room.tmj` (a Tiled starter on the default kit's tileset), `npm run world:build` (the `dg-room from-tiled` converter), and `npm run world:check` (the same validator as the registry, run through `hub-doctor`: reachability flood fill, limits, slots). Without a room file the hub generates a themed room, so most new games ship none | W4 (schema in the contract; the converter and checks live in the hub package and are called from the kit scripts) |
+| **In-game People panel** (§6.1): who's in this match, friends here, also here, recent players, match and room chat, reactions, "Back to the world" | Free from the hub. The kit's duties are the ones it already has: `presence.set` per screen, hub rooms and races, `setQuiet` during intense play (which collapses floating reactions). Optional `hub.social.on('reaction')` for games that draw reactions in their own UI: a stub hook `onReaction` in `src/game/online.ts` | W3 |
+| **`hub.mp.setRoster(userIds)`** (§6.2), for own-server games | `kit/server`'s client side calls `setRoster` whenever the server's match roster message changes. The game does nothing. Test: a roster change triggers one call (FakeHub) | W3 |
+| **Avatar in the world while you play** (§4): goggles, Play-area pods, Watch | Nothing for the game. It depends on presence, which `kit/ui.Screens` and `kit/online` already set. The kit doc says to keep `presence.detail` short and kid-friendly ("Round 3"), because friends see it over the avatar | W3 |
+
+**Also added for the world:**
+- **Docs:** the "Tables" section of `docs/multiplayer.md` and "The world"
+  section of `docs/hub.md` arrive through `sync-docs`. `docs/kit/world.md`
+  links to them and covers tables, room files and Quick match.
+- **Hub suite:** `tests/hub/online/table.test.ts`. Three contexts sit at a
+  table in the world, are launched into the game, and agree on the room. It is
+  skipped until the hub has W2.
+- **Screenshot scenario:** `table-launch`. The game is opened from a world
+  table, and the shot shows the lobby with the table title.
+
+### 4.26 Summary: what a new game gets now, and what waits on the hub
+
+| Area | Out of the box when the kit ships | Turns on when the hub ships |
+|---|---|---|
+| Saves, pause, resume, daily, race, rooms, scores, input, audio, UI, tests, screenshots | everything in §4.1–§4.22 | — |
+| Days in progress, `hub.saved`, "Your games" Continue rows | `kit/saved` and `kit/daily` code paths, skipped tests, docs | saved-games phases 0–1 |
+| Turn games, "your turn" alerts | `kit/turns`, the rules-module stub, `checkTurnRules`, `build:rules` | saved-games phases 3–4 |
+| Avatars | `kit/avatar` helpers, the title demo, skipped tests | avatars phases 0–2 (renderer, designer), phase 4 (adapters) |
+| World tables, `launch.table`, Quick match | the `game.world` block, launch handling, skipped table suite | world W2 |
+| Room files | `world:build` / `world:check` scripts, Tiled starter (opt-in) | world W4 |
+| People panel, reactions, `setRoster` | presence wiring, the `onReaction` stub, the `setRoster` call | world W3 |
+
+**Rule for every row:** a planned hub API is used only behind a feature check
+on the pinned client (`'saved' in hub`, `hub.avatar?.mine`), and its tests
+are written now and skipped with a reason that names the hub phase. When the
+hub publishes, the kit releases a minor version that removes the skips, and
+games made from the template pick it up with `kit:sync`.
 
 ---
 
@@ -1355,6 +1560,9 @@ does the following:
 - **Input binding:** `controls.ts` with a `play` group (move axis plus an
   action) and width-dependent virtual layouts (GD). `step()` reads
   `hub.input.vector('move')` and `down('action')`.
+- **Avatars:** `render/avatar-pixi.ts` wraps `pixiAvatar`/`createAtlas` from
+  `@diffenderfer-games/hub/avatar/pixi` (passing the Pixi namespace), for
+  `kit/avatar` seat badges (§4.24).
 - **Example scene:** "collect the coins", rebuilt on the hooks. It shows a
   daily from the seed, a race from the seed and params, resume, a
   leaderboard, pause, and haptics on collect.
@@ -1400,6 +1608,8 @@ does the following:
     example.
 - **Input binding:** the same `controls.ts`, plus canvas drag and swipe
   gestures (dinodasher `Controls`, helixdrop drag-to-spin).
+- **Avatars:** `render/avatar-three.ts` wraps `avatarSprite`/
+  `avatarCanvasTexture` from `@diffenderfer-games/hub/avatar/three` (§4.24).
 - **Example scene:** a small 3D "collect the orbs" on a plane, with the same
   hub features as the Pixi example.
 - **Screenshots:** `preserveDrawingBuffer` is on only under `__HUB_TEST__` or
@@ -1416,9 +1626,8 @@ does the following:
 
 - **One runner for unit tests: vitest**, which the template already uses.
   Today the fleet uses five runners (vitest, `node --import tsx --test`,
-  `--experimental-strip-types`, esbuild + node, and tsx scripts).
-  Migrated games keep their old tests running through a `test:legacy` script
-  until they are ported.
+  `--experimental-strip-types`, esbuild + node, and tsx scripts). New games
+  use only vitest.
 - `vitest.config.ts` has three projects:
   - `kit`: `tests/kit/**`, Node environment, jsdom per file where needed;
   - `hub-events`: `tests/hub-events/**`, jsdom, FakeHub;
@@ -1450,11 +1659,11 @@ does the following:
      Mason.
   3. The FakeHub is kept honest by `satisfies HubLike` (the types) and the
      fake-parity browser suite (behaviour), §4.22.
-- **Later (Q2):** once it has settled, offer it to the hub as
+- **Later (decision 2 keeps this open):** once it has settled, offer it to the hub as
   `@diffenderfer-games/hub/testing`, so the hub team owns fidelity. The kit
   would then re-export it. That is a hub change, so it is not in this plan's
   scope.
-- **What is tested:** Appendix C lists every hub event and callback a game can
+- **What is tested:** Appendix B lists every hub event and callback a game can
   receive, with the kit handler and the test file for each. The suites in
   `tests/hub-events/` run **the kit against the stub game**. The stub game's
   hooks record calls, so each test asserts what the hub saw (`fake.calls`) and
@@ -1497,9 +1706,18 @@ does the following:
   | `race.test.ts` | Two players, `raceCountdownMs:1200`, status reaches the HUD, `finish`, result card, no pause during the race | `race` |
   | `online/*.test.ts` | The 10 multiplayer.md §12 scenarios: invite → jump → accept → lobby; decline, expire, cancel; leave guard; join and watch; pause on hub open; chat (reject, soften, quick-only, off); reconnect; suspended; resilience (seat away → computer → back); invite link | `multiplayer` |
 
-- **Language:** `.ts`, run by `node --test` with type stripping (Node ≥ 22.18
-  runs `.ts` directly). They still import the hub's `.mjs` kit. Q8 asks
-  whether to keep them as `.mjs` instead.
+- **Language: `.ts`** (decision 8), run by `node --test` with type stripping
+  (Node ≥ 22.18 runs `.ts` directly). They import the hub's `.mjs` test kit
+  through a typed wrapper in `tests/hub/_kit.ts`.
+- **Planned-hub suites** are written now and skipped with a reason that names
+  the hub phase:
+  - `saved.test.ts`: "Your games" → open a day in progress → win → day
+    credit;
+  - `turns.test.ts`: create → invite → move → the other page gets `move`
+    → reload → `history`;
+  - `online/table.test.ts`: launched from a world table;
+  - `avatar.test.ts`: every human seat shows a face; a design change
+    re-renders live.
 - **Run them** with `npm run test:hub`, which is `node --test
   --test-concurrency=1 tests/hub/`.
 
@@ -1551,19 +1769,26 @@ export function simulate<S, M>(o: { seeds: number | number[]; setup(rng: SeededR
 
 ### 6.6 CI
 
-- The memory rule is **self-hosted runners only**: the template's deploy runs
-  on the org's Windows runner, and GitHub-hosted runners are never used.
-  Today's bingo, clue and other older `deploy.yml` files still carry a
-  `CI_ON=github` / `ubuntu-latest` path, which migration removes.
-- **Proposed `deploy.yml`** (KIT): the current dg-template workflow plus one
-  `check` step before the deploy, running `npm ci`, then `npm run check`,
-  then `npm run build`.
-  - `npm run check` covers typecheck, unit tests, `kit:check` and
-    `hub-doctor` (§8).
-  - The browser suites (`test:hub`) stay **local, before push**. They need
-    the sibling hub checkout and Chrome. bfme runs its full suites in CI only
-    because it has a dedicated lane setup.
-  - Q7 asks whether `test:hub` should also gate deploys on the runner.
+- The rule is **self-hosted runners only**: deploys run on the org's Windows
+  runner, and GitHub-hosted runners are never used.
+- **`deploy.yml`** (KIT) is the current dg-template workflow plus a
+  **gate** before the deploy step. Decision 7 says the browser hub suites gate
+  deploys. The gate runs:
+  1. `npm ci`;
+  2. `npm run check` (typecheck, unit and hub-event tests, lint,
+     `kit:check`, `hub-doctor`, build);
+  3. **`npm run test:hub`** against a hub started by the test kit.
+- **What the runner needs for step 3:**
+  - a hub checkout at a known path, given as `DG_HOST` in the runner's
+    environment and kept current by a scheduled `git pull` plus `npm ci`;
+  - Chrome (`CHROME_PATH`);
+  - a port range kept for CI runs, so they never clash with local instances.
+
+  bfme's CI-gated deploy already works this way (a quick local tier, full
+  suites in CI, every run watched), and it is the model.
+- **A gate failure stops the deploy.** Whoever pushed watches the run. A
+  `workflow_dispatch` input `skip_hub_suites` exists for emergencies, and
+  using it is logged in the job summary.
 - **Template CI:** the template is a public repo, so it gets no self-hosted
   runner, and the user's rule forbids GitHub-hosted ones. That means **no CI
   for the template itself**. `npm run check` runs locally before every
@@ -1641,6 +1866,9 @@ npm run shots:sheet                # contact sheet of the last run → shots/she
 | `race-result` | hub | both `finish` | result card |
 | `toast` | static | `kit/ui.toast` with actions | toast placement on phone |
 | `offline` | static | `page.setOfflineMode(true)` after load | the offline title and no errors |
+| `avatar` | hub | title with the player's bust; a lobby with faces on every seat (skipped until avatars ships) | faces beside names, Edit opens the designer |
+| `table-launch` | hub | three players sit at a world table → launched into the game (skipped until world W2) | lobby shows the table title; the game used `launch.table.options` |
+| `your-games` | hub | a day in progress + a saved game → menu "Your games" (skipped until saved-games phase 1) | wording: "Continue", "Daily challenge · Oct 14", never "run" |
 | `cover` | static | `?cover` or `__game.cover()` | writes `cover.png` (replaces the 9 different make-cover scripts) |
 
 ### 7.3 Contact sheet
@@ -1695,7 +1923,9 @@ npm run shots:sheet                # contact sheet of the last run → shots/she
 | `local` | `node scripts/kit/local.ts` | free port → `npm run local -- --only <slug> --port N` in DG_HOST, prints the URL, stops on Ctrl-C |
 | `local:link` / `local:unlink` | forwards to the hub's `local:link --only <slug>` | uses the hub's built packages without touching the lockfile |
 | `sync-docs` | `node scripts/kit/sync-docs.ts` | `hub.md`, `multiplayer.md`, `HANDOFF.md` from the hub (unchanged behaviour; today's file is byte-identical in 10+ repos) |
-| `sync-hub-server` | `node scripts/kit/sync-hub-server.ts` | own-server only; runs the hub's tool from its **root** (today's `cd ../diffenderfer-games && … tools/sync-hub-server.ts` is broken until the hub's phase 12 lands; 5 games carry it, 3 don't need it) |
+| `sync-hub-server` | `node scripts/kit/sync-hub-server.ts` | own-server only; runs the hub's tool from its **root** (today's `cd ../diffenderfer-games && … tools/sync-hub-server.ts` path only works once the hub's phase 12 lands) |
+| `build:rules` | `node scripts/kit/build-rules.ts` | turn games only: bundles `src/game/turns/rules.ts` to a self-contained `dist-rules/rules.mjs` (saved-games §4.1) |
+| `world:build` / `world:check` | `node scripts/kit/world.ts build\|check` | opt-in room file: Tiled `world/room.tmj` → `dg-room@1`, then the registry's validator via `hub-doctor` (world.md §7) |
 | `todo` | `node scripts/kit/todo.ts` | lists remaining `TODO(game)` stubs |
 | `clean:procs` | `node scripts/kit/procs.ts --clean` | kill leftover Chrome/vite from this repo's scripts (bfme `procs.mjs`) |
 | `lint`, `format` | `eslint .`, `prettier -w .` | §8.5 |
@@ -1741,17 +1971,14 @@ npm run shots:sheet                # contact sheet of the last run → shots/she
 
 The current dg-template `deploy.yml` becomes a KIT file. It is already shared
 by 8 repos, has a guard, deploys from the self-hosted runner only, and does a
-first-deploy clone and link. The plan adds the `check` step from §6.6.
-Migration moves the 14 older variants onto it:
-- bingo, clue and garbage (the `CI_ON` switch);
-- 8ballpool (the oldest);
-- bubblepop and dinodasher (a selectable runner);
-- downfall, GD and weston (the slug is hardcoded).
+first-deploy clone and link. The plan adds the gate from §6.6. Moving the older
+variants in existing games onto it is in the migration doc.
 
 ### 8.5 Lint and format
 
-- **ESLint** (flat config) plus `typescript-eslint`, and **Prettier**. Each
-  repo uses one config file, `eslint.config.ts` (KIT).
+- **New games only** (decision 9): **ESLint** (flat config) plus
+  `typescript-eslint`, and **Prettier**, with one config file,
+  `eslint.config.ts` (KIT). Existing games are not reformatted.
 - Today no game lints. Adding lint is new work, so the rules stay few and
   aimed at real bugs:
   - `no-restricted-properties: Math.random` in `src/game/{rules,daily,race}.ts`
@@ -1764,8 +1991,8 @@ Migration moves the 14 older variants onto it:
     words, and none of "run", "turn game" or "instance" in the UI copy table.
   - No `localStorage` outside `kit/core/store` (the guards depend on it).
   - No floating promises in `src/kit`.
-- Prettier runs on save. `npm run format` is not part of `check`, to avoid
-  noisy diffs in migrated games. Q9 asks about this.
+- Prettier runs on save. In new games, `npm run check` also runs
+  `prettier --check`.
 
 ---
 
@@ -1794,7 +2021,8 @@ Games copy `CLAUDE.md` and then drift: every copy in the fleet differs, and
 | `docs/kit/audio.md` | KIT | Moved from `docs/audio.md`, rewritten around `MusicCore` + the three hosts (§4.12) |
 | `docs/kit/daily-puzzle.md` | KIT | Moved from the README's "Daily puzzle kit" section, unchanged |
 | `docs/kit/whats-new.md` | KIT | Writing `game.changes` for kids, with good/bad examples; labels list |
-| `docs/kit/migration.md` | KIT | §10 as a how-to: adopting the kit in an existing game, module by module, with the checks to run after each |
+| `docs/kit/saved.md`, `turns.md`, `avatar.md`, `world.md` | KIT | The planned-hub modules (§4.23–§4.25): what the game does, what the hub does, which hub phase turns each part on |
+| `docs/plans/kit-retros.md` | template only | One dated retro per new game made with the kit (§10.2) |
 | `docs/repo-setup.md` | KIT | From today's README: the org, secrets, the self-hosted runner, the first deploy, the public template's guarded deploy, hosting/symlinks |
 | `docs/game.md` | GAME | The game's own notes: design, controls, the race/daily/online design, test hooks it adds, known issues. This replaces the per-game sections games append to CLAUDE.md today ("Race plan", "Bingo notes") |
 
@@ -1812,7 +2040,8 @@ Games copy `CLAUDE.md` and then drift: every copy in the fleet differs, and
   `multiplayer.md` could gain a short "If you use the dg-template kit" note
   per section, saying the kit does this for you, with a pointer to
   `docs/kit/<module>.md`. Agents would then stop hand-wiring what the kit
-  already does. The hub repo stays untouched in this plan; Q11 asks.
+  already does. Decision 11 accepts this as a later hub-repo change; this plan
+  leaves the hub repo untouched.
 - `sync-docs` also checks that every `docs/kit/*.md` link to a hub heading
   still resolves, and warns when one doesn't.
 
@@ -1849,9 +2078,14 @@ The goal is about 80 lines that point to the docs instead of repeating them:
    - `[skip ci]` on commits that don't change the game;
    - determinism rules for rules, daily and race code.
 
-The per-game content moves to `docs/game.md`. That makes `CLAUDE.md` almost
-identical across games, so the rule is "re-copy from the template, then fix
-the title line". Q12 asks whether it should become a KIT file.
+The per-game content goes in `docs/game.md`.
+
+**Decision 12: CLAUDE.md is not synced.**
+- The template's CLAUDE.md is its own short file. It points at the synced docs
+  (`HANDOFF.md`, `docs/hub.md`, `docs/multiplayer.md`) and the kit docs
+  instead of repeating them.
+- A new game starts from the template's copy and owns it from then on.
+- The template's copy improves after each new game's retro (§10.2).
 
 ### 9.4 What to split, merge or rewrite
 
@@ -1864,168 +2098,158 @@ the title line". Q12 asks whether it should become a KIT file.
 | CLAUDE.md "Audio", "Multiplayer" prose | **Shrink** to one rule line each + link to `docs/kit/audio.md` / `docs/kit/online.md` |
 | CLAUDE.md "Checking your work: screenshots" | **Move** to `docs/kit/screenshots.md`; keep the free-port rule in CLAUDE.md |
 | `docs/audio.md` | **Rewrite** as `docs/kit/audio.md` (keeps the Worker rule; adds `MusicCore` and the opt-in worklet host) |
-| Per-game "Race plan" / notes inside CLAUDE.md (bubblepop, helixdrop, weston, solitaire, arrow-escape, baseball-typer, bingo, 8ballpool) | **Move** to `docs/game.md` during migration |
-| Single-file games' CLAUDE.md boilerplate (dumplings, flux, huecrew, quanta, SpaceClicker, tetrablox, iansaur) | Leave until they migrate (§10.4); they load `/_hub/hub.js` and can't use the TS kit without a build step |
+| Per-game notes inside CLAUDE.md | New games keep them in `docs/game.md` from the start; existing games: see the migration doc |
 
 ---
 
-## 10. Migration: how existing games adopt the kit
+## 10. Making new games with the kit (the iteration loop)
 
-### 10.1 Rules
+**Existing games are not migrated now** (the user, 2026-10-15). Moving the 28
+current games onto the kit is a future endeavour, planned in
+[template-kit-migration.md](template-kit-migration.md). The survey in
+Appendix A is still the source list for *extracting* code; it says nothing
+about changing those games.
 
-- **One module at a time**, each in its own commit. Run `npm run check`,
-  `npm run test:hub` and `npm run shots:hub` after each, and compare the
-  contact sheet against the run before.
-- **Leaf modules first.** These change no behaviour: `rng`, `haptics`,
-  `test-hook` (keep the old name as an alias), `ui/juice`, `layout`.
-  **Then the guard modules,** which fix real bugs: `save`, `resume`, `daily`,
-  `pause`. **Then the features:** `race`, `online`, `audio`. **`boot` comes
-  last:** moving to `defineGame` is the step where the game's `main.ts`
-  shrinks to hooks.
-- **Keep the old seeds.** `kit/rng` golden tests match today's mulberry32
-  outputs, so a game's levels and dailies stay the same. GD's xorshift and
-  downfall's LCG stay local to those games until a new generator version is
-  pinned (daily-puzzle `versionFor`).
-- **Keep the old saves.** Each game's `state.ts` `migrate()` reads the
-  current save shape, and every migration gets a test that runs it on a real
-  save from the game's `tests/fixtures/`.
-- Follow the batch rule from the user's memory: local commits, test on a
-  local hub, push in order (dg first, then the games, bfme last), and notify.
+The approach:
+1. build the kit in the template (P0–P5);
+2. make **a few new games** with it;
+3. after each one, improve the template's code and context from what was
+   learned.
 
-### 10.2 Which games go first
+### 10.1 The new games
 
-| Wave | Games | Why |
-|---|---|---|
-| **0, the template itself** | dg-template | The stub game proves every module; the template self-test is green |
-| **1, pilots** | **sliderush** (Pixi, race, daily, worker music, a pause test, small `main.ts`), **phase10** (online rooms, the best test kit, the next turn-game candidate per saved-games §11 decision 8), **dinodasher** (three.js, best audio, and its daily-writes-progress bug gets fixed by `kit/daily`) | Together they cover all three starters' paths and every major module |
-| **2, the same families** | uno, skipbo, garbage, clue (rooms family, near-identical code to phase10); helixdrop, bubblepop (siblings of dinodasher/sliderush; fix helixdrop's save guard, bubblepop's missing autoPause) | Mostly mechanical once the pilots land |
-| **3, the rest of the TS games** | solitaire, arrow-escape, baseball-typer, weston, GD, popfour (also off `next.3`), bingo + 8ballpool (own-server → `kit/server`), downfall (Pixi 7: adopt the non-render modules only, until a Pixi 8 port) | More game-specific code; several have the autoPause gap |
-| **4, special cases** | bfme (huge; adopt `rng`, `test-hook`, `save` guards and the scripts it donated, keep its own boot and net), The15Puzzle (React + own server; `rng`, `race`, `resume`, test kit), SpacePong (plain JS + socket.io; tests and scripts only) | Partial adoption by design |
-| **5, single-file games** | dumplings, flux, huecrew, quanta, SpaceClicker, tetrablox, iansaur | Need a build step first (Q5). Either a Vite port (tetrablox and quanta are the best candidates and donate patterns), or a pre-bundled `kit.js` they can `<script type=module>` (rejected for now: two distribution paths) |
+Choose three or four small games, each a different shape, so together they
+exercise every module and both starters. The user picks the actual games (§12,
+open question A). A suggested spread:
 
-The order follows the saved-games work queue (§11 of that plan): a game whose
-hardening or daily-puzzle work is in flight adopts the kit after that work
-lands.
+| # | Shape | Starter | Kit features it proves |
+|---|---|---|---|
+| 1 | A single-player arcade or puzzle game with a daily and a race | Pixi | boot, input, pause, save guards, resume, daily (seeded), race, scores, audio, haptics, screenshots |
+| 2 | A 3D game | three.js | the three.js starter, quality and adaptive resolution, worker music over plain http, a phone layout |
+| 3 | An online card or board game | Pixi or DOM | `kit/online` (rooms), then `kit/turns` once saved-games phase 3 ships, the daily-puzzle kit, `kit/avatar` seats, world tables |
+| 4 (optional) | An own-server real-time game | Pixi | `kit/server`, tickets, `setRoster`, seat grace |
 
-### 10.3 The per-game adoption checklist (`docs/kit/migration.md`)
+### 10.2 The loop, for each new game
 
-1. `npm run kit:sync` (first time: `--init`, which writes `kit.json`, adds
-   the scripts and `vitest.config.ts`, and turns on `allowImportingTsExtensions`).
-2. Move the per-game CLAUDE.md sections to `docs/game.md`, and re-copy
-   CLAUDE.md.
-3. For each module, in the order of §10.1:
-   - replace the game's copy with a kit call;
-   - delete the old code;
-   - run `check`;
-   - commit.
-4. Rename the test hook to `window.__game`, keeping the old alias, and move
-   the game's `tests/hub/_kit.mjs` helpers onto `tests/hub/_kit.ts`.
-5. Turn on the standard hub suites for the game's features, and delete the
-   duplicates.
-6. Replace the game's screenshot and cover scripts with `shots.config.ts`.
-7. Move to the KIT `deploy.yml`.
-8. Fix the gaps in Appendix B. The kit modules fix most of them
-   automatically.
+1. **Start from the template** exactly as a stranger would:
+   - follow `docs/getting-started.md` and CLAUDE.md only, in a fresh agent
+     session;
+   - note every question the docs didn't answer.
+2. **Build the game** by filling in the `TODO(game)` stubs:
+   - record any hook that was missing or awkward;
+   - record any kit option the game needed;
+   - record any place where the game had to copy kit code or work around it.
+3. **Check it** the standard way:
+   - `npm run check`, `npm run test:hub` and `npm run shots:hub`;
+   - look at the contact sheet;
+   - note anything the standard suites or scenarios missed.
+4. **Write a retro** in the template's `docs/plans/kit-retros.md`: one dated
+   section per game with three lists. Hook gaps; doc and CLAUDE.md gaps; time
+   spent and where it went.
+5. **Improve the template:**
+   - move code that the game had to write but that every game will need into
+     the kit (a kit minor version), with tests;
+   - fix the docs, CLAUDE.md and the stubs' `TODO` text;
+   - add the screenshot scenarios that were missing;
+   - record each change in `docs/kit/CHANGELOG.md`.
+6. **Bring the improvements back** to the new games made so far with
+   `npm run kit:sync`, so the kit is used by more than one game before the
+   next one starts.
 
-### 10.4 Single-file games
+The measure of success: each new game takes less time, and has fewer "the
+docs didn't say" notes, than the one before.
 
-These games load the hub at runtime (`/_hub/hub.js`, `window.HubSDK.hub`) and
-hand-roll `hubReady` polling (5 copies). They can't import TS modules without
-a build. The plan doesn't migrate them in this round. Q5 asks whether to port
-them to Vite.
+### 10.3 What stays out of scope here
 
-Their patterns still feed the kit:
-- quanta: input, insets, menu room;
-- tetrablox: resume, race, rotation;
-- dumplings and SpaceClicker: the save guards.
+All of these are covered in the migration doc:
+- the adoption waves;
+- pilots;
+- per-game migration effort;
+- `kit:sync` rollout to existing games;
+- the existing games' compliance gaps;
+- the old `deploy.yml` variants;
+- single-file games.
 
 ---
 
 ## 11. Phasing and effort
 
-Effort is in agent-days, including tests and docs.
+Efforts are in agent-days, including tests and docs. The hub-dependent work
+from §4.23–§4.26 is listed separately; it starts when the hub phase it waits on
+is published.
 
 | Phase | Work | Effort | Exit check |
 |---|---|---|---|
 | **P0, foundations** | `kit.json` + `kit:sync`/`kit:check`; `kit/core`, `kit/testing` (FakeHub + contract test); vitest projects; strict tsconfig; ESLint/Prettier; fold daily-puzzle in (rng re-export) | 3 | template `npm run check` green |
-| **P1, guard modules** | `save`, `resume`, `daily`, `pause`, `scores`, `rng`, `test-hook` + every hub-event test for them (Appendix C rows 1–30) | 5 | each audit regression has a named test |
+| **P1, guard modules** | `save`, `resume`, `daily`, `pause`, `scores`, `rng`, `test-hook` + every hub-event test for them (Appendix B rows 1–30) | 5 | each audit regression has a named test |
 | **P2, boot + UI + starters** | `boot` (`defineGame`), `input`, `layout`, `loop`, `ui`, `settings-ui`, the stub game on hooks; the Pixi and three.js starters; `new-game` | 5 | a fresh `new-game --renderer three` builds, plays, passes `test` and the pause hub suite |
-| **P3, features** | `race`, `online` (rooms, resilience, chat, links), `audio` (MusicCore + 3 hosts), `haptics`, `server`, `cards` | 6 | race + 10 online scenarios pass on the stub game against `npm run local` |
-| **P4, test + screenshot tooling** | `tests/hub/_kit.ts` + the standard suites; `shots.ts` + scenarios + contact sheet + `--diff`; `procs`, `probe`, `ui:check`, `local`, `check` lanes; `deploy.yml` check step | 4 | `npm run shots:hub` produces a full sheet for the stub game |
-| **P5, docs** | §9 in full: getting-started, kit docs, testing, screenshots, CLAUDE.md rewrite, repo-setup split | 2 | an agent can make a toy game from the docs alone (dry-run with a fresh session) |
-| **P6, pilots** | sliderush, phase10, dinodasher | 1–2 each | each game's sheet before/after matches; their suites pass |
-| **P7, fleet waves 2–4** | per §10.2 | ½–2 per game (~20 days in total, can run in parallel agents, one per game) | per game: `check`, `test:hub`, sheet |
-| **Later** | `kit/saved` and `kit/turns` adapters (when the hub ships saved-games phases 0–3); FakeHub upstream; single-file ports; i18n | — | — |
+| **P3, features** | `race`, `online` (rooms, resilience, chat, links, `launch.table` handling), `audio` (MusicCore, Worker default, http-safe; §4.12), `haptics`, `server` | 6 | race + 10 online scenarios pass on the stub game against `npm run local`; music plays over `http://<LAN IP>` |
+| **P3b, planned-hub scaffolding** | `kit/saved`, `kit/turns` (+ `TurnRules` stub, `checkTurnRules`, `build:rules`), `kit/avatar` (type shim, title demo), `game.world` block + table launch rows, `world:build`/`world:check` wrappers; every planned test written and skipped with its hub phase | 3 | `npm run check` green with the skips listed in the report |
+| **P4, test + screenshot tooling** | `tests/hub/_kit.ts` + the standard suites in `.ts`; `shots.ts` + scenarios + contact sheet + `--diff`; `procs`, `probe`, `ui:check`, `local`, `check` lanes; `deploy.yml` with the hub-suite gate (§6.6) | 4 | `npm run shots:hub` produces a full sheet for the stub game; a deploy runs the gate on the runner |
+| **P5, docs** | §9 in full: getting-started, kit docs (incl. saved, turns, avatar, world), testing, screenshots, CLAUDE.md rewrite, repo-setup split | 2 | an agent can make a toy game from the docs alone (dry run in a fresh session) |
+| **N1–N3, new games + iteration** | §10: three new games, a retro after each, template improvements and a kit minor version after each | 5–10 per game, plus 1–2 of template work after each | each game faster than the last; the retro's gaps closed in the template |
+| **H, hub turn-ons** (as the hub ships) | saved-games 0–1 → `kit/saved` + days in progress; saved-games 3–4 → `kit/turns` + alerts; avatars 0–2, 4 → `kit/avatar` live; world W2/W3/W4 → tables, People panel, room files | ½–2 per hub phase | the skipped tests for that phase run and pass |
 
-**Total for the template (P0–P5):** about 25 agent-days, or 3–4 weeks with
-parallel agents.
+**Total for the template:**
+- P0 to P5, P3b included: about 28 agent-days, or 4 weeks with parallel agents.
+- Each new game: then 1 to 2 weeks, including its template retro.
 
 **Risks:**
 - **FakeHub drift.** The mitigations are the contract test and the parity
   suite.
-- **`defineGame` too rigid for odd games.** Every hook is optional, and a game
-  can use the modules without `boot`. bfme and The15Puzzle do exactly that.
-- **Kit churn while games adopt it.** Pin the kit version per game, follow
-  semver for the majors, and the CHANGELOG says what to do.
-- **The hub's in-flight work.** Phase 12 (the move to the root) and
-  saved-games phases 0–1 change paths and APIs. Write the kit against the
-  root layout, and add the `saved` and `turns` adapters only when they are
-  published.
+- **`defineGame` too rigid for odd games.** Every hook is optional, and the
+  modules work without `boot`. New games surface this quickly through their
+  retros.
+- **Planned hub APIs change shape before they ship.** Planned-hub adapters stay
+  thin and type-shimmed, and the turn-on phase rewrites them against the
+  published types.
+- **The hub's in-flight work.** Phase 12 (the move to the root), saved-games,
+  avatars and world change paths and APIs. The kit is written against the root
+  layout and package names.
+- **Learning from too few games.** The spread in §10.1 covers each module
+  at least once, and the migration doc remains the larger test later.
 
 ---
 
-## 12. Open questions for the user
+## 12. Decisions and open questions
 
-1. **No npm package for now, right?** The plan copies byte-identical with
-   `kit.json`, `kit:sync` and `kit:check`. A private
-   `@diffenderfer-games/kit` npm package would remove the copying, but it
-   adds publishing (2FA) and version bumps across 28 repos. Recommended:
-   copy now, and revisit once the kit is stable.
-2. **FakeHub location.** It lives in the template (recommended, §6.2). Should
-   it later move into the hub package as `@diffenderfer-games/hub/testing`, so
-   the hub team keeps it faithful?
-3. **`defineGame` vs à-la-carte.** Should new games be *required* to use
-   `defineGame` (boot owns the order), or only encouraged to? Recommended:
-   required for new games, optional for migrated ones.
-4. **Strict TypeScript everywhere?** `strict: true` for `src/kit` and
-   `src/game` in new games. Migrated games would get it per folder.
-5. **Single-file games** (dumplings, flux, huecrew, quanta, SpaceClicker,
-   tetrablox, iansaur). Port them to Vite so they can use the kit, or leave
-   them as they are? Recommended: port tetrablox and quanta first, and only
-   when they next get feature work.
-6. **AudioWorklet.** The ask says "the AudioWorklet music pattern from
-   bubblepop", but the template rule says "Not AudioWorklet" (it fails on
-   `http://` LAN URLs). OK to adopt bubblepop's **synth-core contract** with
-   the Worker stream as the default host and the worklet as an opt-in host for
-   secure contexts (§4.12)?
-7. **Should `test:hub` gate deploys?** Today only typecheck, unit tests and
-   `hub-doctor` are proposed for the deploy's `check` step. Running the
-   browser suites on the self-hosted runner too means the runner needs a hub
-   checkout and Chrome.
-8. **Hub suites in `.ts` or `.mjs`?** `.ts` runs directly on Node ≥ 22.18
-   ("always TypeScript"), but the hub's test kit is `.mjs`, and every existing
-   suite is `.mjs`.
-9. **Lint and format.** Add ESLint (bug-catching rules only) and Prettier to
-   every game? Should Prettier format the existing games once, which makes a
-   big diff in each repo?
-10. **Localization.** Is any other language wanted? If not, the plan keeps
-    only a strings table.
-11. **Hub docs.** May a later change to the **hub repo** add "the kit does
-    this" pointers in `hub.md` and `multiplayer.md` (§9.2), or should the hub
-    docs stay kit-agnostic?
-12. **CLAUDE.md.** Should it be a KIT file (synced, with the per-game content
-    in `docs/game.md`), or a GAME file that agents keep current by hand?
-13. **A card-game kit** (`kit/cards`: Deck, CardArt atlas, `TurnMatch`,
-    avatars, one difficulty enum). Worth building now, with phase10, uno,
-    skipbo and garbage as the users, or wait for turn games (saved-games
-    phase 3), which change the online half?
-14. **One difficulty vocabulary** (`easy`/`normal`/`hard`) for the kit's
-    computer players? Games today use five different sets.
-15. **Test hook name.** Is `window.__game` OK (old names kept as aliases for
-    one release)?
-16. **Pilots.** Are sliderush, phase10 and dinodasher the right three? The
-    games by other authors (helixdrop and SpacePong by Mason, bingo by Nicole)
-    may need their authors' OK first.
+### 12.1 Decisions (the user, 2026-10-15)
+
+These override any earlier text in this file that disagrees. "Recommended"
+means the user accepted the recommendation this plan made.
+
+| # | Question | Decision |
+|---|---|---|
+| 1 | npm package or copied files? | **Copy files; no npm package.** `kit.json`, `kit:sync`, `kit:check` (§8.3). |
+| 2 | FakeHub location | **Recommended:** it lives in the template (`src/kit/testing/`). Offering it to the hub as `@diffenderfer-games/hub/testing` stays a later option (§6.2). |
+| 3 | `defineGame` required? | **Recommended:** required for new games; the modules still work alone for special cases. |
+| 4 | Strict TypeScript | **Strict everywhere:** `strict: true` for kit, game, tests and scripts. |
+| 5 | Single-file games | **No porting for now.** Recorded in the migration doc. |
+| 6 | Audio and AudioWorklet | **Music and audio must work over plain http** (a LAN IP or an http dev server, not only localhost). The default host is the Web Worker synth feeding buffers, with a main-thread or ScriptProcessor fallback. AudioWorklet is used **only when `isSecureContext` is true** (§4.12). |
+| 7 | Do the browser hub suites gate deploys? | **Yes** (§6.6). |
+| 8 | Hub suites: `.ts` or `.mjs`? | **`.ts`** (§6.3). |
+| 9 | ESLint and Prettier | **New games only** (§8.5). No reformatting of existing games. |
+| 10 | Localization | **Recommended:** no i18n; the kit keeps a strings table (§4.21). |
+| 11 | "The kit does this" pointers in the hub docs | **Recommended:** a later hub-repo change may add short pointers in `hub.md` and `multiplayer.md` (§9.2). |
+| 12 | CLAUDE.md | **Not synced.** The template's CLAUDE.md stays its own short file and points at the synced docs (`HANDOFF.md`, `hub.md`, `multiplayer.md`) and the kit docs (§9.3). |
+| 13 | Card-game kit | **No card-game kit now** (§4.19 is deferred). |
+| 14 | One difficulty vocabulary | **Recommended:** `easy`/`normal`/`hard` for the kit's computer players. |
+| 15 | Test-hook name | **Recommended:** `window.__game`. |
+| 16 | Pilot games | **Dropped:** there is no migration now. The question moved to the migration doc. |
+
+### 12.2 Open questions (new)
+
+- **A. Which new games?** §10.1 suggests three or four shapes: an arcade or
+  puzzle game with a daily and a race, a 3D game, an online card or board game,
+  and optionally an own-server game. Which actual games should be built first?
+- **B. Turn games before rooms for the online example?** The online card or
+  board game (§10.1 #3) could wait for saved-games phase 3 and start on
+  `kit/turns`, which matches decision 8 of that plan. Or it could start on
+  rooms now and move later. Recommended: start on rooms if phase 3 is more
+  than a few weeks out.
+- **C. Avatars in the title demo.** Should the template's title screen show
+  the avatar demo by default, as avatars.md §11 suggests, or only with
+  `new-game --avatar`? Recommended: on by default, and easy to delete.
 
 ---
 
@@ -2095,7 +2319,7 @@ byte-identical (ignoring CRLF).
 | 56 | Card texture atlas | phase10, uno, skipbo `cardart.ts` (≈) | | uno → `cards` |
 | 57 | Match driver (local/remote/bot seats, deadlines) | phase10≈uno `Match`, garbage `Match`, sliderush `Match` | | uno → `cards` |
 | 58 | Avatars | phase10≡uno `avatars.ts` | | → `cards` |
-| 59 | AI difficulty enums | uno, popfour, clue, bingo, 8ballpool (5 vocabularies) | | → one `Level` (Q14) |
+| 59 | AI difficulty enums | uno, popfour, clue, bingo, 8ballpool (5 vocabularies) | | → one `Level` (decision 14) |
 | 60 | Solver in a worker | solitaire `solver.worker.ts`, popfour `ai.worker.ts` | | popfour → daily-puzzle docs (generate in a worker) |
 | 61 | Seeded sim / soak | uno `tests/unit/simulate.ts`, garbage `scripts/sim.ts`, phase10, skipbo, clue, bingo, 8ballpool, bfme `simrun.ts` | uno checks invariants after every move | uno + garbage → `testing/sim` |
 | 62 | Rules-test builders | uno `tests/unit/helpers.ts`, skipbo `tests/helpers.mjs` | | pattern in `docs/kit/testing.md` |
@@ -2128,33 +2352,7 @@ byte-identical (ignoring CRLF).
 
 ---
 
-## Appendix B. Compliance gaps the survey found
-
-These are not fixed here: this plan changes nothing outside this file. Each one
-is fixed when the game adopts the matching kit module, or sooner as its own
-task if the user wants. All were seen on 2026-10-14 and are worth re-checking
-before acting.
-
-| Gap | Games | Fixed by |
-|---|---|---|
-| No `hub.overlay.autoPause` (required for every game) | solitaire, arrow-escape, baseball-typer, The15Puzzle, SpacePong, bubblepop, geometrydungeon, downfall | `kit/pause` |
-| No save-load guard (writes before the cloud read) | helixdrop | `kit/save` |
-| Debounced cloud push can fire before the boot read | downfall, geometrydungeon, sliderush (`persist()` before the read), popfour | `kit/save` |
-| Daily writes normal progress (bests, leaderboards, coins) | dinodasher (`finishRun`, `game.ts:628,637`), helixdrop (`highScore`, `best` board), bubblepop (`totalCoins`) | `kit/daily` + `kit/save` guard 8 |
-| Music on the main thread | arrow-escape, weston, geometrydungeon (and the single-file games) | `kit/audio` `MusicCore` |
-| AudioWorklet music (against the rule; works only via fallback on LAN http) | bubblepop | `kit/audio` hosts (Q6) |
-| Hub client behind `next.5` | popfour, helixdrop (`next.3`), sliderush (`next.4`) | `npm i -E` + `hub-doctor` |
-| `sync-hub-server` script points at a path that doesn't exist yet (`tools/` at the hub root) | skipbo, bingo, popfour, sliderush, helixdrop, dg-template | `scripts/kit/sync-hub-server.ts`; it resolves after the hub's phase 12 |
-| Old `deploy.yml` with GitHub-hosted (`ubuntu-latest`) paths or hardcoded slugs | bingo, clue, garbage, 8ballpool, bubblepop, dinodasher, downfall, geometrydungeon, weston, solitaire, arrow-escape, baseball-typer | KIT `deploy.yml` |
-| Old hub test helpers (`test/helpers/{server,client}.mjs` + raw puppeteer) | popfour | `tests/hub/_kit.ts` |
-| No hub tests at all | 8ballpool, helixdrop, dinodasher, downfall | the standard suites |
-| `HUB_IMPL` set in tests (gone after phase 12) | phase10 `_kit.mjs` | `tests/hub/_kit.ts` |
-| Local vs UTC day disagreement in day helpers | baseball-typer, solitaire (local) vs sliderush/kit (UTC) | `kit/daily` (UTC) |
-| Synced docs out of date (`hub.md` 4+ hashes; HANDOFF two versions) | most games | `npm run sync-docs` |
-
----
-
-## Appendix C. Hub events and callbacks, with the kit handler and test for each
+## Appendix B. Hub events and callbacks, with the kit handler and test for each
 
 **Sources:** hub.md and multiplayer.md (current), plus saved-games.md (marked
 *planned*). Every row is one or more `tests/hub-events/*.test.ts` cases,
@@ -2219,3 +2417,9 @@ driven by `FakeHub`, run against the stub game.
 | 55 | `hub:changes-seen`, `hub:prefetch`, `hub:play-online-changed`, `hub:account` | none (pass-through) | `passthrough.test.ts` | the kit doesn't crash or re-route on them |
 | 56 | *planned* `hub.saved.opened` / `onOpen` / `on('change')` | `saved` | `saved.test.ts` (skipped until the hub ships) | route by kind; switch without reload; Continue list refresh |
 | 57 | *planned* `TurnGame.on('move'/'turn'/'ended')`, `history` | `turns` | `turns.test.ts` (skipped until the hub ships) | animate replayed moves; your-turn UI; ended once |
+| 58 | *planned* `launch.table` on a `host`/`guest` launch (world W2) | `online` | `launch.test.ts` (skipped until W2) | options reach `host.start`; mode from the table; "That table didn't start" path |
+| 59 | *planned* `join` launch into a turn instance from a table | `turns` | `launch.test.ts` (skipped until W2 + saved-games 3) | opens the turn game, no host step |
+| 60 | *planned* `hub.social.on('reaction')` (world W3) | `online` | `social.test.ts` (skipped until W3) | `onReaction` hook called; nothing when quiet |
+| 61 | *planned* `hub.mp.setRoster` calls (own-server, world W3) | `server` client | `roster.test.ts` (skipped until W3) | one call per roster change |
+| 62 | *planned* `hub.avatar.on('change')` (avatars phase 0) | `avatar` | `avatar.test.ts` (skipped until the hub ships) | badges and the title bust re-render; no reload |
+| 63 | *planned* `hub.mp.quickMatch` state (world W2) | `online` | `launch.test.ts` (skipped until W2) | the button shows only with `multiplayer.quickMatch`; the table launch routes like an invite |
