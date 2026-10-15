@@ -589,12 +589,12 @@ hub.prefetchAll(); // optionally warm the cache for all games up front
 **Opt out / tune.** Add `"pwa": false` to your `game` block to skip the
 manifest/SW/install tags for one app, or set `HUB_PWA=0` to disable the whole
 layer. Service-worker behaviour is controlled by env vars on the host:
-`HUB_SW_VERSION` (unset by default: the caches are named after the client build, so a
-hub release drops them; set it only to force a flush), `HUB_SW_MAX_ENTRIES`,
-and `HUB_SW_CACHEABLE_HOSTS` (the cross-origin allowlist). See `packages/server/internal/src/config.ts`.
-Each game's registration carries a build stamp (a hash of its page), so a game
-deploy gets a fresh cache too. Same-origin code is always fetched from the network
-first; the cache is used only when the network fails (offline).
+`HUB_SW_VERSION` (bump it only to force every client to drop its caches), `HUB_SW_MAX_ENTRIES`,
+and `HUB_SW_CACHEABLE_HOSTS` (the cross-origin allowlist). See `src/config.js`.
+Same-origin code is always fetched from the network first, and the cache is used
+only when the network fails (offline), so a deploy reaches players at once while
+the last copy they loaded keeps working offline. Each game's cache keeps its newest
+`HUB_SW_MAX_ENTRIES` files, so old builds' files age out.
 
 > **Secure context:** service workers, install, and the Gamepad API only work
 > over **HTTPS or `localhost`**. In production that's the Caddy TLS front
@@ -844,9 +844,8 @@ reposition). Overrides save to `localStorage` (offline-safe) and sync to the
 cloud for signed-in players (reserved `__controls` save). They're merged over
 the game's defaults at init — your `define()` stays the source of truth.
 
-> The canonical client is the npm package `@diffenderfer-games/hub`
-> (`packages/public/hub`); the hub's build bundles it to `/_hub/hub.js`, and
-> `/_hub/sdk.js` is a back-compat shim re-exporting it.
+> The canonical client `clients/hub.ts` is bundled to `/_hub/hub.js` by esbuild
+> on demand (cached); `/_hub/sdk.js` is a back-compat shim re-exporting it.
 
 ---
 
@@ -920,13 +919,16 @@ Each daily-enabled game offers **one deterministic challenge per UTC day**; a
 player can complete each day once, and can back-fill the **last 30 days**. The
 hub:
 
-- shows a **calendar** in the injected menu (in a daily game) — today is a
-  wiggly ★, past-incomplete days are plain ★, completed days are ✓; a **wiggly
-  star** also rides the menu button while any day is open;
+- shows a **calendar** in the injected menu (in a daily game): days still to
+  play are gold, completed days are ✓. A small **calendar rides the menu
+  button**: gold while today's challenge is still to play (on the home page:
+  while any game's is), green with a check as soon as `hub.daily.complete`
+  lands (no reload needed; another tab catches up when it is shown again);
 - puts today's calendar badge on each daily game's row in the menu's game
-  list: tapping it starts today's challenge (in another game through its
-  `?daily=YYYY-MM-DD` deep link, in this game through `play`) and a toast
-  confirms it;
+  list and on its home page card: tapping it starts today's challenge (in
+  another game through its `?daily=YYYY-MM-DD` deep link, in this game
+  through `play`) and a toast confirms it, again on arrival; a green badge
+  just says today's is done;
 - adds a cross-game **Daily** section to the home page (per-game day chips +
   a global standing);
 - auto-creates a per-game **"Daily Challenges"** leaderboard ranked by days
@@ -1336,11 +1338,13 @@ must match (*Puzzle* or *Word*, and *Phone*).
 
 The home page (served by dg-host, scripted by `/_hub/home.js`):
 
-- **Cards**: plays, who is playing (a green person per signed-in player, a grey
-  one per guest, collapsed to `×N` above three; counts only), today's daily badge
-  (a green check when done, the wiggly star when not, nothing without dailies), a
-  top-left pill only when the game isn't live (*Offline*, *Updating* during a
-  deploy, *Starting* while its server restarts), and a "⋯" button.
+- **Cards**: plays, how many are playing (*3 playing* on the cover, led by a
+  green person when signed-in players are among them and a grey one for guests;
+  counts only, hidden at 0), today's daily badge as its own button beside the
+  "⋯" (gold to play, a tap goes to today's daily; green with a check when done;
+  nothing without dailies), a top-left pill only when the game isn't live
+  (*Offline*, *Updating* during a deploy, *Starting* while its server
+  restarts), and a "⋯" button.
 - **Game sheet** ("⋯"; full screen on phones, a slide-out on wider screens): *Play*
   (play, star, "tell me when people want to play"), *Leaderboards*, *Daily* (the
   menu's calendar), *Races* (the player's record) and *Stats*; tabs a game doesn't
@@ -1474,7 +1478,7 @@ repo.
   tag, and `GET /games` exposes a summary for the invite picker.
 - **Own-server games** keep a copy of the zero-dependency game-server SDK in
   `server/hub-server.mjs` (not on npm; served at `/_hub/hub-server.mjs`, built from
-  `packages/server/server-sdk`; `npm run sync-hub-server` in the game copies
+  `next/packages/server/server-sdk`; `npm run sync-hub-server` in the game copies
   it from the sibling host checkout). With it
   they verify 60-second identity tickets offline, check chat, and post trusted results
   through the loopback-only `/_api/internal/*` routes. The host injects
@@ -1541,8 +1545,8 @@ free text fails **closed** (`check_unavailable`) and quick-chat keeps working.
 - **Suspended accounts** keep single-player (saves, stats, daily, profile). Every
   social, multiplayer, suggestion, trade and `players/*` route answers **403
   `{code:'suspended'}`**, and the socket is closed with 4003.
-- Word lists live in `packages/server/safety/lists/` (format and attribution in its
-  `README.md`). The corpora in `packages/server/safety/test/fixtures/filter/` lock the behaviour in.
+- Word lists live in `src/hub/safety/lists/` (format and attribution in its
+  `README.md`). The corpora in `test/fixtures/filter/` lock the behaviour in.
 
 ---
 
@@ -1782,8 +1786,8 @@ Anything else gets a 404. Use `hub-server.mjs` rather than calling these by hand
 
 ## Host configuration (env)
 
-Social and multiplayer knobs, read at boot and validated by one schema
-(`packages/server/internal/src/config.ts`). Set them on the systemd unit (see `DEPLOY.md`).
+Social and multiplayer knobs, read at boot (`src/config.js` and the modules it
+names). Set them on the systemd unit (see `DEPLOY.md`).
 
 | Env | Default | Meaning |
 |---|---|---|
@@ -1894,7 +1898,7 @@ game is hosted; the path-segment fallback only kicks in if it's absent.
   - **Errors:** `HubError` gains `code`/`reason`/`hint`/`retryAfterMs`, plus
     `ContentRejectedError` for 422s.
   - **Opt-in for online games:** `game.multiplayer`.
-  - **Own-server games:** the game-server SDK `server/hub-server.mjs`
+  - **Own-server games:** the game-server SDK `clients/server/hub-server.mjs`
     (tickets, chat, trusted results) and `"source": "server"` leaderboards.
   - **Safety:** a server-side content filter (with softening and an optional
     OpenRouter AI stage) on all player text. It now also covers usernames,
