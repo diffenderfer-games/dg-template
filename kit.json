@@ -130,6 +130,12 @@
         "tests/scripts/kit-scripts.test.ts": "5b49fc738b5c63e9917e8a24492cff20b4ef4e0aced05b6a3a7ffbabd51ce4ca"
       }
     },
+    "settings-ui": {
+      "version": "1.0",
+      "files": {
+        "src/kit/settings-ui/index.ts": "147f670d1a6db10e18f5412da52f4378befe82c0ed6501c66105193e13b8e320"
+      }
+    },
     "test-hook": {
       "version": "1.0",
       "files": {
@@ -157,6 +163,21 @@
         "src/kit/testing/phases.ts": "449f1e802dcb6b129c2aaeb25e563aa8d665751a2ebc42c7d410c3b6ac84f521",
         "tests/kit/testing/contract.test.ts": "7616472b70ab2825e05252adc1084eb4c1a26404fa8e0217d4b840214b971451",
         "tests/kit/testing/fake-hub.test.ts": "25a172dd782a03ecf57e553f6cda608c3fba710576def17331912742f2d2a34b"
+      }
+    },
+    "ui": {
+      "version": "1.0",
+      "files": {
+        "src/kit/ui/controls.ts": "5e8d4e8a8cda40cd84a8615d66ba20459884d7ea802af1aee1ec455df2b2256e",
+        "src/kit/ui/css.ts": "cb39e80f3cc888f82b25adbeccda2860c7f8a6e80c53d13815b1546d9fa86afc",
+        "src/kit/ui/dom.ts": "ad6dcc0f40b6fee09d36c4887c49b209a13265e89cf659fbb8785b668a8dcf7c",
+        "src/kit/ui/index.ts": "cc3d6752dc44856cf4a19aa4cc1d2a40067455f6032379ef59d4bb65a8be3caa",
+        "src/kit/ui/juice.ts": "d92e0c7997594373854f2802e67e9bd9736cb1706d1bc21ee8e9de88311da3d9",
+        "src/kit/ui/modal.ts": "b4920d405587f52c684ef3f088a8192ec42ab0a157e0a954b893f8b4782711ce",
+        "src/kit/ui/root.ts": "4119fe58db449d36bdc866ac3d34a1fe65a962df4a3eb078406989ac175e0fd7",
+        "src/kit/ui/screens.ts": "695717c710e26944189d860ac15516329d774d9e7ee67ce77139eed111b8f360",
+        "src/kit/ui/toast.ts": "ada25adf09824ba25c07dd3850a8c10122e2404375827eb14a1881beacab8314",
+        "tests/kit/ui/ui.test.ts": "4c9ef17ec3ddc58d1a174743f150c95daba614b2317393b86fec007cbfc3f3ed"
       }
     }
   }
