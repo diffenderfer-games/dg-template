@@ -17,3 +17,4 @@ export * from './fake-room.ts';
 export * from './fake-social.ts';
 export * from './fake-storage.ts';
 export * from './phases.ts';
+export * from './fake-audio.ts';

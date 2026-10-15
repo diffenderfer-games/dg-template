@@ -4,7 +4,13 @@
     "audio": {
       "version": "1.0",
       "files": {
-        "src/kit/audio/types.ts": "8d7e4da65b7fd36d9ead0a95a23c62fad1784f30e386e8df8f446b2d81dc931e"
+        "src/kit/audio/engine.ts": "2764ed06d398b84d4a9fcc3d3559c3d2f4e22266baad897d9b8af151cf837672",
+        "src/kit/audio/index.ts": "5a5c0710682f66b82a6299e384535010f8162ca2c4da523f68cd91c8baf0941d",
+        "src/kit/audio/kit-audio.ts": "5612d16bc291bbbc2e6437d9e4c7963c8d4b40ede2e656c75013e5c57e173176",
+        "src/kit/audio/music.ts": "03680ab8224358e939e4b3ab6228f64f44d3fa78329fdc41bfdb1ceb44433f71",
+        "src/kit/audio/sfx.ts": "5d166e16a1b81a745a9b1cef2785218c340f5cdfc5420c47d3c41dc2d908680f",
+        "src/kit/audio/types.ts": "2d28aff31b031669d369e11d3c574b995136380aef2fc6cf3626a7f06a97ffa6",
+        "tests/kit/audio/audio.test.ts": "442c65f6f4c5d29e0b012434491e81959536f823723ae30e4a5a6c2d09d08318"
       }
     },
     "avatar": {
@@ -230,6 +236,7 @@
       "version": "1.0",
       "files": {
         "src/kit/testing/calls.ts": "21a8ee3e723c6478ebe71b74174d6149a5232eaff1a1f99155884032215c263f",
+        "src/kit/testing/fake-audio.ts": "e3e933d0a0b54e7e41a3615e4d30ee0581b3e0d4bd5fc857d07df52c8919c3ad",
         "src/kit/testing/fake-clock.ts": "226acfa621cc69bb6bb7c88f7e0bbf7ca9bcb9f7ba689a8c83d716cb1fdc55a3",
         "src/kit/testing/fake-daily.ts": "64b95abf25f5ee9a105ee0d7a7c9e2b027999ed766eed698724c2514164c11d7",
         "src/kit/testing/fake-hub.ts": "54452679d54cc67d6fec4c097671ee8b924c42f52219e0f266c2f78eade097a7",
@@ -242,7 +249,7 @@
         "src/kit/testing/fake-room.ts": "2381759f75d0a97d979b4e9d023fd5e0bd5d65db53a89771ce4e7b9e5622a66c",
         "src/kit/testing/fake-social.ts": "ae42d4b6919b7b78f6f142c30fc2d963285fd53ca827e63d4f82952988a50702",
         "src/kit/testing/fake-storage.ts": "ecc5a9c9a7375d0ee0683e7a376a9d193484f450649f6d181caec5ca3fc45de3",
-        "src/kit/testing/index.ts": "a3d5b276d5eaf82a3f4f5eebc609d47c5d2fff98ab5c71ffb6ccb314dc8a8513",
+        "src/kit/testing/index.ts": "7bb3b1e2a2a3df575e6a55ec0f8baa3b556c7047c647e2caf599d1bdb79c5144",
         "src/kit/testing/phases.ts": "449f1e802dcb6b129c2aaeb25e563aa8d665751a2ebc42c7d410c3b6ac84f521",
         "tests/kit/testing/contract.test.ts": "7616472b70ab2825e05252adc1084eb4c1a26404fa8e0217d4b840214b971451",
         "tests/kit/testing/fake-hub.test.ts": "25a172dd782a03ecf57e553f6cda608c3fba710576def17331912742f2d2a34b"
