@@ -105,6 +105,13 @@
         "tests/kit/save/settings-merge.test.ts": "b5f3b393ec6b2b951e7eb31a1bb25e57697f5e9f141f654f2b1f9b4774cf792f"
       }
     },
+    "scores": {
+      "version": "1.0",
+      "files": {
+        "src/kit/scores/index.ts": "af20189441aa1186bb5da148f1ac6ad85bf70b56a30338391e09cf953d28b3bc",
+        "tests/kit/scores/scores.test.ts": "d58024fafc5c738f6f8adb4cdea89bb19dd6275018aeb64588e2c70ef00640df"
+      }
+    },
     "scripts": {
       "version": "1.0",
       "files": {
@@ -121,6 +128,13 @@
         "scripts/kit/sync-hub-server.ts": "0958cdd9fb7b15cce99d2ae44f8a4a8aae49d6f36cda48d36812c6fbc533fe9b",
         "scripts/kit/todo.ts": "0073a800d874b467654c7d62140852a3ac64c407a3ba79a9ad4156b2d6336707",
         "tests/scripts/kit-scripts.test.ts": "5b49fc738b5c63e9917e8a24492cff20b4ef4e0aced05b6a3a7ffbabd51ce4ca"
+      }
+    },
+    "test-hook": {
+      "version": "1.0",
+      "files": {
+        "src/kit/test-hook/index.ts": "9348f0cb217eab51b16432ed76fad0e5b053706a65929825b5c7389661e9055b",
+        "tests/kit/test-hook/test-hook.test.ts": "3915d795e2ccacb38add4ceb397590bed31e35d56627223cec1719e288c2fc31"
       }
     },
     "testing": {
