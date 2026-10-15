@@ -26,7 +26,17 @@
     "new-game": "node scripts/kit/new-game.ts",
     "build:rules": "node scripts/kit/build-rules.ts",
     "world:build": "node scripts/kit/world.ts build",
-    "world:check": "node scripts/kit/world.ts check"
+    "world:check": "node scripts/kit/world.ts check",
+    "test:hub": "node --test --test-concurrency=1 \"tests/hub/**/*.test.ts\"",
+    "shots": "node scripts/kit/shots.ts",
+    "shots:hub": "node scripts/kit/shots.ts --hub",
+    "shots:sheet": "node scripts/kit/sheet.ts",
+    "cover": "node scripts/kit/cover.ts",
+    "sim": "node scripts/sim.ts",
+    "local": "node scripts/kit/local.ts",
+    "probe": "node scripts/kit/probe.ts",
+    "ui:check": "node scripts/kit/ui-check.ts",
+    "clean:procs": "node scripts/kit/clean-procs.ts"
   },
   "game": {
     "type": "static",
@@ -80,7 +90,13 @@
         4
       ],
       "transport": "hub-rooms",
-      "spectate": true
+      "spectate": true,
+      "modes": [
+        {
+          "key": "party",
+          "title": "Coin Party"
+        }
+      ]
     },
     "changes": []
   },

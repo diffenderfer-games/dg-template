@@ -126,6 +126,18 @@
         "tests/hub-events/resume.test.ts": "6f2ac2c68b2715b4ccf5e573560d91774dfd923816bbfcd8d7bb95dc42218d45"
       }
     },
+    "hub-suites": {
+      "version": "1.0",
+      "files": {
+        "tests/hub/_kit.ts": "5535a72a785ad89fd6f5cb244336fa81a850a7117b54f4af266f2fa727a68d70",
+        "tests/hub/kit/fake-parity.test.ts": "b3eb62a61b8b5308060c4548ff3fc11f4d229d6b1bb7a639acc4e436741b9e21",
+        "tests/hub/kit/online.test.ts": "474e77393c2d02b340d7cb6ddfe5e4c3e3173764142ed70e894be33f42f864a7",
+        "tests/hub/kit/pause.test.ts": "7898718719cb42bd77463acbcf6c4ffbc11459a60de9a01f9f97d0b07f843dbe",
+        "tests/hub/kit/planned.test.ts": "adfebae1b01819284505862d3a1326b98e7ad6f2fdfb989372665ae5a19b07b8",
+        "tests/hub/kit/progress.test.ts": "28f3c5b57063c0974ef31ed8b1e10d79795fe7d21f140f05dbc5af3d7d34e484",
+        "tests/hub/kit/race.test.ts": "e9bb22929c5bda527bf7590ac3370e0d2e7158b1e939b0babe5656930b9488c4"
+      }
+    },
     "input": {
       "version": "1.0",
       "files": {
