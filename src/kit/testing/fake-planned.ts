@@ -191,8 +191,10 @@ export class FakeAvatar implements PlannedAvatarApi {
     this.userId = userId;
   }
 
+  private mineCode: string | null = null;
+
   mine(): Promise<AvatarRef> {
-    return Promise.resolve(this.ref(`me-${this.userId}`));
+    return Promise.resolve(this.ref(this.mineCode ?? `me-${this.userId}`));
   }
 
   of(userId: number): Promise<AvatarRef> {
@@ -218,6 +220,7 @@ export class FakeAvatar implements PlannedAvatarApi {
 
   /** A player changed their look. */
   change(userId: number, code: string): void {
+    if (userId === this.userId) this.mineCode = code;
     this.events.emit('change', { userId, ref: this.ref(code) });
   }
 

@@ -127,6 +127,6 @@ export type KitLaunch = Launch & { table?: TableLaunch };
 
 /** world.md §3.6 / §6.2: what `hub.mp` gains. */
 export type PlannedMpExtras = {
-  quickMatch?(opts?: { mode?: string }): Promise<void>;
-  setRoster?(userIds: readonly number[]): void;
+  quickMatch?: (opts?: { mode?: string }) => Promise<void>;
+  setRoster?: (userIds: readonly number[]) => void;
 };
