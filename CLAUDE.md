@@ -121,8 +121,8 @@ The hub client is the npm package **`@diffenderfer-games/hub`** (it pulls in
 - **Own-server games** keep `server/hub-server.mjs` (the game-server SDK, not on
   npm): `npm run sync-hub-server` copies it from the sibling host checkout.
 - **Hub tests** (`tests/hub/`) use the host checkout's test kit (`DG_HOST`,
-  default `../diffenderfer-games`); run them with `HUB_IMPL=next`, the hub
-  production runs.
+  default `../diffenderfer-games`), which boots the hub and host production
+  runs.
 
 ## Using the hub (all optional, all free — no backend to run)
 
@@ -179,7 +179,7 @@ change can be checked the same way, and don't delete them when you're done.
   first. Serves `dist/` under `/<slug>/` itself and screenshots desktop
   (1280×800) and phone (390×844) sizes into `shots/` (git-ignored).
 - `node scripts/shots-hub.mjs <url>`: the same against a local
-  diffenderfer.games (`npm run local` in `../diffenderfer-games/next`) for hub
+  diffenderfer.games (`npm run local` in `../diffenderfer-games`) for hub
   flows: the menu, daily, races, two players in separate browser contexts.
 - Add a test hook on `window` (state, "solve now", "move") so scripts can
   drive the game quickly. The hub tests in `tests/hub/` can use it too.

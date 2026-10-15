@@ -3,7 +3,7 @@
 //
 //   1. Pick a FREE port first (this machine often has many dev servers running):
 //        node scripts/shots-hub.mjs --free-port         → prints one, e.g. 8137
-//   2. In ../diffenderfer-games/next:  npm run local -- --only <slug> --port 8137
+//   2. In ../diffenderfer-games:  npm run local -- --only <slug> --port 8137
 //   3. node scripts/shots-hub.mjs http://localhost:8137
 //
 // Keep this script and add a step per hub flow your game uses. Each player gets
