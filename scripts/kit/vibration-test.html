@@ -1,0 +1,59 @@
+<!doctype html>
+<!--
+  Vibration check for a real phone (kit/haptics; from bubblepop vibration-test.html).
+  Open http://<this machine's LAN IP>:5173/scripts/kit/vibration-test.html while `npm run dev -- --host` runs.
+  Android uses navigator.vibrate; iOS 18+ Safari taps when the label of a hidden switch is clicked.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Vibration check</title>
+    <style>
+      body {
+        font:
+          18px system-ui,
+          sans-serif;
+        background: #0d0f14;
+        color: #e8e6df;
+        padding: 16px;
+      }
+      button {
+        display: block;
+        width: 100%;
+        min-height: 56px;
+        margin: 12px 0;
+        font: inherit;
+        border-radius: 14px;
+        border: 0;
+        background: #4ade80;
+      }
+      #switch,
+      #switch-label {
+        position: fixed;
+        left: -100px;
+        opacity: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Vibration check</h1>
+    <p id="support"></p>
+    <button id="tick">Tick (4 ms)</button>
+    <button id="strong">Strong (12 ms)</button>
+    <button id="pattern">Pattern</button>
+    <input type="checkbox" id="switch" switch /><label id="switch-label" for="switch"></label>
+    <script>
+      const can = typeof navigator.vibrate === 'function';
+      const label = document.getElementById('switch-label');
+      document.getElementById('support').textContent = can
+        ? 'navigator.vibrate: yes'
+        : 'navigator.vibrate: no (iOS switch trick)';
+      const buzz = (ms, taps) =>
+        can ? navigator.vibrate(ms) : Array.from({ length: taps }).forEach(() => label.click());
+      document.getElementById('tick').onclick = () => buzz(4, 1);
+      document.getElementById('strong').onclick = () => buzz(12, 2);
+      document.getElementById('pattern').onclick = () => buzz([30, 60, 30], 3);
+    </script>
+  </body>
+</html>

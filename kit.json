@@ -101,6 +101,13 @@
         "tests/kit/daily-puzzle/toy.ts": "030dc5be5d832ce138afc14a2a4b99644b297c2ccc9cdf68b2c687eb7412bf0c"
       }
     },
+    "haptics": {
+      "version": "1.0",
+      "files": {
+        "src/kit/haptics/index.ts": "fddeb5dd43423125f633f58025843bba5a53324b8d37436dbca174ad0b713564",
+        "tests/kit/haptics/haptics.test.ts": "d021a9775d0a27660a8874cd8a83e2a549de50aa183710ef9cf1aa4b0466cbec"
+      }
+    },
     "hub-events": {
       "version": "1.0",
       "files": {
@@ -215,8 +222,16 @@
         "scripts/kit/sync-docs.ts": "f20e8320cd8f215d821ecaa9e8506d86c944ab2cba86c194c7a3bbb886505aad",
         "scripts/kit/sync-hub-server.ts": "0958cdd9fb7b15cce99d2ae44f8a4a8aae49d6f36cda48d36812c6fbc533fe9b",
         "scripts/kit/todo.ts": "0073a800d874b467654c7d62140852a3ac64c407a3ba79a9ad4156b2d6336707",
+        "scripts/kit/vibration-test.html": "05cbdcd081b7fcc8169d798066d2b4afef0beaa16bb432315f79902d1a0f4290",
         "tests/scripts/kit-scripts.test.ts": "3ae194aa1e88e5e6c5442c96bc3b60fd8e270e2073b26c03cda21cdb97f4ac6f",
         "tests/scripts/scaffold.test.ts": "3a5b3744c740d4a1d3227645070b137dba6e2341bd5aaf4c90518c36ccd55e9e"
+      }
+    },
+    "server": {
+      "version": "1.0",
+      "files": {
+        "src/kit/server/index.ts": "a23c7b27b688e1192b001783bccd4dc259de5a55ac858233b8f656da8f9ada36",
+        "tests/kit/server/server.test.ts": "5c5c5db7e8039b12307d017c3eed7e705f27623f65f8fac016c4991f1011db67"
       }
     },
     "settings-ui": {
