@@ -198,4 +198,5 @@ on the org's self-hosted Windows runner (no Actions minutes; nothing to register
 per repo — see the host's
 [RUNNERS.md](https://github.com/diffenderfer-games/diffenderfer-games/blob/master/RUNNERS.md)).
 It runs only for a push to the default branch or a manual run (never for pull
-requests); in this template repo itself it never runs.
+requests); in this template repo itself it never runs. A `check` job runs first
+(`npm ci`, `hub-doctor`, `npm run build`), so a game that fails it never deploys.

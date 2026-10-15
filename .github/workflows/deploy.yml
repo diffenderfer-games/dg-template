@@ -47,10 +47,34 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # hub-doctor (the npm hub client is inside the live hub's supported range, the
+  # game.* block matches the manifest schema, no vendored src/hub/ copy) and a
+  # build. The deploy needs it, so a failing check never deploys. A game that
+  # loads the hub at runtime (no npm hub client) drops this job and the deploy's
+  # needs: line.
+  check:
+    # The same push-only guard as the deploy (see there).
+    if: >-
+      github.repository != 'diffenderfer-games/dg-template' &&
+      github.repository_owner == 'diffenderfer-games' &&
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
+      github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+    runs-on: [self-hosted, Windows]
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - run: npm ci --no-audit --no-fund
+      - run: npx hub-doctor
+      - run: npm run build
+
   # On the owner's self-hosted Windows runner (DESKTOP-M6EK2BJ), Windows' OpenSSH
   # client. (Its PowerShell steps are Windows PowerShell 5.1: ASCII only.)
   deploy-self:
     name: deploy (self-hosted)
+    needs: check
     # Push-only guard: only a push / manual run on the default branch of a repo in
     # the diffenderfer-games org; never the public template itself (it must not
     # run on any runner).
