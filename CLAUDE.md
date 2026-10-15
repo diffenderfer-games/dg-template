@@ -147,6 +147,9 @@ Import once: `import { hub } from '@diffenderfer-games/hub';`
   `hub.race.openHistory()`), and report `hub.race.status(stats, progress)` then
   `finish(stats)` / `lose(stats)`. The hub does the lobby, invites, countdown,
   live HUD, referee, result card and race history. See `docs/multiplayer.md` §14.
+- **Daily puzzles** (a short daily with one or two winning lines, checked by a
+  solver): copy `src/kit/daily-puzzle/` into the game and follow the README's
+  "Daily puzzle kit" section. Copies stay byte-identical to the template's.
 - **Input** — the big one. Declare named inputs and read them uniformly on
   keyboard / mouse / touch / gamepad; the hub draws touch controls and handles
   gamepad + menu navigation. See `src/main.ts` for a full example and the
