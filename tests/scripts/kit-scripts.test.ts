@@ -64,7 +64,7 @@ describe('kit:check: the game block', () => {
   });
 
   it('every board used in code is declared', () => {
-    expect(checkBoards({ leaderboards: { high: { title: 'High' } } }, ['high'])).toEqual([]);
+    expect(checkBoards({ leaderboards: [{ key: 'high', title: 'High' }] }, ['high'])).toEqual([]);
     expect(checkBoards({}, ['high'])[0]).toMatch(/high/);
   });
 

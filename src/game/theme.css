@@ -1,0 +1,24 @@
+/*
+ * The game's look: the kit's screens are themed by these variables (docs/kit/ui.md § "Theming").
+ * (GAME: yours to edit.) TODO(game): your colours and font.
+ */
+:root {
+  --kit-bg: #0d0f14;
+  --kit-accent: #4ade80;
+  --kit-accent-2: #38d6ff;
+}
+html,
+body {
+  margin: 0;
+  height: 100%;
+  background: var(--kit-bg);
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+#app {
+  position: fixed;
+  inset: 0;
+}
+canvas {
+  display: block;
+}

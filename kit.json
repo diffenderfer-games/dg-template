@@ -172,7 +172,7 @@
         "scripts/kit/kit-check.ts": "28d69e3dd68168b4ba93ccf3c742cc54a378e4313742e5f5cf91d71acd7b9c3f",
         "scripts/kit/kit-hash.ts": "9ef9fbacd5af9aff8dbd7a73a5a6d5d48a8228cf76004bdf93412dfd67ac113c",
         "scripts/kit/kit-sync.ts": "d0434fe6f2a5711c5166cb413f6017c63b8c5543dbc7e4d5d2c72373e4cd460a",
-        "scripts/kit/lib/game-block.ts": "a2809e25a79b94d3d462ecb24c087c51d6d497bdb9d08fa8f819ed5d63b579e3",
+        "scripts/kit/lib/game-block.ts": "297de62174a7d1c6a9262d47177cc3fc9d5bd53fbf17554105be7cb4b2812ac4",
         "scripts/kit/lib/json-file.ts": "dbf7615f262a4cfaed24444d157ce3a1eb43c38139abf22910b5de63fc39fabc",
         "scripts/kit/lib/kit-manifest.ts": "3dd9b442e44bf0f265bdbd3f78332ebce23cf7a058ef6cfc00bea39d1121916d",
         "scripts/kit/lib/modules.ts": "cf336327b276de014facf618ee4122bb29d6706b815e9958235764e37a498b01",
@@ -180,7 +180,7 @@
         "scripts/kit/sync-docs.ts": "f20e8320cd8f215d821ecaa9e8506d86c944ab2cba86c194c7a3bbb886505aad",
         "scripts/kit/sync-hub-server.ts": "0958cdd9fb7b15cce99d2ae44f8a4a8aae49d6f36cda48d36812c6fbc533fe9b",
         "scripts/kit/todo.ts": "0073a800d874b467654c7d62140852a3ac64c407a3ba79a9ad4156b2d6336707",
-        "tests/scripts/kit-scripts.test.ts": "5b49fc738b5c63e9917e8a24492cff20b4ef4e0aced05b6a3a7ffbabd51ce4ca"
+        "tests/scripts/kit-scripts.test.ts": "3ae194aa1e88e5e6c5442c96bc3b60fd8e270e2073b26c03cda21cdb97f4ac6f"
       }
     },
     "settings-ui": {

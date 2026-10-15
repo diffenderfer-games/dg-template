@@ -43,7 +43,7 @@ export function checkLabels(labels: JsonValue | undefined): string[] {
 
 /** Boards used in code but not declared in `game.leaderboards`. */
 export function checkBoards(game: JsonRecord, used: readonly string[]): string[] {
-  const declared = new Set(Object.keys(rec(game.leaderboards) ?? {}));
+  const declared = new Set(arr(game.leaderboards).map((b) => str(rec(b)?.key)));
   return used
     .filter((b) => !declared.has(b))
     .map((b) => `leaderboards: the code submits to "${b}" but game.leaderboards doesn't declare it`);

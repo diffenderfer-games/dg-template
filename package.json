@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "A diffenderfer.games game (TypeScript + Vite + PixiJS).",
+  "description": "A diffenderfer.games game on the dg-template kit (TypeScript + Vite; PixiJS, three.js or DOM).",
   "author": "your name here",
   "scripts": {
     "dev": "vite",
@@ -22,24 +22,54 @@
     "todo": "node scripts/kit/todo.ts",
     "sync-docs": "node scripts/kit/sync-docs.ts",
     "sync-hub-server": "node scripts/kit/sync-hub-server.ts",
-    "hub-doctor": "hub-doctor"
+    "hub-doctor": "hub-doctor",
+    "new-game": "node scripts/kit/new-game.ts"
   },
   "game": {
     "type": "static",
-    "title": "My Game",
-    "description": "Describe your game here — shows on the catalog card.",
+    "title": "Coin Dash",
+    "description": "Grab the coins before time is up. A new daily challenge every day, and races against friends.",
     "labels": [
       "arcade",
       "2d",
       "phone",
       "controller",
-      "single-player"
+      "single-player",
+      "multiplayer"
     ],
     "build": "npm run build",
     "serveDir": "dist",
     "menuPosition": "top-right",
     "image": "cover.png",
+    "resumable": true,
     "dailyChallenges": true,
+    "leaderboards": [
+      {
+        "key": "high",
+        "title": "High score"
+      }
+    ],
+    "race": {
+      "params": [
+        {
+          "key": "coins",
+          "title": "Coins",
+          "options": [
+            5,
+            10,
+            20
+          ],
+          "default": 10
+        }
+      ],
+      "stats": [
+        {
+          "key": "coins",
+          "title": "Coins"
+        }
+      ],
+      "minMs": 3000
+    },
     "changes": []
   },
   "dependencies": {
