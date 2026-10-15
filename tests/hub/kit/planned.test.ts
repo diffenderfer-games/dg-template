@@ -41,3 +41,30 @@ void test(
     // and the seat badge update without a reload.
   },
 );
+
+void test(
+  'turns: "your turn" reaches the other player as an alert while they are away',
+  { skip: skip('savedGames3', 'savedGames4') },
+  () => {
+    // Plan (saved-games.md phase 4): A moves while B is on another page; B gets the hub's "your turn"
+    // notice, opens it, and lands on the turn game at the new move.
+  },
+);
+
+void test(
+  'avatar: the Pixi and three.js adapters draw the same face as <dg-avatar>',
+  { skip: skip('avatars0', 'avatars4') },
+  () => {
+    // Plan (avatars.md phase 4): src/game/avatar.ts uses the hub's adapter for the starter's renderer;
+    // a shot of the title bust matches the DOM avatar for the same design.
+  },
+);
+
+void test(
+  "world: npm run world:build converts the game's Tiled room and the hub serves it",
+  { skip: skip('worldW4') },
+  () => {
+    // Plan (world.md §7): world/room.tmj → world/room.json (dg-room@1) with `dg-room from-tiled`;
+    // world:check validates it, and the hub's room viewer loads it.
+  },
+);
