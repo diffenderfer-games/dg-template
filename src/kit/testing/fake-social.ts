@@ -68,6 +68,11 @@ export class FakeMp implements MpLike {
     this.host.setCanPause(!isBusy);
   }
 
+  setJoinInfo(partyId: string, info: Record<string, string>): Promise<void> {
+    this.log.record('mp.setJoinInfo', partyId, info);
+    return Promise.resolve();
+  }
+
   inviteLink(): Promise<InviteLink> {
     this.log.record('mp.inviteLink');
     return Promise.resolve({

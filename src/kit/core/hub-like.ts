@@ -81,7 +81,10 @@ export type RaceLike = Pick<
 >;
 
 /** Launches, invites, the leave guard; the planned world extras are optional. */
-export type MpLike = Pick<HubMpApi, 'onLaunch' | 'onJoinInfo' | 'setBusy' | 'inviteLink' | 'revokeInviteLink'> &
+export type MpLike = Pick<
+  HubMpApi,
+  'onLaunch' | 'onJoinInfo' | 'setBusy' | 'setJoinInfo' | 'inviteLink' | 'revokeInviteLink'
+> &
   PlannedMpExtras;
 
 /** Hub relay rooms. */

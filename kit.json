@@ -50,7 +50,7 @@
         "src/kit/core/emitter.ts": "31392546d66338152ad83756a4eb7662f517ab742db1abf4ff915608a1559668",
         "src/kit/core/env.ts": "5e52cf17a89033b2578217ae2f64270ea0a05c7befd625bfc1c1f99f111b4af6",
         "src/kit/core/events.ts": "f80f93217d4dfd9ec5d1c343d3bde7cb45c2205325bc9e89779ed2b3f818dba6",
-        "src/kit/core/hub-like.ts": "6da6f6d2380db87c7a75f2a2251919100e20f676a5cb52ac2e3f84c710e2b625",
+        "src/kit/core/hub-like.ts": "121bc1fdef3261d34b2506bdb96c4de837782da1952436060a136a8d5d0f6088",
         "src/kit/core/index.ts": "a2015deeab70724e1491386061c31d115dd6a0ba5297fb9e9422684f4e6af007",
         "src/kit/core/json.ts": "f194384498d6deb5ab32cea2c6d0654c968b4f1677d4b245abd97cdee289ad98",
         "src/kit/core/log.ts": "5c0ffe1bbe913fd73bab1049d068424e8f9b1d3a2bd68d749e06eaac12678714",
@@ -132,7 +132,15 @@
     "online": {
       "version": "1.0",
       "files": {
-        "src/kit/online/types.ts": "a4f1e36d2403c3013b7fb07f3d0efd35a2518ba0173509314812328d63b06f1a"
+        "src/kit/online/chat.ts": "c66063cb0db6f17d509b75002728ed4b3b11f8db30e52b06c6d5f6a303fa8a9b",
+        "src/kit/online/errors.ts": "d13f906ffbb5170224fc64ca52fe5b4e15176290f0d9837c0960d24726a1ba8a",
+        "src/kit/online/index.ts": "2f5c7b87b21fd5790379a4455f45922b233ba6d030d81a95cc0f8e970d924e7f",
+        "src/kit/online/launch.ts": "4902720eff68b91f89be1e1e9d2a225bf421338b020c363b235b9d0e4ce9ab45",
+        "src/kit/online/lobby.ts": "d9f0a0cdf6fbae52ade814c8c55e0026191fa43ec294c80213ae5739e9618cae",
+        "src/kit/online/match.ts": "46db0af46185c705f82a03ac1c89f67c34c727bf90efeb50718c14089c3c395a",
+        "src/kit/online/types.ts": "a2ca4d4fd1186b1ff8bc561aae2c31c4dcb3e8b1a83d7b58609307e42b5f8fdb",
+        "src/kit/online/wire.ts": "3fbfdde71857610b906c8fcff98b6f4f846314cc0489dff0d1736964d7b25723",
+        "tests/kit/online/online.test.ts": "891f18f8e786106258e3532c243dd82014e476c158d7694766dbd9f01b96bdac"
       }
     },
     "pause": {
@@ -225,7 +233,7 @@
         "src/kit/testing/fake-race.ts": "08baaa869146d38c024e517651155b9027f539f2b8d2890d51aebb64f4329e03",
         "src/kit/testing/fake-room-info.ts": "8a7b41df8e5d7c5b18400fd55f39c7d9903ee39fced6b79c24ee77e1dee1d688",
         "src/kit/testing/fake-room.ts": "2381759f75d0a97d979b4e9d023fd5e0bd5d65db53a89771ce4e7b9e5622a66c",
-        "src/kit/testing/fake-social.ts": "14acc2011bb3050bf23005ff9b27b995b3ecfbcfe70e536f24eb5187a19363ab",
+        "src/kit/testing/fake-social.ts": "ae42d4b6919b7b78f6f142c30fc2d963285fd53ca827e63d4f82952988a50702",
         "src/kit/testing/fake-storage.ts": "ecc5a9c9a7375d0ee0683e7a376a9d193484f450649f6d181caec5ca3fc45de3",
         "src/kit/testing/index.ts": "a3d5b276d5eaf82a3f4f5eebc609d47c5d2fff98ab5c71ffb6ccb314dc8a8513",
         "src/kit/testing/phases.ts": "449f1e802dcb6b129c2aaeb25e563aa8d665751a2ebc42c7d410c3b6ac84f521",
