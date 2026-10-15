@@ -11,7 +11,7 @@
     "preview": "vite preview --strictPort",
     "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.node.json",
     "test": "vitest run --project kit --project hub-events --project game",
-    "test:slow": "vitest run --project slow",
+    "test:slow": "vitest run --project slow --passWithNoTests",
     "lint": "eslint .",
     "format": "prettier -w \"**/*.{ts,json,css,html}\"",
     "format:check": "prettier --check \"**/*.{ts,json,css,html}\"",
