@@ -254,6 +254,7 @@ opens the chat / player card in place (or opens the site if nothing is running).
 | `dm` | a friend's message (push only when no tab is visible) | nothing |
 | `friend_request` | a new friend request | nothing |
 | `friend_online` | any friend, or a chosen friend, comes online | nothing |
+| `invite` | a friend invites me to play a game (push only if I turned on **Game invites**, and only for as long as the invite lasts) | nothing |
 | `lobby_open` | **someone is waiting in a public lobby of a game I follow** | report lobby presence (below) + a 🔔 button |
 
 **Put a 🔔 in your lobby** that opens the hub's settings focused on your game:
@@ -365,6 +366,14 @@ and [own server §9](#client-side-own-server).
   The invitee gets a toast with Accept/Decline. Accept leads to a **`guest` launch** in
   your lobby. Decline, expiry (2 min) and cancel tell the inviter "can't play right now",
   and nobody navigates.
+- **Getting rid of an invite:** every list that shows one (the Friends window, the
+  **Play online** window, the toast) has **No thanks**, and Play online has **Clear all**
+  when there are several. Declining tells the inviter only "can't play right now" (the
+  same as expiry, so nothing new is revealed), and the invite leaves the player's other
+  tabs, the menu badge and the home page's card counts at once. An invite that no longer
+  leads anywhere (its party ended or filled up, the inviter left it, was suspended or
+  blocked, or the game went offline) is cancelled by the hub on its own, so stale
+  invites never sit in a list or a count.
 - **Parties:** an invite creates (or reuses) the inviter's **party** for your game: 2..`players[1]`
   friends (≤8) who move between games together. `launch.party` / `hub.mp.party()` give
   `{id, game, mode, leaderId, members, joinInfo}`. Subscribe with
@@ -1447,6 +1456,14 @@ absent player is warned shortly before the deadline, then forfeits to the one wh
 the game open; if neither turned up, the better seed goes through. A match that started
 (or with both players there) runs until its result, or 90 minutes, after which the
 better seed goes through. Players who have blocked each other never meet.
+
+A tournament invite shows in Play online with **Sign up** and **No thanks**. No thanks
+hides it for that player for good (the creator isn't told, and inviting them again
+doesn't bring it back); an open tournament stays in the list to sign up for, and a
+closed one stays visible to them by its link. Invites stop showing by themselves once
+the tournament is full, has started or ended, or after a week (a scheduled one's lasts
+until its start). Over REST, `POST /tournaments/:id/leave` from an invited player who
+hasn't signed up dismisses the invite (for an entrant it drops out, as before).
 
 ### 15.1 Which games
 

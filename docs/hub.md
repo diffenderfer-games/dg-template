@@ -589,8 +589,12 @@ hub.prefetchAll(); // optionally warm the cache for all games up front
 **Opt out / tune.** Add `"pwa": false` to your `game` block to skip the
 manifest/SW/install tags for one app, or set `HUB_PWA=0` to disable the whole
 layer. Service-worker behaviour is controlled by env vars on the host:
-`HUB_SW_VERSION` (bump to invalidate all SW caches on deploy), `HUB_SW_MAX_ENTRIES`,
+`HUB_SW_VERSION` (unset by default: the caches are named after the client build, so a
+hub release drops them; set it only to force a flush), `HUB_SW_MAX_ENTRIES`,
 and `HUB_SW_CACHEABLE_HOSTS` (the cross-origin allowlist). See `src/config.js`.
+Each game's registration carries a build stamp (a hash of its page), so a game
+deploy gets a fresh cache too. Same-origin code is always fetched from the network
+first; the cache is used only when the network fails (offline).
 
 > **Secure context:** service workers, install, and the Gamepad API only work
 > over **HTTPS or `localhost`**. In production that's the Caddy TLS front
@@ -1738,7 +1742,7 @@ fields go through the filter and answer **422** `content_rejected` on refusal.
 - `GET  /play-online` → `{counts:{now, invites, mine, upcoming}, lobbies, gameInvites, tournamentInvites, mine, upcoming}` (anyone; signed out: open tournaments only). The home page's **Play online** card and the menu's row show `counts`; the window lists the rest. `lobbies` are public lobbies and races waiting for a player (claimed hosts who show their presence, nobody across a block); join one with `POST /mp/join {userId, fromLobbyOpen:true}`.
 - `GET  /tournaments?game=` → `{tournaments}` (open ones plus mine, invited or followed; ended ones for 3 days) · `GET /tournaments/:id?key=` → the detail with `players` and the bracket's `matches` (404 `tournament_not_found` for a closed one not shared with me; `key` is a shared link's invite key)
 - `POST /tournaments` (*claimed*) `{games:[slug] (≤8), title? (≤48, content filter), pick?:'fixed'|'random-once'|'random-each', lives?:1|2|3, seeding?:'random'|'rank', visibility?:'open'|'closed', start?:{kind:'filled'}|{kind:'scheduled', at}, minPlayers?, maxPlayers? (2–64), readyMinutes? (1–60, default 10), invite?:[userId]}` → detail. The defaults are the quick public 1v1. 400 `not_supported` (a game without tournaments), 422 (title), 429 (5 a day, 3 open at once).
-- `POST /tournaments/:id/join` `{key?}` (guests too) → detail (starts a `filled` one with enough players; 409 `tournament_closed` / `tournament_full`, 403 `cannot_join` across a block) · `POST /tournaments/:id/leave` → detail (before the start the place is freed; after it the player is out)
+- `POST /tournaments/:id/join` `{key?}` (guests too) → detail (starts a `filled` one with enough players; 409 `tournament_closed` / `tournament_full`, 403 `cannot_join` across a block) · `POST /tournaments/:id/leave` → detail (before the start the place is freed; after it the player is out; from an invited player who hasn't signed up it is "No thanks": the invite stops showing for them, nobody is told; 409 `not_entered` otherwise)
 - `PUT /tournaments/:id/follow` (*claimed*) `{leadMinutes?}` → summary (reminder that long before a scheduled start) · `DELETE /tournaments/:id/follow` → `{ok}`
 - Creator: `POST /tournaments/:id/invites` `{userIds}` → `{invited}` (friends only) · `POST /tournaments/:id/start` · `DELETE /tournaments/:id` (cancel; admins too)
 - `POST /tournaments/:id/matches/:match/launch` → `{launchToken, url}`: a `host` launch for the better seed, `guest` for the other, sharing the match's party; the launch carries `tournament:{id, title, match, opponent}`. 409 `match_not_ready`.
