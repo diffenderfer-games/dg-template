@@ -4,6 +4,7 @@
     "audio": {
       "version": "1.0",
       "files": {
+        "docs/kit/audio.md": "83b58a87f84aa9871b4ce7ac1e61ffe344363318c52ee095ac2753e6ae2a1686",
         "src/kit/audio/engine.ts": "2764ed06d398b84d4a9fcc3d3559c3d2f4e22266baad897d9b8af151cf837672",
         "src/kit/audio/index.ts": "5a5c0710682f66b82a6299e384535010f8162ca2c4da523f68cd91c8baf0941d",
         "src/kit/audio/kit-audio.ts": "5612d16bc291bbbc2e6437d9e4c7963c8d4b40ede2e656c75013e5c57e173176",
@@ -16,6 +17,7 @@
     "avatar": {
       "version": "1.0",
       "files": {
+        "docs/kit/avatar.md": "9619f6dc125fa36ac5a84ab4a1fb43f1121aa50ce2e633b7630b63cc1906ad47",
         "src/kit/avatar/index.ts": "cb9d14a2c6fbc0b5392d417a3c9b5a0a10d0d3fd4be7be0a13ccaa47b8b83ec6",
         "src/kit/avatar/types.ts": "8fdb963d37ce9988d94d514d2cf59c6f3e48392277d17bff024a234aecc7a587",
         "tests/kit/avatar/avatar.test.ts": "3ddc5a507bed76d794772e48131bcc6bd6a62ddc216df869c2dc9564c099deb0"
@@ -24,6 +26,7 @@
     "boot": {
       "version": "1.0",
       "files": {
+        "docs/kit/boot.md": "d3de36386386b15e87af915abeb78f0c38e92f0e5f56e5414c7e3ea9f0ce7197",
         "src/kit/boot/context.ts": "4d889d45e7a474f9721cdd8d8058a652dcc0979de3467dc7bb196974d0d98f1b",
         "src/kit/boot/define-game.ts": "0c2dd2545c0b350f905004f258374499a6543c734a86234ec6ccac32c66aeff2",
         "src/kit/boot/index.ts": "43e7d5a563cae9c97f05053ddd48ab82f92eaa60cccbea28569fd5e1c5813140",
@@ -53,6 +56,7 @@
     "core": {
       "version": "1.0",
       "files": {
+        "docs/kit/core.md": "6ec04d1490d91cd3871acb64c8d73fe39477d4205e3a473fdc80b7fce033576c",
         "src/kit/core/activity.ts": "23f686d66feef6a8180f5b8c488222a63ea59d5c2cefb1e88923c61164fff0eb",
         "src/kit/core/async.ts": "d72c1d9567684509bc9005f98c6a37296d3eb2ad2251d6d7797a89a4e3f17f26",
         "src/kit/core/clock.ts": "581eac09dbd929c0017585d6e5cf22562c806ebb4a49ee3bd41b24c9ea97fec8",
@@ -78,6 +82,7 @@
     "daily": {
       "version": "1.0",
       "files": {
+        "docs/kit/daily.md": "a474dd5c8c926c540e2c47dd440858fc0154c8d5dec40f29d38ea7befa357930",
         "src/kit/daily/index.ts": "402e0ad3acee3af7e8b5ec96bc7a2ab44f5f5862c60f1ea455f71c95244ba79b",
         "tests/kit/daily/daily.test.ts": "23c0c2bc93102380e074a50a4e44b4792e9a473989f97adec74bfadc0a9fea95"
       }
@@ -85,6 +90,7 @@
     "daily-puzzle": {
       "version": "1.0",
       "files": {
+        "docs/kit/daily-puzzle.md": "0c4d24756223c7720e3bfd669123ab947c147c9f8c265dffc7db4a97dae3a999",
         "src/kit/daily-puzzle/attempts.ts": "f5c7ddcc2911a2830e69db462ed4e27d8b01c50d6d41c6b85b69228dc45d83d3",
         "src/kit/daily-puzzle/days.ts": "6effbc3d1de2220cc2076a926d171a8d12db881344dde9cc9537ad421c33a652",
         "src/kit/daily-puzzle/generate.ts": "ba8618c7e93d76993d513a648b15516f3685e840fdac911d1fade412572e9113",
@@ -104,9 +110,22 @@
         "tests/kit/daily-puzzle/toy.ts": "030dc5be5d832ce138afc14a2a4b99644b297c2ccc9cdf68b2c687eb7412bf0c"
       }
     },
+    "docs": {
+      "version": "1.0",
+      "files": {
+        "docs/getting-started.md": "28001aa616fd1b1ee9fa9636963f775e355117f7f440dfd07e6af283a503fc93",
+        "docs/kit/CHANGELOG.md": "1f2045603899bd59ed3dc6aafd392272f1bcf58ff6d9ed32b6118649b605e498",
+        "docs/kit/README.md": "fec04b190fed715d4447cdcc87f16174e9f0d5a6e9c9e209acd40f383137c47e",
+        "docs/kit/hooks.md": "04791ad5abcd2f4c0269e766f8e5b418a25139eb6d0815244931504f5bd256e2",
+        "docs/kit/screenshots.md": "e24b73b6c228d96899be5cb905ea7eddfe7c31f04f4958b59c32fbbece2a232d",
+        "docs/kit/whats-new.md": "941ef2d7f3284f4defcd2438dbc363bd7bbc46425353030957d5b88a7adb6362",
+        "docs/repo-setup.md": "552261537701163f41fb9f5811b679d240398baa1c387cf2279b37a18be3053d"
+      }
+    },
     "haptics": {
       "version": "1.0",
       "files": {
+        "docs/kit/haptics.md": "5b56f9ef7a7f6ce0cb944d29cac6f8501bf844c77f14eb5223fa7c96fe8ca24b",
         "src/kit/haptics/index.ts": "fddeb5dd43423125f633f58025843bba5a53324b8d37436dbca174ad0b713564",
         "tests/kit/haptics/haptics.test.ts": "d021a9775d0a27660a8874cd8a83e2a549de50aa183710ef9cf1aa4b0466cbec"
       }
@@ -141,6 +160,7 @@
     "input": {
       "version": "1.0",
       "files": {
+        "docs/kit/input.md": "3ad4187d9a785a7f87a8aee4896adf6cf539441aa21adaab9780d6b01655c239",
         "src/kit/input/controls.ts": "a549509a306b1bfc977eed60bb750c9f64dc1e5374411aeeed40abb20f425675",
         "src/kit/input/index.ts": "5469b420c7e3e748b55e46f320a6c0a214400bd5590f4daf9250a6765b1bc59f",
         "src/kit/input/nav.ts": "5ca889fb4077e796a54774f17d9ac04e67c80834c940e847e7493b1d4ca61960",
@@ -150,6 +170,7 @@
     "layout": {
       "version": "1.0",
       "files": {
+        "docs/kit/layout.md": "7d5bba2f9f6bc2b740e593e1b7ab896dc3bb6b790d019af46f5d5f75be24bca0",
         "src/kit/layout/index.ts": "ec155a2adc57d34ef00b00c237bd55e2fa13abc37cf5f0a08cd79a31a1542281",
         "tests/kit/layout/layout-loop.test.ts": "0f5009e25d0f716f428244eaa703ac19a26a7f32c8ca8b86341cd58b56d047f7"
       }
@@ -157,12 +178,14 @@
     "loop": {
       "version": "1.0",
       "files": {
+        "docs/kit/loop.md": "306449fd1d5c8f89c6ddb200986063290c2d06ca84adcac562bfa5a85de33edb",
         "src/kit/loop/index.ts": "2397ea8bfa4cdb4ff4a356601d4b3683c31c1b640842be63e1c33b6731e75bbb"
       }
     },
     "online": {
       "version": "1.0",
       "files": {
+        "docs/kit/online.md": "7b8bc6ac085e084f6a3cdee255fab1c9dabc707583ce030402d1eecc069b0b47",
         "src/kit/online/chat.ts": "c66063cb0db6f17d509b75002728ed4b3b11f8db30e52b06c6d5f6a303fa8a9b",
         "src/kit/online/errors.ts": "d13f906ffbb5170224fc64ca52fe5b4e15176290f0d9837c0960d24726a1ba8a",
         "src/kit/online/index.ts": "2f5c7b87b21fd5790379a4455f45922b233ba6d030d81a95cc0f8e970d924e7f",
@@ -178,6 +201,7 @@
     "pause": {
       "version": "1.0",
       "files": {
+        "docs/kit/pause.md": "3d03f75977c5f6aa9b6b466fba6c140d89e6821ffff7c768af4969f8cf8fe6ae",
         "src/kit/pause/index.ts": "947c5cb7fdf55d984f927f1a1b1bc2530c8a33002ee1f51fcb323e9db2937121",
         "tests/kit/pause/pause.test.ts": "a6bedeb627b8f8d9e9539296ce33682793270c870243575cde19179b7e0f9baa"
       }
@@ -185,6 +209,7 @@
     "race": {
       "version": "1.0",
       "files": {
+        "docs/kit/race.md": "3bd5cfe9c25199d65ce13c46947a3191350b6e33290c71e0b5e91d78b434e431",
         "src/kit/race/index.ts": "0c6cf9cef8cc13fcad04b2f62da6e42fdb1d7957a3ab70c51c9aa1d21a341d09",
         "tests/kit/race/race.test.ts": "701759931f17eb449209ad4a21e8d745b096ac8e36ff4d92b78d7914524f24f1"
       }
@@ -192,6 +217,7 @@
     "resume": {
       "version": "1.0",
       "files": {
+        "docs/kit/resume.md": "a2ee534ddaf78d8e4b4bd10c7029d11cc687e2f497423e5842fc2df7421b1f16",
         "src/kit/resume/index.ts": "9dbc84a99044ce382eead42504a298f43e41b99c5db027fbfe0f81600543e342",
         "tests/kit/resume/resume.test.ts": "28968d0cddda7c64362ccee0520d2884a5d7093159596575c429af77eb048205"
       }
@@ -199,6 +225,7 @@
     "rng": {
       "version": "1.0",
       "files": {
+        "docs/kit/rng.md": "1f35f219a0c0d36d702a42174ca974ed42be38ec5ec7d5276a3cf69753cff35a",
         "src/kit/rng/index.ts": "9f6bdb152c7abb161edb2c720ffbdf9d75a2665c21814d698bde5242c536b093",
         "tests/kit/rng/rng.test.ts": "689489fdeaf82b07d5a27486b68884799372ae0ae6d391e2b07a3b292941b1c6"
       }
@@ -206,6 +233,7 @@
     "save": {
       "version": "1.0",
       "files": {
+        "docs/kit/save.md": "edf6725a720dbd4b86c21b733d99950eae8147c361616e1db300d5cbcb01f5e8",
         "src/kit/save/errors.ts": "ceb60421344c41ea884ab9929a2b59275a690dd0f76f06a3d02ef5c6d6c73819",
         "src/kit/save/index.ts": "b9dd93d0d8dcaa6a36640195b941cf9754a04c93a51547ab1211697383e9522e",
         "src/kit/save/merge.ts": "6e33c178cc70190f974c2b4d66db318c89891dd4bf0206467d95e83f40f6f8a0",
@@ -220,6 +248,7 @@
     "saved": {
       "version": "1.0",
       "files": {
+        "docs/kit/saved.md": "89974ac7624a92aa29d95329ea558743ba2502e61de02e8972145c05eb135f93",
         "src/kit/saved/index.ts": "f8dd875278d06637b70ef7d8365994273d558f636e1e21e0fab583f5956cb28b",
         "tests/kit/saved/saved.test.ts": "430a53b7f8eef71ee0ca42c431fc6e474e6fa8a7f3247b577ae1ad17a12f3132"
       }
@@ -227,6 +256,7 @@
     "scores": {
       "version": "1.0",
       "files": {
+        "docs/kit/scores.md": "b7630c159d22c5705dc20ba0e9b5a5db071939ec387525a6b421cdd538ade473",
         "src/kit/scores/index.ts": "af20189441aa1186bb5da148f1ac6ad85bf70b56a30338391e09cf953d28b3bc",
         "tests/kit/scores/scores.test.ts": "d58024fafc5c738f6f8adb4cdea89bb19dd6275018aeb64588e2c70ef00640df"
       }
@@ -274,6 +304,7 @@
     "server": {
       "version": "1.0",
       "files": {
+        "docs/kit/server.md": "3b118100db06ef300defd28fdaea728febe689fe3265ec23db25f63ccd367340",
         "src/kit/server/index.ts": "8c59eb503f0fa0206330b6bbf06e40006f2c8da0eb63207ca890e36696f36e6c",
         "tests/kit/server/server.test.ts": "0f6c6d9a134945d4361b266d1b368668a5149228ef33d050157a7b0c11a63b69"
       }
@@ -281,12 +312,14 @@
     "settings-ui": {
       "version": "1.0",
       "files": {
+        "docs/kit/settings-ui.md": "62c2666dc2459871a055f5d275af333fa871ca7a1518b7fb04b5b7d0bf1de642",
         "src/kit/settings-ui/index.ts": "147f670d1a6db10e18f5412da52f4378befe82c0ed6501c66105193e13b8e320"
       }
     },
     "test-hook": {
       "version": "1.0",
       "files": {
+        "docs/kit/test-hook.md": "0602c9dc486719f57ea35919b95c63e36d7f7dd67fd324da1ba1b9c98625f20d",
         "src/kit/test-hook/index.ts": "377b75d720e088a9a8df83676f8dfe532947c95446406a58ced96eca68b9580d",
         "tests/kit/test-hook/test-hook.test.ts": "3915d795e2ccacb38add4ceb397590bed31e35d56627223cec1719e288c2fc31"
       }
@@ -294,6 +327,7 @@
     "testing": {
       "version": "1.0",
       "files": {
+        "docs/kit/testing.md": "637f05f4822ce3dbdb7ce048871a9a6824ee9232617bdc08c20e4010334eb361",
         "src/kit/testing/calls.ts": "21a8ee3e723c6478ebe71b74174d6149a5232eaff1a1f99155884032215c263f",
         "src/kit/testing/fake-audio.ts": "e3e933d0a0b54e7e41a3615e4d30ee0581b3e0d4bd5fc857d07df52c8919c3ad",
         "src/kit/testing/fake-clock.ts": "226acfa621cc69bb6bb7c88f7e0bbf7ca9bcb9f7ba689a8c83d716cb1fdc55a3",
@@ -319,6 +353,7 @@
     "turns": {
       "version": "1.0",
       "files": {
+        "docs/kit/turns.md": "b4271eec1bc86c545ee01f58f212f5e0ba900ddb96b7ac3a8775c8372d8825e5",
         "src/kit/turns/index.ts": "006440a0f03e326917660f8b51c3ea12236cc8648343bf092c322c87c627a3d4",
         "src/kit/turns/size.ts": "dbac600919a51e53f4b7cccfec23699f4c9304a76c325855116853ca9cd1b912",
         "tests/kit/turns/turns.test.ts": "a187e83acd5b90ff3ddc41af220a90dd1f3d82006446c2e027c948b08c87e27e"
@@ -327,6 +362,7 @@
     "ui": {
       "version": "1.0",
       "files": {
+        "docs/kit/ui.md": "31657f75c06060beeaa1d919f12a544e844bf6b3644718511df9b6a1ea5a8755",
         "src/kit/ui/controls.ts": "5e8d4e8a8cda40cd84a8615d66ba20459884d7ea802af1aee1ec455df2b2256e",
         "src/kit/ui/css.ts": "7027deb076de6a27fdccc77dfba79cbec0aa22579782235aef2ef3784e456936",
         "src/kit/ui/dom.ts": "ad6dcc0f40b6fee09d36c4887c49b209a13265e89cf659fbb8785b668a8dcf7c",
@@ -342,6 +378,7 @@
     "world": {
       "version": "1.0",
       "files": {
+        "docs/kit/world.md": "5107781110b5962ba963e100ce6b5314848a868878bfecf43cf0a7ff98381cae",
         "src/kit/world/index.ts": "c181b632d154eb12603673799f39412df47f2e85da2f57babe48e3468482859a",
         "tests/kit/world/world.test.ts": "ee0836c74ea2a6f6bf4d5ca800118ec3d0fd4ccbfad3c6f700287194121aa63c"
       }

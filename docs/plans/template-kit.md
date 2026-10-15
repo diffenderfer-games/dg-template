@@ -1357,7 +1357,7 @@ export function fakeAudioContext(): AudioContext;
   - `tests/kit/testing/contract.test.ts` checks that FakeHub's TypeScript
     surface is `satisfies HubLike`. The build fails when the hub's types
     change.
-  - A short browser suite (`tests/hub/fake-parity.test.ts`) runs the same
+  - A short browser suite (`tests/hub/kit/fake-parity.test.ts`) runs the same
     scenario against FakeHub and against the real local hub, then compares
     the call logs for overlay, daily, race and resume.
 - Decision 2: FakeHub stays in the template. Moving it into the hub package
