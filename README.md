@@ -5,6 +5,10 @@ starter for building a game for the **diffenderfer.games** catalog, with the
 shared **hub** client (accounts, saves, stats, leaderboards, inventory, and a
 unified keyboard/mouse/touch/gamepad input system) vendored in.
 
+> **Planned:** a complete kit (every hub duty pre-implemented, Pixi and three.js
+> starters, hub-event unit tests, screenshot scenarios). The draft plan is
+> [docs/plans/template-kit.md](docs/plans/template-kit.md); it is up for review.
+
 ## Where games live: the diffenderfer-games organization
 
 Every game is a repo in the GitHub organization
@@ -73,6 +77,7 @@ HANDOFF.md            how the catalog builds & mounts a game (read this; synced 
 docs/hub.md           full hub API: accounts, saves, leaderboards, input, … (synced from the host)
 docs/multiplayer.md   friends, presence, invites, rooms, chat, races (§14) (read if online or racing; synced from the host)
 docs/audio.md         music/continuous audio in a background Web Worker (required pattern)
+docs/plans/            plans for the template; template-kit.md is the plan for the full game kit (draft, for review)
 CLAUDE.md             brief for an AI assistant building the game
 ```
 
