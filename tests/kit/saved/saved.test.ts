@@ -16,7 +16,7 @@ describe('kit/saved', () => {
     fake.daily.inProgressDay('2026-10-14');
     const s = createSaved(fake, routesInto([]));
     const rows = await s.continueRows(() => Promise.resolve(null));
-    expect(rows.map((r) => r.label).sort()).toEqual(['Continue: Level 3', 'Daily challenge · Oct 14 (Started)']);
+    expect(rows.map((r) => r.label).sort()).toEqual(['Daily challenge · Oct 14 (Started)', 'Level 3']);
     expect(s.routeOpened()).toBe(false);
   });
 
@@ -25,7 +25,7 @@ describe('kit/saved', () => {
     fake.saved.list = () => Promise.reject(new Error('offline'));
     const s = createSaved(fake, routesInto([]));
     expect(await s.continueRows(() => Promise.resolve('Level 3'))).toEqual([
-      { id: 'run', kind: 'run', label: 'Continue: Level 3' },
+      { id: 'run', kind: 'run', label: 'Level 3' },
     ]);
     expect(await s.continueRows(() => Promise.resolve(null))).toEqual([]);
   });
@@ -38,7 +38,7 @@ describe('kit/saved', () => {
     expect(rowLabel(savedEntry({ id: '2', kind: 'turns', progress, turns: turnSummary() }))).toBe(
       'Online with Sam · your turn',
     );
-    expect(rowLabel(savedEntry({ id: '3', kind: 'run', progress }))).toBe('Continue: 34 cards left');
+    expect(rowLabel(savedEntry({ id: '3', kind: 'run', progress }))).toBe('34 cards left');
   });
 
   it('opened routes by kind; onOpen takes the hub menu’s picks without a reload', async () => {

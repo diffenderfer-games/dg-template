@@ -71,8 +71,8 @@ hub.md [Avatars](../hub.md#avatars), and the designer in `avatar-designer.md` (i
   plays the feeling on the element's own animator (`animator.feel`) and
   animates the face; it returns `false` before the renderer has upgraded it.
 - `botLook(hub, seed)`: a stable face for a computer player.
-- `titleDemo(hub, screen)`: your bust (frame `bust`, "Your avatar") in the
-  bottom-left corner at once (`mineSync()`), blinking and looking at the
+- `titleDemo(hub, screen)`: your bust (frame `bust`, "Your avatar") under
+  the title's buttons (in its flow, so it never covers them) at once (`mineSync()`), blinking and looking at the
   pointer, with an **Edit avatar** button (`data-testid="avatar-edit"`) that
   opens the designer. It follows your own `change`s (by `hub.userId()`), cleans
   itself up when its screen is gone, and returns a remover.

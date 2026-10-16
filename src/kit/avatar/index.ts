@@ -180,7 +180,7 @@ export function botLook(hub: Pick<HubLike, 'avatar'>, seed: string): AvatarRef {
 
 /**
  * The title-screen demo (avatars.md §11, on by default): the player's bust in
- * a corner, blinking and looking at the pointer, with an "Edit avatar" button
+ * the title (under its buttons), blinking and looking at the pointer, with an "Edit avatar" button
  * that opens the hub's designer; it re-renders when their avatar changes
  * (`change` with their user id). Returns the remover.
  */
@@ -188,9 +188,13 @@ export function titleDemo(hub: Pick<HubLike, 'avatar' | 'userId'>, screen: HTMLE
   const avatar = hub.avatar;
   const mine = avatar.mineSync() ?? avatar.from({ look: '' });
   const bust = avatarElement(hub, mine, 96, { frame: 'bust', animate: true, title: t('yourAvatar') });
+  // In the title's flow, under its buttons: a fixed corner would cover them on a phone with Continue rows.
   const corner = h(
-    'div.kit-corner.kit-avatar-demo',
-    { 'data-testid': 'avatar-demo', style: { bottom: 'var(--kit-bottom)', left: '16px' } },
+    'div.kit-avatar-demo',
+    {
+      'data-testid': 'avatar-demo',
+      style: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', flexShrink: '0' },
+    },
     bust,
     button(t('editAvatar'), () => void avatar.openDesigner({ reason: 'game' }), { testid: 'avatar-edit' }),
   );

@@ -17,8 +17,8 @@
     "avatar": {
       "version": "1.1",
       "files": {
-        "docs/kit/avatar.md": "f2c3fd0d92e0b5e98b7ec04708118a507c2b6a26bebb544a70d9b98e4c4c5f78",
-        "src/kit/avatar/index.ts": "01d42396fe7f0330de1d6c84b09535ee769ec96a69dd4ce4c7bd1ad722dc4015",
+        "docs/kit/avatar.md": "ab2eddaf74698acbc83679ac41ae24a20ec45d96f9f5703012ff46b96c53b61c",
+        "src/kit/avatar/index.ts": "d9146b6eb201998335a969397b46e60f879e330f3b556304751b997eb6751fb9",
         "src/kit/avatar/types.ts": "12c379e415c190635f2c877750cb301ad6094b6102bba2a3d1d650912f3f9e38",
         "tests/kit/avatar/avatar.test.ts": "5da97cf43f7fb278a1f16bb672f8f850713ac60aa357612c78c819da4082b7b9"
       }
@@ -114,7 +114,7 @@
       "version": "1.1",
       "files": {
         "docs/getting-started.md": "a583853d435806b18d923581cadaaaef0621d6c7e516f2726258c7e72f9e8c53",
-        "docs/kit/CHANGELOG.md": "aac230928a4994a125752bd0c01bf31a7e27e3923a8d89f8aaf894b73b91edc6",
+        "docs/kit/CHANGELOG.md": "93369949f4f3d5414d6174c3e534d0ad75a3a4315328de22f39cf771ef340431",
         "docs/kit/README.md": "a7da4d6e8d1fe142c43c086fc6f0180c50b1ad94f2124b80d32c435318394870",
         "docs/kit/hooks.md": "04791ad5abcd2f4c0269e766f8e5b418a25139eb6d0815244931504f5bd256e2",
         "docs/kit/screenshots.md": "a1a5759945de63ec5b4d13fca1c8684d822a9d705c4f6b57f9ec5119c0674e9e",
@@ -250,9 +250,9 @@
     "saved": {
       "version": "1.1",
       "files": {
-        "docs/kit/saved.md": "1633c764e525507d8502837c07c6d4ad3e9f4b0aab475cde9029673dc2f669cc",
-        "src/kit/saved/index.ts": "14ea08aec24b7f73d8ba78e0932c2a30816ebed56090c3925a0c87af5b5ead2a",
-        "tests/kit/saved/saved.test.ts": "246cce3d2a14f8efd6d63d82e17ae52e75a46e82b98639081e34f8f6186b2f6f"
+        "docs/kit/saved.md": "4b1cc4e2eb47c905f3e24c7b3c6c2bd3a1b6e71a77e5093ac65be973e5ee924b",
+        "src/kit/saved/index.ts": "3113e86469926c42639601cbbb1bb00a1d5b568468c3d853e4f8d747b789e66c",
+        "tests/kit/saved/saved.test.ts": "0f0a36e3c6590a0e85843c12d1d951e46983de28992b6365feae8dd50ce2161f"
       }
     },
     "scores": {
@@ -290,7 +290,7 @@
         "scripts/kit/sheet.ts": "8c2bc3ecc40be10fb30650eaf7dfdcf28d09f09076ebd4ecfb10d80ffa7ff5d7",
         "scripts/kit/shots.ts": "376c645e129cb30c5acfdd59606e6768ad6592cfddd068033645cce067b9b14c",
         "scripts/kit/shots/context.ts": "4566133179ee0982a3cd375ec82bff830c544c9968d25adcb548bbb630eac70b",
-        "scripts/kit/shots/scenarios.ts": "bf0ed49941ac68b21c599cfc41e4deaf410648dc04bb0a204830817001a8de31",
+        "scripts/kit/shots/scenarios.ts": "5660155f760c18ee3fa305320f41e9ecb9b5ea195d264511d89f10bd640d5339",
         "scripts/kit/shots/types.ts": "55a253b877275faa01adfba2ea8087048403da5a460dea3d55f64d5ec2b0bb66",
         "scripts/kit/sync-docs.ts": "f20e8320cd8f215d821ecaa9e8506d86c944ab2cba86c194c7a3bbb886505aad",
         "scripts/kit/sync-hub-server.ts": "0958cdd9fb7b15cce99d2ae44f8a4a8aae49d6f36cda48d36812c6fbc533fe9b",

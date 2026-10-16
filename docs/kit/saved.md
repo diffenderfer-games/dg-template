@@ -23,9 +23,9 @@ the adapter and routes what the player opens:
 
 What players see on the title (never "run", "turn game" or "instance"):
 
-| Saved game | Row |
+| Saved game | Row (each is a Continue button with this line under it) |
 |---|---|
-| The saved game | `Continue: 6 coins · 48 s left` (the label `run.progress` gave) |
+| The saved game | Continue, with `6 coins · 48 s left` under it (the label `run.progress` gave) |
 | A day in progress | `Daily challenge · Oct 14 (6 coins)` |
 | An online game | `Online with Sam · your turn` (a game with `openTurns` only) |
 

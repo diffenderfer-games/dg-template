@@ -4,7 +4,7 @@
  * Docs: docs/kit/saved.md
  *
  * hub.md "Saved games". The title lists every saved game of this game:
- * "Continue: Level 12" (the saved game, from hub.resume), "Daily challenge ·
+ * "Level 12" (the saved game, from hub.resume), "Daily challenge ·
  * Oct 14 (34 cards left)" (a day in progress), "Online with Sam · your turn"
  * (an online game). Then:
  * - `opened` (Your games, the hub menu, `?hub_open=`) is routed at boot;
@@ -39,7 +39,7 @@ export function rowLabel(g: SavedEntry): string {
     const name = others.join(', ') || '…';
     return g.turns?.isMyTurn === true ? t('onlineWithTurn', { name }) : t('onlineWith', { name });
   }
-  return t('continueLabel', { label: g.progress.label });
+  return g.progress.label; // under the button's own "Continue"
 }
 
 /** The adapter. */
@@ -77,7 +77,7 @@ export function createSaved(
         games = await hub.saved.list({ kinds });
       } catch {
         const label = await fallback();
-        return label === null ? [] : [{ id: 'run', kind: 'run', label: t('continueLabel', { label }) }];
+        return label === null ? [] : [{ id: 'run', kind: 'run', label }];
       }
       return games.filter((g) => g.status === 'active').map((g) => ({ id: g.id, kind: g.kind, label: rowLabel(g) }));
     },

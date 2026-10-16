@@ -273,7 +273,7 @@ export const KIT_SCENARIOS: Scenario[] = [
   {
     name: 'avatar',
     target: 'hub',
-    checks: 'your avatar’s bust on the title (bottom-left) with Edit avatar, clear of the menu and the buttons',
+    checks: 'your avatar’s bust under the title’s buttons with Edit avatar, covering nothing',
     run: async (c) => {
       await c.open();
       await c.screen('title');

@@ -15,7 +15,8 @@ the world stays off (coming in next.9).
   `DailyLike` has `save`, `resume`, `discard`, `inProgress`;
   `planned.ts` keeps only the world. New window events
   `hub:daily-resumed`, `hub:daily-paused`, `hub:daily-discarded`.
-- **saved** 1.1: the title's Continue rows come from `hub.saved` (the saved
+- **saved** 1.1: the title's Continue rows come from `hub.saved` (the line
+  under Continue is the progress label alone, not "Continue: …" again) (the saved
   game and days in progress, in the hub's wording); `onOpen` takes only the
   kinds the game can open; `discard`, `dailiesInProgress`. `available` is gone.
 - **daily, resume, boot** 1.1: a day the player leaves is paused (it stays in
@@ -29,7 +30,8 @@ the world stays off (coming in next.9).
   title demo drew nothing before); `showFeel` plays the feeling on the
   element's animator (the `feel` attribute did nothing); lobby faces use the
   seat's `look`; the title bust follows your own `change` by
-  `hub.userId()` and says "Edit avatar"; no initial-letter fallback.
+  `hub.userId()`, says "Edit avatar" and sits under the title's buttons
+  (a fixed corner covered them on a phone); no initial-letter fallback.
   The starters' `avatar-pixi.ts` / `avatar-three.ts` use the hub's typed adapters.
 - **turns** 1.1: the rules contract and `checkTurnRules` are the hub's own
   (`@diffenderfer-games/hub/turns`, re-exported); the adapter is plain
