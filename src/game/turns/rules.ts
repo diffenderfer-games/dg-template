@@ -1,13 +1,14 @@
 /**
- * The turn-game rules module the hub will run on its server (saved-games.md §4.2). (GAME: yours to edit.)
+ * The rules module the hub runs on its server for online games over days (multiplayer.md §16.2). (GAME: yours to edit.)
  *
  * Pure: no DOM, no hub, no Math.random, no Date, no imports at all after
- * bundling (`npm run build:rules` → dist-rules/rules.mjs). The hub owns the RNG
- * and passes it in. The example is "take the last coin": players take 1–3
- * coins in turn; whoever takes the last one wins.
+ * bundling (`npm run build:rules` → dist-rules/rules.mjs; the hub loads its
+ * default export). Types only come from the kit (`import type`), so nothing is
+ * bundled. The hub owns the RNG and passes it in. The example is "take the
+ * last coin": players take 1–3 coins in turn; whoever takes the last one wins.
  *
- * Waits on saved-games phase 3 (hub.turns) to be played online; tests run now
- * (tests/game/turns.test.ts, kit/turns checkTurnRules). TODO(game): your rules.
+ * To play it online, declare it in package.json `game.turns` (docs/kit/turns.md).
+ * Tests: tests/game/turns.test.ts (the hub's checkTurnRules). TODO(game): your rules.
  */
 import type { TurnRules } from '../../kit/turns/index.ts';
 
@@ -22,7 +23,7 @@ export type PileView = { coins: number; turn: number; winner: number | null };
 
 export const rules: TurnRules<CoinPile, Take, PileView> = {
   version: 1,
-  setup: ({ seats, rng }) => ({ coins: 15 + Math.floor(rng() * 6), turn: 0, seats, winner: null }),
+  setup: ({ seats, rng }) => ({ coins: 15 + rng.int(6), turn: 0, seats, winner: null }),
   view: (s) => ({ coins: s.coins, turn: s.turn, winner: s.winner }),
   toAct: (s) => (s.winner === null ? [s.turn] : []),
   apply(s, seat, move) {
@@ -35,3 +36,5 @@ export const rules: TurnRules<CoinPile, Take, PileView> = {
   progress: (s) => ({ label: s.winner === null ? `${s.coins} coins left` : 'Game over', fraction: 1 - s.coins / 20 }),
   autoMove: (s) => ({ take: s.coins % 4 === 0 ? 1 : s.coins % 4 }),
 };
+
+export default rules;
