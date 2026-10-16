@@ -31,14 +31,14 @@ function needs(key: string): { skip?: string } {
   const v: unknown = typeof BLOCK === 'object' && BLOCK !== null ? Reflect.get(BLOCK, key) : undefined;
   return v === undefined || v === null || v === false ? { skip: `this game declares no game.${key}` } : {};
 }
-/** The title's bust: with src/game/avatar.ts, unless it says `titleDemo: false` (docs/kit/avatar.md). */
+/** The title's bust: only when src/game/avatar.ts says `titleDemo: true` (docs/kit/avatar.md). */
 function needsBust(): { skip?: string } {
   const own = needs('src/game/avatar.ts');
   if (own.skip !== undefined) return own;
   const text = readFileSync(join(ROOT, 'src', 'game', 'avatar.ts'), 'utf8');
-  return /\btitleDemo\s*:\s*false\b/.test(text)
-    ? { skip: 'this game hides the title bust (avatar.titleDemo: false)' }
-    : {};
+  return /\btitleDemo\s*:\s*true\b/.test(text)
+    ? {}
+    : { skip: 'this game has no title bust (avatar.titleDemo is not true)' };
 }
 const today = (offset = 0): string => new Date(Date.now() + offset * 86_400_000).toISOString().slice(0, 10);
 

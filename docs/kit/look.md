@@ -131,7 +131,7 @@ Rules:
 
 | Screen                | Must have                                                                                                                                                                                                   |
 | --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Title                 | kicker, wordmark, taglines, glass panel of icon buttons with sub-lines, primary with sheen, footer chips (played, best), sparks, attract mode behind; Continue rows dressed the same; the avatar bust below |
+| Title                 | kicker, wordmark, taglines, glass panel of icon buttons with sub-lines, primary with sheen, footer chips (played, best), sparks, attract mode behind; Continue rows dressed the same |
 | Play                  | HUD chips at the top centre; the play area on its glass panel; the hub menu's 64 px corner empty; the pause button themed                                                                                   |
 | Pause                 | the card: heading, where the player is, stat chips, Resume (primary), Start over, Settings, Back to the title, each with an icon and a sub-line                                                             |
 | Result                | the card: heading (won in `accent`, lost in `gold`), the score counting up, what happened in this game, the best, Play again (primary), Back to the title                                                   |

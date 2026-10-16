@@ -51,7 +51,7 @@ need only a short test contract from the game:
 | server | Own-server games | [server.md](server.md) |
 | saved | "Your games": the title's Continue rows, days in progress | [saved.md](saved.md) |
 | turns | Online games: the hub runs the game's rules; the kit's screen | [turns.md](turns.md) |
-| avatar | Players' faces, the title bust, the canvas adapters | [avatar.md](avatar.md) |
+| avatar | Players' faces, the canvas adapters | [avatar.md](avatar.md) |
 | world | The game's own room in the hub's world (`game.world`, `dg-world`), in Adventure Mode at `/world/game.<slug>`; tables and Quick match coming | [world.md](world.md) |
 
 Also: [look.md](look.md) (what every game's UI and motion must be),

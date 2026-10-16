@@ -47,7 +47,7 @@ Static (the built game alone): `title`, `menu` (keyboard focus ring), `howto`,
 
 Hub (a real hub, signed-in players): `intro`, `hub-menu`, `daily-start`,
 `daily-done`, `continue`, `invite`, `lobby`, `race-hud`, `race-result`,
-`avatar` (your bust on the title), `avatar-designer` (Edit avatar opens the
+`avatar` (your bust on the title, with `titleDemo: true`), `avatar-designer` (Edit avatar opens the
 hub's designer), `your-games` (the title's Continue rows: the saved game and
 yesterday's daily in progress). Skipped until game tables in the world ship
 (world W2), saying so on the sheet: `table-launch`. The template's own

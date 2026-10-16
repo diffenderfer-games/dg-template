@@ -206,13 +206,9 @@ export class Session<P extends JsonObject, R extends JsonObject> {
     );
     if (this.d.hub.isOffline) el.appendChild(h('p.kit-tagline', { 'data-testid': 'offline-note' }, t('offline')));
     game.screens?.title?.(this.ctx, el, { hasContinue: rows.length > 0 });
-    // The player's bust and Edit avatar under the buttons, unless the game turns it off
-    // (`avatar.titleDemo: false`) or its title hook already placed it.
-    if (
-      game.avatar !== undefined &&
-      game.avatar.titleDemo !== false &&
-      !el.querySelector('[data-testid="avatar-demo"]')
-    )
+    // The player's bust and Edit avatar under the buttons, only when the game asks for them
+    // (`avatar.titleDemo: true`) and its title hook hasn't placed them already.
+    if (game.avatar !== undefined && game.avatar.titleDemo === true && !el.querySelector('[data-testid="avatar-demo"]'))
       titleDemo(this.d.hub, el);
     if (game.daily !== undefined) void this.refreshDailyDone();
     this.syncChrome();

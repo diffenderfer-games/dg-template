@@ -82,8 +82,7 @@ not your rules: your rules are tested in `tests/game/`.
 Suites for features the game doesn't declare are **skipped on their own**, with the reason
 in the test's name: no `game.multiplayer` (online rooms, the lobby), no `game.turns`,
 no `game.race`, no `game.dailyChallenges`, no `game.resumable`, no `game.world`, no
-`src/game/avatar.ts`, or one with `titleDemo: false` (the title's bust: the kit draws it,
-so hiding it is that one flag, never a skip entry). The kit's screenshot scenarios for them skip too.
+`src/game/avatar.ts`, and no `titleDemo: true` in it (the title's bust, off by default). The kit's screenshot scenarios for them skip too.
 
 A kit test that still doesn't fit the game (it assumes something your game does
 differently on purpose) is **listed, never deleted**, in `tests/kit-skips.json` (a

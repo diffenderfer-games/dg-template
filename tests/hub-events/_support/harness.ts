@@ -178,10 +178,10 @@ export const HAS = {
   online: PROBE.online !== undefined && field(block, 'multiplayer') !== undefined,
   turns: PROBE.turns !== undefined && field(block, 'turns') !== undefined,
   resume: field(block, 'resumable') === true,
-  /** src/game/avatar.ts: the title's bust and players' reactions. */
+  /** src/game/avatar.ts: players' reactions. */
   avatar: PROBE.avatar !== undefined,
-  /** The title's bust: on with src/game/avatar.ts, unless it says `titleDemo: false`. */
-  titleBust: PROBE.avatar !== undefined && PROBE.avatar.titleDemo !== false,
+  /** The title's bust: only when src/game/avatar.ts says `titleDemo: true`. */
+  titleBust: PROBE.avatar?.titleDemo === true,
 };
 
 /** `describe` for a feature this game has, else `describe.skip` with the reason in the name. */

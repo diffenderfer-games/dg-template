@@ -7,15 +7,15 @@ import { field, isJsonObject, strField, type JsonObject } from '../../../src/kit
 import { api, e2e, env, L, ready, ROOT, SLUG, unlessDeclared, until, waitScreen, type Player } from '../_kit.ts';
 
 /**
- * The title's bust and Edit avatar come with src/game/avatar.ts (`new-game --no-avatar` deletes it),
- * unless it says `titleDemo: false`.
+ * The title's bust and Edit avatar show only when src/game/avatar.ts says `titleDemo: true`
+ * (off by default).
  */
 const AVATAR_FILE = join(ROOT, 'src', 'game', 'avatar.ts');
 const noAvatar = !existsSync(AVATAR_FILE)
   ? 'this game has no src/game/avatar.ts'
-  : /\btitleDemo\s*:\s*false\b/.test(readFileSync(AVATAR_FILE, 'utf8'))
-    ? 'this game hides the title bust (avatar.titleDemo: false)'
-    : false;
+  : /\btitleDemo\s*:\s*true\b/.test(readFileSync(AVATAR_FILE, 'utf8'))
+    ? false
+    : 'this game has no title bust (avatar.titleDemo is not true)';
 
 const e = env();
 

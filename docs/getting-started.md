@@ -102,7 +102,7 @@ Each is one file in `src/game/`, wired in `src/game/hooks.ts`:
 | `race.ts` | Races against friends | [kit/race.md](kit/race.md) |
 | `online.ts` | Online play in hub rooms | [kit/online.md](kit/online.md) |
 | `audio.ts`, `music-*.ts` | Sound and music in a worker | [kit/audio.md](kit/audio.md) |
-| `avatar.ts` | Players' faces: the title bust, reactions (canvas faces: `render/avatar-*.ts`) | [kit/avatar.md](kit/avatar.md) |
+| `avatar.ts` | Players' faces: reactions (canvas faces: `render/avatar-*.ts`) | [kit/avatar.md](kit/avatar.md) |
 | `turns/rules.ts`, `turns/board.ts` | Online games: the rules the hub runs, and the board the kit's screen shows (declare `game.turns`) | [kit/turns.md](kit/turns.md) |
 | `test-hook.ts` | Extra test drivers | [kit/test-hook.md](kit/test-hook.md) |
 

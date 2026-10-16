@@ -22,18 +22,16 @@ import type { AvatarHooks } from '../kit/avatar/index.ts';
 
 export const avatar: AvatarHooks = {
   feelOn: { score: 'bigPlay', win: 'win', lose: 'lose', waiting: 'waiting' },
-  titleDemo: true,
 };
 ```
 
 `feelOn` maps game events to a feeling (`win`, `lose`, `bigPlay`, `victim`,
-`waiting`, `yourTurn`, `idle`: the animator's `feel()`). `titleDemo` is the
-title's bust and Edit avatar: the kit adds them under the title's buttons
-(after `screens.title`), on by default. `titleDemo: false` hides them, and the
-kit's bust tests (the hub suite's title bust and Edit avatar, planned row 62)
-skip on their own: nothing goes in `tests/kit-skips.json`. A title hook that
-places `titleDemo(hub, screen)` itself keeps its spot (the kit sees
-`[data-testid="avatar-demo"]` and adds no second one). `new-game --no-avatar`
+`waiting`, `yourTurn`, `idle`: the animator's `feel()`). The title shows
+no avatar: players edit theirs from the hub's menu. `titleDemo: true` is the
+opt-in for the player's bust and an Edit avatar button under the title's
+buttons (the kit adds them after `screens.title`, and the kit's bust tests run:
+the hub suite's title bust and Edit avatar, planned row 62). Leave it out:
+those tests then skip on their own, with nothing in `tests/kit-skips.json`. `new-game --no-avatar`
 deletes the hook.
 
 Faces drawn in the canvas use the hub's typed adapters, which the starters

@@ -4,6 +4,20 @@ KIT doc. One entry per kit version; per module inside. A **major** version
 means a hook's signature changed: the entry says how to move a game over.
 `npm run kit:sync` prints the entries newer than a game's `kit.json`.
 
+## 1.6 (2026-10-16)
+
+- **avatar 1.5, boot 1.6:** no avatar on the title by default: players edit theirs
+  from the hub's menu, and look.md no longer asks for a bust on the title.
+  `avatar.titleDemo: true` is the opt-in (the kit adds the bust and Edit avatar
+  under the title's buttons, and the bust tests run: hub-events 1.5, hub-suites 1.7,
+  scripts 1.8). Without it the bust tests skip on their own.
+- **docs 1.8, testing 1.6:** look.md, avatar.md, testing.md, screenshots.md,
+  getting-started.md and the kit README say so.
+
+To move a game over: `npm run kit:sync`, then drop any `titleDemo(ctx.hub, el)` call
+from `screens/title.ts`, any `titleDemo` line from `src/game/avatar.ts`, and any bust
+tests from `tests/kit-skips.json`.
+
 ## 1.5 (2026-10-16)
 
 After Lingo:
