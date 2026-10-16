@@ -34,6 +34,7 @@ import type { Screens } from '../ui/screens.ts';
 import { toast } from '../ui/toast.ts';
 import type { RunningAudio } from '../audio/kit-audio.ts';
 import type { OnlineFlow } from './online-flow.ts';
+import type { TurnsFlow } from './turns-flow.ts';
 import type { ContinueRow, SavedHandle } from '../saved/index.ts';
 import { quickMatch } from '../world/index.ts';
 import { loadingScreen, pauseScreen, playScreen, resultScreen, titleScreen, type ScreenActions } from './screens.ts';
@@ -63,6 +64,7 @@ export type SessionParts<P extends JsonObject, R extends JsonObject> = {
   daily: DailyHandle | null;
   race: RaceHandle<R> | null;
   online: OnlineFlow | null;
+  turns: TurnsFlow | null;
   controls: ControlsHandle;
   audio: RunningAudio;
 };
@@ -138,6 +140,7 @@ export class Session<P extends JsonObject, R extends JsonObject> {
       race: () => this.parts?.race?.create(this.d.game.race?.params?.()),
       raceBrowse: () => this.parts?.race?.browse(),
       online: () => void this.parts?.online?.hostRoom(),
+      turns: () => this.parts?.turns?.choose(),
       pause: () => this.pause(),
       resume: () => this.resume(),
       restart: () => this.restart(),
@@ -181,7 +184,7 @@ export class Session<P extends JsonObject, R extends JsonObject> {
     const rows = await this.d.saved.continueRows(() =>
       Promise.resolve(saved === null ? null : game.run.progress(saved).label),
     );
-    if (this.mode !== null) return; // a game started while the rows loaded (a daily from the menu, a launch)
+    if (this.mode !== null || this.parts?.turns?.active === true) return; // a game started while the rows loaded (a daily from the menu, a launch, an online game)
     this.rows = rows;
     const el = this.d.screens.show('title', () =>
       titleScreen(
@@ -194,6 +197,7 @@ export class Session<P extends JsonObject, R extends JsonObject> {
           dailyDone: this.dailyDone,
           race: game.race !== undefined,
           online: game.online !== undefined,
+          turns: this.parts?.turns !== null && this.parts?.turns !== undefined,
           onlineDown: this.onlineDown,
         },
         this.actions(),
@@ -320,6 +324,16 @@ export class Session<P extends JsonObject, R extends JsonObject> {
     this.showLoading();
   }
 
+  /** An online game over days opens (kit/turns): the game in progress is saved, a daily paused, a race or room left. */
+  enterTurns(): void {
+    this.saveForLater(true);
+    this.leaveSpecial();
+    this.run = null;
+    this.mode = null;
+    this.finished = false;
+    this.d.activity.set('online');
+  }
+
   /** Same kind of game again: a new normal game, or the same day from its seed. */
   restart(): void {
     if (this.mode === 'daily' && this.day !== null) {
@@ -344,10 +358,11 @@ export class Session<P extends JsonObject, R extends JsonObject> {
     }
   }
 
-  /** Back to the title, from anywhere. */
+  /** Back to the title, from anywhere (an online game over days stops following; the hub keeps it). */
   toTitle(): void {
     this.saveForLater(true);
     this.leaveSpecial();
+    this.parts?.turns?.close();
     this.run = null;
     this.mode = null;
     this.d.activity.set(null);

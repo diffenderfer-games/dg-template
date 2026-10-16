@@ -1,0 +1,132 @@
+/**
+ * kit/turns: the screen of an online game played over days (lobby, play, the end), built from kit/ui.
+ * Source: dg-template src/kit/turns/ (kit v1.0). Copy byte-identical; change it in the template first.
+ * Docs: docs/kit/turns.md § "The screen"
+ *
+ * The status line ("Your turn", "Ann is playing", "Waiting for Ann…"), the
+ * seats with their faces (a name opens the player card), the game's own
+ * board (`turns.draw`), the buttons the moment allows (Start, Copy the link,
+ * Remind them, Let the computer play for Ann, Rematch, Leave, Back), the
+ * invite link to share while the game waits for players, and the
+ * chat. `update` redraws the parts that changed, so a draft in the chat box
+ * and the focused button survive live events. The root carries
+ * `data-phase`, `data-kind` and `data-seq` for tests and screenshots.
+ */
+import type { TurnGameLike } from '../core/hub-like.ts';
+import { t } from '../core/strings.ts';
+import { button } from '../ui/controls.ts';
+import { h } from '../ui/dom.ts';
+import { dueOthers, handOverNames, turnStatus, type TurnSeat } from './status.ts';
+
+/** What the screen's buttons do. */
+export type TurnScreenActions = {
+  start: () => void;
+  copyLink: () => void;
+  nudge: () => void;
+  handOver: () => void;
+  rematch: () => void;
+  leave: () => void;
+  back: () => void;
+  player: (userId: number) => void;
+};
+
+/** The screen and its redraw. */
+export type TurnScreen = {
+  readonly el: HTMLElement;
+  /** Where the game draws its board. */
+  readonly board: HTMLElement;
+  /** Redraw for the game as it is now (`now` decides the hand-over button). */
+  update(game: TurnGameLike, now: number): void;
+};
+
+/** Build the screen. `face` draws a seat's avatar; `chat` is the chat panel (or null). */
+export function turnsScreen(
+  o: { title: string; face(seat: TurnSeat): Node; chat: HTMLElement | null },
+  a: TurnScreenActions,
+): TurnScreen {
+  const status = h('p.kit-tagline.kit-turn-status', { 'data-testid': 'turn-status', 'aria-live': 'polite' });
+  const seats = h('ul.kit-seats', { 'data-testid': 'turn-seats' });
+  const board = h('div.kit-turn-board', { 'data-testid': 'turn-board' });
+  const link = h('p.kit-tagline.kit-turn-link', { 'data-testid': 'turn-link' });
+  const menu = h('div.kit-menu');
+  const el = h('div.kit-dim.kit-turns', {}, h('h2.kit-title', {}, o.title), status, seats, link, board, menu, o.chat);
+  let seatsKey = '';
+  let menuKey = '';
+
+  const seatName = (s: TurnSeat): HTMLElement => {
+    const id = s.userId;
+    if (s.isMe || id === null) return h('span', {}, s.name);
+    return h(
+      'button.kit-btn',
+      { type: 'button', 'data-nav': true, 'data-testid': `player-${id}`, onclick: () => a.player(id) },
+      s.name,
+    );
+  };
+  const seatRow = (s: TurnSeat, due: boolean): HTMLElement =>
+    h(
+      'li.kit-seat',
+      {
+        'data-seat': s.seat,
+        'data-status': s.status,
+        'data-due': due ? 'true' : 'false',
+        'data-connected': s.connected === undefined ? 'unknown' : String(s.connected),
+      },
+      s.status === 'joined' ? o.face(s) : null,
+      seatName(s),
+    );
+
+  return {
+    el,
+    board,
+    update(game, now) {
+      const { summary } = game;
+      const st = turnStatus(game);
+      status.textContent = st.text;
+      el.dataset.phase = summary.phase;
+      el.dataset.kind = st.kind;
+      el.dataset.seq = String(summary.seq);
+      const shareable = summary.phase === 'lobby' ? game.link : null;
+      link.textContent = shareable ?? '';
+      link.hidden = shareable === null;
+
+      const due = new Set(dueOthers(summary, game.mySeat).map((s) => s.seat));
+      if (summary.isMyTurn && game.mySeat !== null) due.add(game.mySeat);
+      const nextSeats = JSON.stringify(
+        summary.seats.map((s) => [s.seat, s.name, s.status, s.connected, s.look, due.has(s.seat)]),
+      );
+      if (nextSeats !== seatsKey) {
+        seatsKey = nextSeats;
+        seats.replaceChildren(...summary.seats.map((s) => seatRow(s, due.has(s.seat))));
+      }
+
+      const seated = game.mySeat !== null;
+      const buttons: [string, () => HTMLElement][] = [];
+      if (summary.phase === 'lobby' && summary.isMine)
+        buttons.push(['start', () => button(t('turnsStart'), a.start, { cls: 'kit-primary', testid: 'turns-start' })]);
+      if (summary.phase === 'lobby' && game.link !== null)
+        buttons.push(['link', () => button(t('turnsCopyLink'), a.copyLink, { testid: 'turns-copy-link' })]);
+      if (summary.phase === 'playing' && !summary.isMyTurn && seated)
+        buttons.push(['nudge', () => button(t('remindThem'), a.nudge, { testid: 'turns-nudge' })]);
+      if (game.canLetComputerPlay(now)) {
+        const name = handOverNames(summary, game.mySeat);
+        buttons.push([
+          `hand-over:${name}`,
+          () => button(t('letComputerPlay', { name }), a.handOver, { cls: 'kit-primary', testid: 'turns-hand-over' }),
+        ]);
+      }
+      if (summary.phase === 'ended' && seated)
+        buttons.push([
+          'rematch',
+          () => button(t('turnsRematch'), a.rematch, { cls: 'kit-primary', testid: 'turns-rematch' }),
+        ]);
+      if (summary.phase !== 'ended' && seated)
+        buttons.push(['leave', () => button(t('turnsLeave'), a.leave, { testid: 'turns-leave' })]);
+      buttons.push(['back', () => button(t('back'), a.back, { testid: 'turns-back' })]);
+      const nextMenu = buttons.map(([k]) => k).join('|');
+      if (nextMenu !== menuKey) {
+        menuKey = nextMenu;
+        menu.replaceChildren(...buttons.map(([, make]) => make()));
+      }
+    },
+  };
+}

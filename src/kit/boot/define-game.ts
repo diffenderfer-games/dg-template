@@ -32,7 +32,9 @@ import { mountUi } from '../ui/root.ts';
 import { Screens } from '../ui/screens.ts';
 import { toast } from '../ui/toast.ts';
 import { buildContext } from './context.ts';
+import { MANIFEST } from '../core/manifest.ts';
 import { OnlineFlow } from './online-flow.ts';
+import { TurnsFlow } from './turns-flow.ts';
 import { routeOnce } from './router.ts';
 import { howToModal } from './screens.ts';
 import { Session } from './session.ts';
@@ -88,12 +90,16 @@ export function defineGame<P extends JsonObject, R extends JsonObject>(
   const resume = createResume(hub, game.run, { activity, clock });
   const today = (): string => dayKey(clock.now());
 
+  // Online games over days: the game draws the board (`turns`) and declares `game.turns` (package.json).
+  const turnsOn = game.turns !== undefined && MANIFEST.turns;
+  let turns: TurnsFlow | null = null;
   const saved = createSaved(
     hub,
     {
       continueRun: () => void session.continueSaved(),
       resumeDaily: (id) => void hub.daily.resume(id),
-      // No openTurns: the kit has no screen for online games over days yet, so the hub opens them (kit/turns).
+      // Online games over days open on the kit's screen when the game plays them (else the hub reloads with ?hub_open=).
+      ...(turnsOn ? { openTurns: (id: string) => void turns?.open(id) } : {}),
     },
     () => void session.refreshContinue(),
   );
@@ -146,6 +152,22 @@ export function defineGame<P extends JsonObject, R extends JsonObject>(
           join: (room, _l, spectate) => online.joinRoom(room, spectate),
           currentRoom: () => online.currentRoom(),
         });
+  // 2b. online games over days (opened from Your games, a link or the title)
+  if (turnsOn && game.turns !== undefined) {
+    const hooks = game.turns;
+    turns = new TurnsFlow({
+      hub,
+      hooks: {
+        ...(hooks.create === undefined ? {} : { create: hooks.create }),
+        draw: (el, b) => hooks.draw(ctx, el, b),
+      },
+      clock,
+      screens,
+      host: { enter: () => session.enterTurns(), shown: () => session.syncChrome(), toTitle: () => session.toTitle() },
+      slug,
+      quickChat: MANIFEST.turnsQuickChat,
+    });
+  }
   // 3. the race: define now (the hub calls start on the countdown)
   const race =
     game.race === undefined
@@ -181,7 +203,7 @@ export function defineGame<P extends JsonObject, R extends JsonObject>(
     back: () => {
       if (session.screen === 'pause') session.resume();
       else if (session.screen === 'play') session.pause();
-      else if (session.screen === 'result') session.toTitle();
+      else if (session.screen === 'result' || session.screen === 'turns') session.toTitle();
     },
   });
   // 6. page lifecycle: keep the game in progress and the profile when the page hides or closes
@@ -231,7 +253,7 @@ export function defineGame<P extends JsonObject, R extends JsonObject>(
     audio,
     haptic,
   });
-  session.attach({ ctx, pause, daily, race, online, controls, audio });
+  session.attach({ ctx, pause, daily, race, online, turns, controls, audio });
   // 10. the touch layout follows the width (rotation, resize)
   offs.push(ctx.onResize((w) => controls.relayout(w)));
 
@@ -239,13 +261,14 @@ export function defineGame<P extends JsonObject, R extends JsonObject>(
     session.showLoading();
     await game.mount(ctx);
     session.loop.start();
-    await routeOnce({ session, daily, profile, resume, clock, search, launches, online, saved });
+    await routeOnce({ session, daily, profile, resume, clock, search, launches, online, saved, turns });
     installGameHook({ game, ctx, session, slug, drivers: o.drivers, audio, online });
     document.body.dataset.ready = '1';
   })();
   const dispose = (): void => {
     session.loop.stop();
     online?.leave();
+    turns?.close();
     audio.dispose();
     pause.dispose();
     profile.dispose();

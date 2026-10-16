@@ -88,11 +88,35 @@ export type ResumeLike = Pick<HubResume, 'requested' | 'blockedBy' | 'save' | 'f
 /** "Your games" for this game (hub.md "Saved games"). */
 export type SavedLike = Pick<HubSaved, 'opened' | 'list' | 'onOpen' | 'open' | 'discard' | 'on'>;
 
-/** An open online game played over days (multiplayer.md §16.3), as the kit uses it. */
+/**
+ * An open online game played over days (multiplayer.md §16.3), as the kit uses
+ * it: who is there (`summary.seats[].connected`, `canLetComputerPlay()`),
+ * moves out of turn (`mayActNow`), chat and the rematch. `rematch` gives
+ * back a `TurnGameLike`, so a fake can stand in for the client's class.
+ */
 export type TurnGameLike = Pick<
   TurnGame,
-  'id' | 'summary' | 'view' | 'mySeat' | 'move' | 'history' | 'leave' | 'nudge' | 'setNotify' | 'close' | 'on'
->;
+  | 'id'
+  | 'summary'
+  | 'view'
+  | 'mySeat'
+  | 'outcome'
+  | 'chat'
+  | 'chatMode'
+  | 'link'
+  | 'mayActNow'
+  | 'start'
+  | 'move'
+  | 'history'
+  | 'leave'
+  | 'nudge'
+  | 'setNotify'
+  | 'say'
+  | 'canLetComputerPlay'
+  | 'letComputerPlay'
+  | 'close'
+  | 'on'
+> & { rematch(): Promise<TurnGameLike> };
 
 /** `hub.turns` (multiplayer.md §16.3). Its games are `TurnGameLike`, so a fake can stand in. */
 export type TurnsLike = {

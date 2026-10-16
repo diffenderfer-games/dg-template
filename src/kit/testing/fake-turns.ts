@@ -6,10 +6,20 @@
  * Behaviour from multiplayer.md §16.3 and the client (core/turns): `create`,
  * `join` and `open` give a game; `move` answers `{ seq, view, events }`;
  * another player's move arrives as `move`, a change of turn as `turn`, the
- * end as `ended`. While a game is open `hub.resume.save` is blocked
+ * end as `ended`, a player coming or going as `turn` (the seat's
+ * `connected`), chat as `chat`. `canLetComputerPlay` is the client's own
+ * rule (a due player past the deadline, or past `handOverAt` and not
+ * connected). While a game is open `hub.resume.save` is blocked
  * (`blockedBy: 'turns'`) until it is closed.
  */
-import type { GamePayload, TurnCreateOptions, TurnGameEvents, TurnOutcome, TurnSummary } from '@diffenderfer-games/hub';
+import type {
+  GamePayload,
+  TurnChatLine,
+  TurnCreateOptions,
+  TurnGameEvents,
+  TurnOutcome,
+  TurnSummary,
+} from '@diffenderfer-games/hub';
 import { Emitter } from '../core/emitter.ts';
 import type { TurnGameLike, TurnsLike } from '../core/hub-like.ts';
 import type { CallLog } from './calls.ts';
@@ -24,7 +34,7 @@ export function turnSummary(s: Partial<TurnSummary> = {}): TurnSummary {
     phase: 'playing',
     seats: [
       { seat: 0, userId: 1, name: 'Player1', avatar: '', look: '', status: 'joined', isMe: true },
-      { seat: 1, userId: 2, name: 'Sam', avatar: '', look: '', status: 'joined', isMe: false },
+      { seat: 1, userId: 2, name: 'Sam', avatar: '', look: '', status: 'joined', isMe: false, connected: true },
     ],
     toAct: [0],
     isMyTurn: true,
@@ -45,14 +55,33 @@ export class FakeTurnGame implements TurnGameLike {
   summary: TurnSummary = turnSummary();
   view: GamePayload = {};
   mySeat: number | null = 0;
+  outcome: TurnOutcome | null = null;
+  chat: TurnChatLine[] = [];
+  chatMode: 'on' | 'quick' | 'off' = 'quick';
+  link: string | null = null;
   closed = false;
   readonly moves: GamePayload[] = [];
   private readonly events = new Emitter<Events>();
   private readonly log: CallLog;
+  private readonly next: () => FakeTurnGame;
 
-  constructor(log: CallLog, id: string) {
+  /** `next` makes the rematch's game (FakeTurns passes its own maker). */
+  constructor(log: CallLog, id: string, next?: () => FakeTurnGame) {
     this.log = log;
     this.id = id;
+    this.next = next ?? (() => new FakeTurnGame(log, `${id}-again`));
+  }
+
+  get mayActNow(): boolean {
+    return (
+      this.mySeat !== null && this.summary.phase === 'playing' && (this.summary.mayAct ?? []).includes(this.mySeat)
+    );
+  }
+
+  start(): Promise<void> {
+    this.log.record('turns.start');
+    this.summary = { ...this.summary, phase: 'playing', toAct: [0], isMyTurn: this.mySeat === 0 };
+    return Promise.resolve();
   }
 
   move(move: GamePayload): Promise<{ seq: number; view: GamePayload; events: GamePayload[] }> {
@@ -82,6 +111,47 @@ export class FakeTurnGame implements TurnGameLike {
     return Promise.resolve();
   }
 
+  say(send: { readonly text?: string; readonly quick?: string }): Promise<TurnChatLine> {
+    this.log.record('turns.say', send);
+    const line: TurnChatLine = {
+      from: this.summary.seats.find((s) => s.isMe)?.userId ?? 1,
+      at: 0,
+      text: send.text ?? send.quick ?? '',
+      ...(send.quick === undefined ? {} : { quick: send.quick }),
+    };
+    this.chatFrom(line);
+    return Promise.resolve(line);
+  }
+
+  /** The client's rule (core/turns/turn-game.ts): a due player past the deadline, or past handOverAt and not connected. */
+  canLetComputerPlay(now = 0): boolean {
+    const { summary, mySeat } = this;
+    if (summary.phase !== 'playing' || mySeat === null) return false;
+    const due = summary.seats.filter(
+      (s) => summary.toAct.includes(s.seat) && s.seat !== mySeat && s.status === 'joined',
+    );
+    if (due.length === 0) return false;
+    if (summary.deadline !== null && summary.deadline <= now) return true;
+    const at = summary.handOverAt;
+    return at !== undefined && at !== null && at <= now && due.some((s) => s.connected !== true);
+  }
+
+  /** The computer takes the due seats (it shows as `bot`). */
+  letComputerPlay(): Promise<void> {
+    this.log.record('turns.letComputerPlay');
+    const due = new Set(this.summary.toAct);
+    this.turnChanged({
+      seats: this.summary.seats.map((s) => (due.has(s.seat) && !s.isMe ? { ...s, status: 'bot' } : s)),
+      handOverAt: null,
+    });
+    return Promise.resolve();
+  }
+
+  rematch(): Promise<FakeTurnGame> {
+    this.log.record('turns.rematch');
+    return Promise.resolve(this.next());
+  }
+
   close(): void {
     this.log.record('turns.close');
     this.closed = true;
@@ -109,7 +179,19 @@ export class FakeTurnGame implements TurnGameLike {
   /** The game ended. */
   ended(outcome: TurnOutcome | null): void {
     this.summary = { ...this.summary, phase: 'ended', toAct: [], isMyTurn: false };
+    this.outcome = outcome;
     this.events.emit('ended', { outcome, view: this.view });
+  }
+
+  /** A seated player came or went (the seat's `connected`). */
+  seatConnected(seat: number, connected: boolean): void {
+    this.turnChanged({ seats: this.summary.seats.map((s) => (s.seat === seat ? { ...s, connected } : s)) });
+  }
+
+  /** A chat line arrived. */
+  chatFrom(line: TurnChatLine): void {
+    this.chat = [...this.chat, line];
+    this.events.emit('chat', line);
   }
 }
 
@@ -130,7 +212,7 @@ export class FakeTurns implements TurnsLike {
   }
 
   private game(id: string): FakeTurnGame {
-    const g = this.games.get(id) ?? new FakeTurnGame(this.log, id);
+    const g = this.games.get(id) ?? new FakeTurnGame(this.log, id, () => this.game(`tg-${this.games.size + 1}`));
     g.closed = false;
     this.games.set(id, g);
     return g;

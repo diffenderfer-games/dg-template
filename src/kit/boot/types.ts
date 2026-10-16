@@ -6,7 +6,7 @@
  * The game implements hooks (src/game/*, stubs with TODO(game)); the kit does
  * every hub duty around them.
  */
-import type { RaceParams, RaceStats } from '@diffenderfer-games/hub';
+import type { GamePayload, RaceParams, RaceStats, TurnCreateOptions, TurnSummary } from '@diffenderfer-games/hub';
 import type { Activity, PlayMode } from '../core/activity.ts';
 import type { Clock } from '../core/clock.ts';
 import type { HubLike } from '../core/hub-like.ts';
@@ -131,6 +131,32 @@ export type RaceHooks<R extends JsonObject> = {
   params?(): RaceParams;
 };
 
+/** What the game's board gets in an online game played over days (kit/turns). */
+export type TurnBoard = {
+  /** The game as this player sees it: the rules' `view(state, mySeat)` (null in the lobby). Validate it. */
+  readonly view: GamePayload | null;
+  readonly summary: TurnSummary;
+  readonly mySeat: number | null;
+  /** This player may move now: it is their turn, or a move out of turn (`mayAct`). */
+  readonly canMove: boolean;
+  /** Make a move; a refused one shows the hub's words and the board stays as it was. */
+  move(move: GamePayload): Promise<void>;
+};
+
+/**
+ * Online games played over days (needs `game.turns` in package.json and the
+ * rules module src/game/turns/rules.ts; docs/kit/turns.md). The kit does the
+ * rest: the title's Play over days, the lobby, whose move it is, who is
+ * there, the hand-over to the computer, chat with `game.turns.quickChat`,
+ * Your games, invite links, the rematch.
+ */
+export type TurnsHooks<P extends JsonObject, R extends JsonObject> = {
+  /** Draw the board into `el` (DOM); called on every change. */
+  draw(ctx: GameContext<P, R>, el: HTMLElement, board: TurnBoard): void;
+  /** What every new game is made with (`hub.turns.create`): a mode, options, seats, a deadline. */
+  create?: Pick<TurnCreateOptions, 'mode' | 'options' | 'seats' | 'deadline'>;
+};
+
 /** The whole game, as `defineGame` takes it. */
 export type GameDefinition<P extends JsonObject, R extends JsonObject> = {
   /** Default: the hub's slug, else the page's first path segment. */
@@ -178,6 +204,8 @@ export type GameDefinition<P extends JsonObject, R extends JsonObject> = {
   race?: RaceHooks<R>;
   /** Online play in hub rooms: `onlineGame({ ... })` from src/game/online.ts. */
   online?: OnlineGame;
+  /** Online games played over days, run by the hub from src/game/turns/rules.ts (src/game/turns/board.ts). */
+  turns?: TurnsHooks<P, R>;
   avatar?: AvatarHooks;
   audio?: AudioHooks;
 };

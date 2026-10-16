@@ -7,24 +7,19 @@
  * (src/game/turns/rules.ts, its default export, bundled by `npm run
  * build:rules` into a self-contained dist-rules/rules.mjs) and declares it in
  * `game.turns`; the hub runs it on its server with its own RNG. The rules
- * contract, `defineTurnRules`, the seeded RNG and `checkTurnRules` are the
- * hub's own (`@diffenderfer-games/hub/turns`), re-exported here. The rules
- * module imports their types only (`import type`), so its bundle has no
- * imports. The page side is `hub.turns` (`createTurns`).
+ * contract, `defineTurnRules` and the seeded RNG come from the hub's zod-free
+ * `@diffenderfer-games/hub/turns-rules` (kit/turns/rules.ts, what the rules
+ * module imports); the conformance kit `checkTurnRules` from
+ * `@diffenderfer-games/hub/turns`, for tests. The page side is `hub.turns`
+ * (`createTurns`) and the kit's screen (status.ts, screen.ts, boot/turns-flow.ts).
  */
 import type { HubLike, TurnGameLike } from '../core/hub-like.ts';
 
-export { checkTurnRules, createTurnRng, defineTurnRules, turnRngStateFromSeed } from '@diffenderfer-games/hub/turns';
-export type {
-  TurnApplyResult,
-  TurnOutcome,
-  TurnProgress,
-  TurnRng,
-  TurnRules,
-  TurnRulesCheckOptions,
-  TurnRulesReport,
-  TurnSetupContext,
-} from '@diffenderfer-games/hub/turns';
+export * from './rules.ts';
+export { checkTurnRules } from '@diffenderfer-games/hub/turns';
+export type { TurnRulesCheckOptions, TurnRulesReport } from '@diffenderfer-games/hub/turns';
+export { dueOthers, handOverNames, nextCheckIn, seatLine, turnStatus } from './status.ts';
+export type { TurnPhaseKind, TurnSeat, TurnStatus } from './status.ts';
 
 /** The adapter over `hub.turns`: open a game from Your games or an invite link, or make one. */
 export type TurnsHandle = {

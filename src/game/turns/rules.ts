@@ -2,7 +2,7 @@
  * The rules module the hub runs on its server for online games over days (multiplayer.md §16.2). (GAME: yours to edit.)
  *
  * Pure: no DOM, no hub, no Math.random, no Date, no imports at all after
- * bundling (`npm run build:rules` → dist-rules/rules.mjs; the hub loads its
+ * bundling (`npm run build:rules`, part of `npm run build` → dist-rules/rules.mjs; the hub loads its
  * default export). Types only come from the kit (`import type`), so nothing is
  * bundled. The hub owns the RNG and passes it in. The example is "take the
  * last coin": players take 1–3 coins in turn; whoever takes the last one wins.
@@ -10,7 +10,7 @@
  * To play it online, declare it in package.json `game.turns` (docs/kit/turns.md).
  * Tests: tests/game/turns.test.ts (the hub's checkTurnRules). TODO(game): your rules.
  */
-import type { TurnRules } from '../../kit/turns/index.ts';
+import type { TurnRules } from '../../kit/turns/rules.ts';
 
 /** The state (JSON, at most 64 KB). TODO(game): your state, with every secret in it. */
 export type CoinPile = { coins: number; turn: number; seats: number; winner: number | null };

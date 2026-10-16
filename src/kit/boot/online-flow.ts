@@ -9,7 +9,8 @@ import type { HubLike } from '../core/hub-like.ts';
 import { field, type Json } from '../core/json.ts';
 import type { KitLaunch } from '../core/planned.ts';
 import { face } from '../avatar/index.ts';
-import { chatPanel } from '../online/chat.ts';
+import { MANIFEST } from '../core/manifest.ts';
+import { chatPanel, gamePhrases, roomChat } from '../online/chat.ts';
 import { errText } from '../online/errors.ts';
 import { lobbyScreen } from '../online/lobby.ts';
 import { OnlineMatch } from '../online/match.ts';
@@ -104,7 +105,9 @@ export class OnlineFlow {
     const room = this.match.room;
     if (!room) return;
     const names = new Map(room.info.seats.map((s) => [s.userId, s.name]));
-    const chat = chatPanel(room, room.info.chatMode, (id) => names.get(id) ?? '?');
+    const slug = this.hub.slug;
+    const extra = slug === null ? [] : gamePhrases(slug, MANIFEST.roomQuickChat); // game.multiplayer.quickChat
+    const chat = chatPanel(roomChat(room), room.info.chatMode, (id) => names.get(id) ?? '?', { extra });
     this.screens.show(
       'lobby',
       () =>

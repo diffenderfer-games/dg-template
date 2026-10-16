@@ -8,6 +8,8 @@
  *    the lobby URL (`?mp=lobby`) waits 3 s for its launch, then hosts a room;
  * 2. a daily (`?daily=` or the menu) that is queued plays now; a `?daily=`
  *    still being answered keeps the loading screen (its 8 s fallback shows the title);
+ * 2b. a saved game opened from Your games (`?hub_open=`), or an online game's
+ *    invite link (`?hub_turn_link=`, when the game plays them);
  * 3. `?hub_resume=1` with a saved game: straight back in, no prompt (hub.md "Resume");
  * 4. otherwise the title (its Continue row appears once the lookup answers).
  * The profile gets 2.5 s to load first (8 s when resuming; solitaire's numbers).
@@ -22,6 +24,7 @@ import type { LaunchHandle } from '../online/launch.ts';
 import type { SavedHandle } from '../saved/index.ts';
 import type { OnlineFlow } from './online-flow.ts';
 import type { Session } from './session.ts';
+import type { TurnsFlow } from './turns-flow.ts';
 
 /** Route the first screen. */
 export async function routeOnce<P extends JsonObject, R extends JsonObject>(o: {
@@ -34,6 +37,7 @@ export async function routeOnce<P extends JsonObject, R extends JsonObject>(o: {
   launches: LaunchHandle | null;
   online: OnlineFlow | null;
   saved: SavedHandle;
+  turns?: TurnsFlow | null;
 }): Promise<void> {
   const lookup = o.resume.load();
   await withTimeout(o.clock, o.profile.ready(), o.resume.requested ? 8000 : 2500, undefined);
@@ -53,6 +57,7 @@ export async function routeOnce<P extends JsonObject, R extends JsonObject>(o: {
   o.daily?.ready(); // the game has mounted: a day the hub already started plays now
   if (o.session.mode !== null) return; // a queued daily started
   if (o.saved.routeOpened()) return; // a saved game opened from "Your games" (hub.saved)
+  if (o.turns && (await o.turns.routeLink())) return; // an online game's invite link
   if (o.daily !== null && new URLSearchParams(o.search).has('daily')) return; // still being answered
   if (o.resume.requested) {
     const saved = await withTimeout(o.clock, lookup, 8000, null);

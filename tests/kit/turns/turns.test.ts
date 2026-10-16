@@ -1,8 +1,21 @@
-// kit/turns: the hub's rules kit (re-exported) and the hub.turns adapter, on the FakeHub.
+// kit/turns: the hub's rules kit (re-exported), the hub.turns adapter and the screen's words, on the FakeHub.
+import type { TurnSummary } from '@diffenderfer-games/hub';
+import { createTurnRng, turnRngStateFromSeed } from '@diffenderfer-games/hub/turns';
 import { describe, expect, it } from 'vitest';
 import type { Json } from '../../../src/kit/core/index.ts';
-import { createFakeHub } from '../../../src/kit/testing/index.ts';
-import { checkTurnRules, createTurns, nudger, type TurnRules } from '../../../src/kit/turns/index.ts';
+import { createFakeHub, turnSummary } from '../../../src/kit/testing/index.ts';
+import * as rulesEntry from '../../../src/kit/turns/rules.ts';
+import {
+  checkTurnRules,
+  createTurns,
+  handOverNames,
+  nextCheckIn,
+  nudger,
+  seatLine,
+  turnStatus,
+  type TurnRules,
+  type TurnSeat,
+} from '../../../src/kit/turns/index.ts';
 
 describe('kit/turns', () => {
   type S = { hands: string[]; turn: number; left: number };
@@ -53,5 +66,70 @@ describe('kit/turns', () => {
     expect(nudge()).toBe(true);
     game.close();
     expect(fake.resume.blockedBy).toBeNull();
+  });
+});
+
+describe('kit/turns: who is there, in the hub’s words', () => {
+  const seat = (s: Partial<TurnSeat> & { seat: number }): TurnSeat => ({
+    userId: s.seat + 1,
+    name: `P${s.seat}`,
+    avatar: '',
+    look: '',
+    status: 'joined',
+    isMe: false,
+    ...s,
+  });
+  const game = (s: Partial<TurnSummary>, more: Partial<{ mySeat: number; mayActNow: boolean }> = {}) => ({
+    summary: turnSummary(s),
+    mySeat: more.mySeat ?? 0,
+    outcome: null,
+    mayActNow: more.mayActNow ?? false,
+  });
+
+  it('"Waiting for Ann…" only when connected is false; here or unknown is "Ann is playing"', () => {
+    expect(seatLine(seat({ seat: 1, name: 'Ann', connected: false }))).toBe('Waiting for Ann…');
+    expect(seatLine(seat({ seat: 1, name: 'Ann', connected: true }))).toBe('Ann is playing');
+    expect(seatLine(seat({ seat: 1, name: 'Ann' }))).toBe('Ann is playing');
+  });
+
+  it('the status line: your turn, the others due, a move out of turn, the lobby and the end', () => {
+    const seats = [
+      seat({ seat: 0, isMe: true }),
+      seat({ seat: 1, name: 'Ann', connected: false }),
+      seat({ seat: 2, name: 'Bo' }),
+    ];
+    expect(turnStatus(game({ seats })).text).toBe('Your turn');
+    expect(turnStatus(game({ seats, isMyTurn: false, toAct: [1, 2] })).text).toBe('Waiting for Ann… · Bo is playing');
+    expect(turnStatus(game({ seats, isMyTurn: false, toAct: [2] }, { mayActNow: true })).text).toBe(
+      'Bo is playing · you may move now',
+    );
+    expect(turnStatus(game({ phase: 'lobby', isMine: true })).kind).toBe('lobby');
+    expect(turnStatus({ ...game({ phase: 'ended' }), outcome: { winners: [] } }).text).toBe("It's a draw.");
+    expect(turnStatus({ ...game({ phase: 'ended' }), outcome: { winners: [1] } }).kind).toBe('lost');
+  });
+
+  it('the hand-over names the due players who are not here, and is asked again at handOverAt or the deadline', () => {
+    const seats = [seat({ seat: 0, isMe: true }), seat({ seat: 1, name: 'Ann', connected: false })];
+    const s = turnSummary({ seats, isMyTurn: false, toAct: [1], handOverAt: 1000, deadline: 5000 });
+    expect(handOverNames(s, 0)).toBe('Ann');
+    expect(nextCheckIn(s, 400)).toBe(600);
+    expect(nextCheckIn(s, 2000)).toBe(3000);
+    expect(nextCheckIn(s, 6000)).toBeNull();
+  });
+
+  it('the fake follows the client: canLetComputerPlay once handOverAt passed and the due player is away', async () => {
+    const fake = createFakeHub({ events: new EventTarget() });
+    const g = await fake.turns.open('g2');
+    g.turnChanged({ isMyTurn: false, toAct: [1], handOverAt: 100 });
+    expect(g.canLetComputerPlay(50)).toBe(false);
+    expect(g.canLetComputerPlay(150)).toBe(false); // Sam is connected
+    g.seatConnected(1, false);
+    expect(g.canLetComputerPlay(150)).toBe(true);
+  });
+
+  it('the rules entry is the hub’s zod-free one: the same RNG as the conformance kit’s', () => {
+    const a = createTurnRng(turnRngStateFromSeed(7));
+    const b = rulesEntry.createTurnRng(rulesEntry.turnRngStateFromSeed(7));
+    expect([a.int(100), a.int(100)]).toEqual([b.int(100), b.int(100)]);
   });
 });

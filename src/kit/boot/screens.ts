@@ -21,6 +21,8 @@ export type ScreenActions = {
   race: () => void;
   raceBrowse: () => void;
   online: () => void;
+  /** Play over days: an online game the hub runs (kit/turns). */
+  turns: () => void;
   settings: () => void;
   howTo: () => void;
   pause: () => void;
@@ -41,6 +43,8 @@ export type TitleOptions = {
   dailyDone: boolean;
   race: boolean;
   online: boolean;
+  /** The game plays online games over days (`game.turns` and a `turns` hook). */
+  turns?: boolean;
   /** The hub's social runtime failed to load (hub:rt-failed): online play is off for now. */
   onlineDown?: boolean;
 };
@@ -70,6 +74,10 @@ export function titleScreen(o: TitleOptions, a: ScreenActions): HTMLElement {
     const sub = o.onlineDown === true ? t('onlineNeedsConnection') : undefined;
     menu.appendChild(button(t('online'), a.online, { testid: 'online', disabled: o.onlineDown === true, sub }));
     if (o.quickMatch === true) menu.appendChild(button(t('quickMatch'), a.quickMatch, { testid: 'quick-match' }));
+  }
+  if (o.turns === true) {
+    const sub = o.onlineDown === true ? t('onlineNeedsConnection') : t('turnsNewSub');
+    menu.appendChild(button(t('turnsNew'), a.turns, { testid: 'turns-new', disabled: o.onlineDown === true, sub }));
   }
   menu.appendChild(button(t('settings'), a.settings, { testid: 'settings' }));
   menu.appendChild(button(t('howTo'), a.howTo, { testid: 'howto' }));

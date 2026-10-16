@@ -20,6 +20,7 @@ import { controls } from './controls.ts';
 import { daily } from './daily.ts'; // new-game:daily
 import { race } from './race.ts'; // new-game:race
 import { createOnline } from './online.ts'; // new-game:online
+import { turns } from './turns/board.ts'; // new-game:turns
 import { newRun, outcome, progress, solve, steerToCoin, step, type StepInput } from './rules.ts';
 import { hud } from './screens/hud.ts';
 import { result } from './screens/result.ts';
@@ -105,5 +106,6 @@ export function createGame(createView: ViewFactory): GameDefinition<Profile, Run
       render: (v, me) => view?.drawOnline?.(v, me),
     }),
     // new-game:online:end
+    turns, // new-game:turns
   };
 }

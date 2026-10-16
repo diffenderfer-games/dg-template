@@ -5,15 +5,20 @@
  *
  * saved-games.md §4.1: the hub loads `game.turns.rules` as an ESM bundle with
  * no imports, in a sandbox without Math.random, timers or fetch. The build
- * fails if the bundle still imports anything or touches those.
+ * fails if the bundle still imports anything or touches those. `npm run
+ * build` runs it after vite; a game without the rules module skips it.
  */
 import { build } from 'esbuild';
-import { mkdirSync, readFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { ROOT } from './lib/paths.ts';
 
 const entry = join(ROOT, 'src', 'game', 'turns', 'rules.ts');
 const out = join(ROOT, 'dist-rules', 'rules.mjs');
+if (!existsSync(entry)) {
+  console.log('build:rules: no src/game/turns/rules.ts (this game plays no online games over days)');
+  process.exit(0);
+}
 mkdirSync(join(ROOT, 'dist-rules'), { recursive: true });
 await build({
   entryPoints: [entry],

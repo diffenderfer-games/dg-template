@@ -19,6 +19,23 @@ export const scenarios: Scenario[] = [
       await c.wait(300);
     },
   },
+  // new-game:turns:start
+  {
+    name: 'turns',
+    target: 'hub',
+    checks: 'an online game over days with the computer: whose move it is, the seats, the pile, the takes, chat',
+    run: async (c) => {
+      await c.open();
+      await c.press('turns-new');
+      await c.press('turns-computer');
+      await c.screen('turns');
+      await c.page.waitForSelector('[data-testid="take-1"]:not([disabled])', { timeout: 15_000 });
+      await c.press('take-2');
+      await c.page.waitForSelector('[data-testid="take-1"]:not([disabled])', { timeout: 15_000 });
+      await c.wait(300);
+    },
+  },
+  // new-game:turns:end
 ];
 
 /** Kit scenarios this game doesn't need (e.g. 'race-hud' for a game without races). */

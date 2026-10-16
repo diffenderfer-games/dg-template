@@ -7,7 +7,7 @@
   "author": "your name here",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && node scripts/kit/build-rules.ts",
     "preview": "vite preview --strictPort",
     "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.node.json",
     "test": "vitest run --project kit --project hub-events --project game",
@@ -96,6 +96,19 @@
           "key": "party",
           "title": "Coin Party"
         }
+      ]
+    },
+    "turns": {
+      "rules": "dist-rules/rules.mjs",
+      "players": [
+        2,
+        4
+      ],
+      "bots": true,
+      "quickChat": [
+        "Good move!",
+        "Your move!",
+        "Last coin!"
       ]
     },
     "changes": []
