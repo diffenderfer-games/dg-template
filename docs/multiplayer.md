@@ -1476,6 +1476,7 @@ hasn't signed up dismisses the invite (for an entrant it drops out, as before).
 | Game | What it must do |
 |---|---|
 | **Race games** (`game.race` for two racers) | Nothing. A match is a race the hub referees, from an ordinary race launch (`mode: 'race'`). |
+| **Online games played over days** (`game.turns` for two players, §16) | Nothing. A match is an online game the hub runs from your rules (§15.5); it wins over `multiplayer.tournaments`. |
 | **Hub-room and own-server games** | Declare `"tournaments": true` in `game.multiplayer` (players must include 2, invites on), play the match from the launch below, and report the winner. |
 
 ### 15.2 The match launch
@@ -1505,6 +1506,7 @@ room before the next match's launch, open a new room for it (the old one has end
   (the `hub-server.mjs` SDK; `POST /internal/results`). The client passes
   `launch.tournament` on to your server with the room it joins. Both players must be named and exactly one must have won.
 - **Races:** nothing to do.
+- **Online games (`game.turns`):** nothing to do: your rules' `outcome` decides the match (the one seat in first place by `places`, else the one winner; a draw sends the better seed through).
 
 Reference: `apps-test/mpdemo` (the most clicks wins; `room.end({ count, winnerId })`),
 and Clue (`src/online/match-result.ts`).
@@ -1519,7 +1521,31 @@ by the hub.
 `HUB_LIMITS_JSON: '{"tournamentMinuteMs":1000}'` makes every tournament "minute"
 (ready windows, warnings, reminders) last a second. The hub's
 `test/e2e/tournaments.test.mjs` creates a quick 1v1 from the home page, signs a guest
-up, plays the match in MP Demo, and lets a ready window run out.
+up, plays the match in MP Demo, and lets a ready window run out;
+`test/api/turns-out-of-turn.test.mjs` plays a match as an online game.
+
+### 15.5 Matches as online games (`game.turns`)
+
+A game that declares `game.turns` for two players plays every tournament
+match as an online game (§16), even when it also declares
+`multiplayer.tournaments`:
+
+- The first of the two players to press Play makes the game: both seated
+  (the better seed in seat 0), started at once, no link, not listed. Its
+  launch ticket has no token: `url` is `/<slug>/?hub_open=<id>&hub_kind=turns`
+  and `turnGame` is the id, so your page opens it the way it opens any game
+  from Your games (`hub.saved.opened`). The other player's Play opens the
+  same game.
+- `game.tournament` (`{ id, title, match }`) says which match it is; show it
+  if you like. The opponent is the other seat.
+- **No computer, ever:** no seat is filled by it and `letComputerPlay()`
+  answers 409 `not_supported`; a player who leaves the game loses the match.
+- **Players who don't turn up** are the tournament's, as for every match:
+  a player counts as there once they have the game open or have moved in it,
+  and the match has started once both have moved. The ready window, the
+  warning, the forfeit and the 90-minute cap apply as above.
+- A match settled another way (a forfeit, the cap, a player dropping out of
+  the tournament) ends its game with no result.
 
 ---
 
@@ -1531,7 +1557,8 @@ come back tomorrow, and get a "your turn" alert in between. While both players
 are on the page it is live: moves arrive within milliseconds. Board and card
 games that take turns (Pop Four, Phase 10, Skip-Bo, Garbage) should play
 online this way, retiring their room code; rooms stay for realtime play and
-interrupt-driven rules (Uno's jump-in, races).
+races. Moves out of turn (Uno's jump-in, catching a forgotten "UNO") work
+too: see `mayAct` (§16.2).
 
 **Wording.** "Turn game" is an internal term. Players see **an online game**:
 "Online with Sam · your turn", "Sam's turn", "Waiting for a player". Never
@@ -1552,10 +1579,16 @@ recent players), and nobody's browser has to be the host.
     "players": [2, 4],
     "bots": true,                       // your rules have autoMove: the computer fills seats, plays for leavers
     "modes": [{ "key": "classic", "title": "Classic" }],
-    "maxApplyMs": 200                   // per rules call; at most 2000
+    "maxApplyMs": 1000,                 // per rules call's own run (default 1000); at most 2000
+    "quickChat": ["UNO!", "Draw two!"], // your own quick-chat phrases in these games (as game.multiplayer's)
+    "chatAllow": ["shot"]               // soften-list words its chat may keep (as game.multiplayer's)
   }
 }
 ```
+
+`quickChat` and `chatAllow` work as in `game.multiplayer` (§10): a game with
+both blocks gets both lists of phrases. A game that plays only over days
+(it dropped `game.multiplayer`) declares them here.
 
 Build the bundle with `esbuild src/rules.ts --bundle --format=esm --outfile=dist-rules/rules.mjs`
 (or tsdown, rollup) as part of `npm run build`. It must have **no imports**
@@ -1563,14 +1596,26 @@ and its **default export is the rules object**. The hub reads it from your
 checkout when a game is set up or moved, keeps every bundle it loaded by its
 hash, and runs it in a sandbox: a worker thread capped at 64 MB, a `vm`
 context with no `require`, `process`, `fetch` or timers, and **no
-`Math.random`**. A call that throws, runs past `maxApplyMs` or returns the
-wrong shape fails with 500 `rules_error`; the stored game is untouched and the
-game is flagged for an admin.
+`Math.random`**. The workers (one per CPU but one, 2 to 8) run one call at a
+time each; `maxApplyMs` counts only your rules' own run, never the wait for a
+free worker, and a call that runs past it is tried once more. A call that
+throws, still runs past `maxApplyMs` or returns the wrong shape fails with
+500 `rules_error`; the stored game is untouched and the game is flagged for an
+admin. A call that can't get a worker within 15 s (the hub is overloaded)
+fails with 503 `rules_busy`: try again, nothing is flagged. Any `/turns`
+call that shows the game (opening it too: `GET /turns/:id`) may answer
+either, always as a typed error, and the hub logs why. **A move is all or
+nothing**: every rules call it needs (the move, who is due next, the progress
+lines, the mover's view) runs before anything is written, so a move that
+answers an error was not made (state, move count and RNG untouched), and
+`TurnGame.move()` fetches the game again after one. A move takes four rules
+calls whatever the number of seats (`apply`, the mover's view, one for
+`toAct`/`mayAct`/`outcome`/every `progress`, one for every watcher's view).
 
 ### 16.2 The rules module
 
 ```ts
-import { defineTurnRules, type TurnRng } from '@diffenderfer-games/hub/turns';
+import { defineTurnRules, type TurnRng } from '@diffenderfer-games/hub/turns-rules';
 
 export default defineTurnRules<State, Move, View, Event>({
   version: 1,
@@ -1585,15 +1630,46 @@ export default defineTurnRules<State, Move, View, Event>({
   outcome(state) { return done ? { winners: [seat] } : null },   // also places? scores?
   progress(state, seat) { return { label: `Round ${state.round} of 10`, fraction: state.round / 10 }; },
   autoMove(state, seat, rng) { return bestMove(state, seat); },    // bots, leavers, overdue turns: must be legal
+  mayAct(state) { return seatsThatMayJumpIn(state); },            // optional: seats that MAY move now without being due
+  autoReact(state, seat, rng) { return jumpInOrNull(state, seat); }, // optional: a computer seat's move out of turn, or null
   migrate(old, fromVersion) { return upgrade(old); },             // games in flight survive a rules update
 });
 ```
+
+**Import from `@diffenderfer-games/hub/turns-rules`** in the rules module: it
+is `defineTurnRules`, the rules types and the RNG and nothing else (no zod, no
+client), so the bundle stays a few KB (the hub's tests keep it under 30 KB of
+hub code). `@diffenderfer-games/hub/turns` has the same exports plus the
+conformance kit (§16.7) for your tests.
 
 Rules are **pure and deterministic**: draw randomness only from the `rng` you
 are handed (`rng.next()`, `rng.int(n)`, `rng.pick(list)`, `rng.shuffle(list)`;
 the hub keeps its state between moves), keep the state JSON (at most 64 KB),
 and keep moves small JSON (at most 2 KB) and **never free text**. Bump
 `version` only together with a `migrate`.
+
+**Moves out of turn** (`mayAct`, `autoReact`). Some rules let a player
+move without it being their turn: Uno's jump-in (the very same card as the
+top card), calling "UNO" with one card left, catching someone who forgot.
+`mayAct(state)` names the seats that **may** move now; `toAct` stays the
+seats that **must**. The hub takes a move from any seat in either, and your
+`apply` decides what is legal, so validate it there.
+
+- **Races**: the first valid move wins; the later one answers 409 `stale`
+  (the move count it saw is gone), and its page is refreshed.
+- **No alerts**: being in `mayAct` sends no "your turn" alert or reminder.
+- **The computer** reacts through `autoReact(state, seat, rng)` (a move, or
+  `null` to let the moment pass) for the seats it plays, a due seat
+  included: after every move it asks first, then plays a due seat's
+  `autoMove`. Each computer move waits the same short pause players get,
+  and a player's move during the pause wins: the computer looks again
+  afterwards. It never jumps ahead of a player.
+- **The page** sees `summary.mayAct` (due seats left out) and
+  `game.mayActNow`; offer the action then (Jump In shows "UNO!" to the
+  player with one card, "Catch them!" to the others).
+
+The reference is `apps-test/jumpdemo` ("Jump In", a tiny Uno-like,
+`JUMPDEMO_DIR`).
 
 ### 16.3 The page: `hub.turns`
 
@@ -1611,7 +1687,7 @@ game = await hub.turns.create({ invite: [friendId] });   // or { link: true } �
 await game.start();                                       // the creator, once enough have joined (bots fill seats if allowed)
 
 // Play.
-draw(game.view, game.summary);                            // summary: seats, toAct, isMyTurn, deadline, seq
+draw(game.view, game.summary);                            // summary: seats (each with connected), toAct, isMyTurn, deadline, handOverAt, seq
 game.on('move', ({ seat, events, view }) => animate(events).then(() => draw(view)));   // another player's move, live
 game.on('turn', (summary) => drawWhoseTurn(summary));
 game.on('ended', ({ outcome }) => showResult(outcome));
@@ -1621,37 +1697,75 @@ catch (error) { if (error.code === 'illegal') shake(error.rule); }   // 403 not_
 
 | `hub.turns` | |
 |---|---|
-| `create(opts)` | `{ mode?, options?, invite?, link?, public?, seats?, bots?, deadline?: 'none' \| '1d' \| '3d' \| '7d', autoStart? }` → `TurnGame` (its lobby, the player in seat 0). `autoStart`: it starts by itself once every seat is taken, so the creator needn't come back |
+| `create(opts)` | `{ mode?, options?, invite?, link?, public?, seats?, bots?, deadline?: 'none' \| '1d' \| '3d' \| '7d', autoStart? }` → `TurnGame` (its lobby, the player in seat 0). `autoStart`: it starts by itself once every seat is taken, so the creator needn't come back (if the rules fail at that moment, the seat stays taken and the game starts the next time a player opens it) |
 | `join(idOrLinkKey)` | Take a seat: an invited one, an open one, or with a link key |
 | `open(id)` | A game the player sits in |
 | `list()` | This game's online games the player sits in (as `hub.saved` rows) |
 | `openLobbies()` | Open-seat games of this game anyone may join (none across a block) |
+| `setYourTurnBuzz(isOn)` | This page's "your turn" buzz (below): pass `false` if your game gives its own signal |
+| `playerYourTurnBuzz` | The player's own switch on this device (get/set; the menu's Settings show it as "Buzz when it's my turn") |
 | `link` | The invite link key the page was opened with (`?hub_turn_link=`, taken out of the address bar), or `null` |
 
 | `TurnGame` | |
 |---|---|
 | `summary`, `view`, `mySeat`, `outcome`, `chat`, `chatMode`, `link` | The game as this player sees it |
+| `mayActNow` | This player may move now without it being their turn (`summary.mayAct`): offer that move |
+| `setYourTurnBuzz(isOn)` | This game's "your turn" buzz (below) |
+| `tournament` | The tournament match this game is (`{ id, title, match }`, §15.5), else `null` |
 | `start()` | Creator: lobby → playing |
-| `move(move)` | → `{ seq, view, events }` (this seat's events) |
+| `move(move)` | → `{ seq, view, events }` (this seat's events). On your turn, or out of turn when `mayActNow`. A late answer never rolls the page back past moves that arrived live meanwhile |
 | `history(sinceSeq)` | Moves since a move, with the events this seat may see ("while you were away") |
 | `leave()` | The computer plays the seat (or, without bots, the others win); no coming back |
 | `nudge()` | Remind whoever must move (once a day) |
 | `setNotify('on' \| 'off')` | This game's "your turn" alerts |
-| `rematch()` | An ended game: a new one, the same friends invited. When another player already pressed it, this takes the seat in theirs instead of making a second game |
+| `rematch()` | An ended game: a new one with the first game's settings (mode, options, seats, bots, deadline, open seats, a link). Every player still playing gets a seat: friends are invited, anyone else's seat is kept open for them (no invite between strangers), the computer's seats are the computer's again, and it **starts by itself once everyone is back**. The first press makes it; every other player's `rematch()` takes their seat in it, so all end up in one game |
 | `invite(userIds)` | More friends, while seats are free |
 | `share({ link?, public? })` | Creator, before the start: add an invite link (then read `link`) or list the open seats for anyone |
-| `letComputerPlay()` | The turn's deadline passed (or that player is suspended): the computer plays it |
+| `canLetComputerPlay(now?)` | Whether `letComputerPlay()` may work now: another player is due and either the turn's `deadline` passed, or `summary.handOverAt` passed and a due player isn't `connected`. Show "Let the computer play for Ann" only then; check again on each `turn` event and when `handOverAt` comes. `false` in a tournament match and with a hub too old to say |
+| `letComputerPlay()` | The turn's deadline passed (or that player is suspended): the computer plays it. Otherwise, when the player due has been due 2 minutes and isn't connected at all, the computer plays their seat for the rest of the game, until they open it again (§16.5). Never in a tournament match (409 `not_supported`) |
 | `say({ text } \| { quick })` | Chat: free text only when every seated player is a friend of everyone (moderated like DMs); quick-chat with anyone |
-| `refresh()`, `close()` | Fetch again (replaying missed moves); stop live updates for this page |
-| `on('move' \| 'turn' \| 'ended' \| 'chat', cb)` | Live events (a page without the hub runtime polls every 20 s while visible). `turn` also fires when `chatMode` or `link` changes, and when a seated player changes their avatar (the seat's `look`); when the live connection comes back (`hub:turn-resync`) the game fetches what it missed |
+| `refresh()`, `close()` | Fetch again (replaying missed moves); stop live updates for this page. An answer older than what the page has by then (a live move arrived while it was on its way) is dropped: no fetch ever rolls the game back |
+| `on('move' \| 'turn' \| 'ended' \| 'chat', cb)` | Live events (a page without the hub runtime polls every 20 s while visible). `turn` also fires when `chatMode`, `link` or `handOverAt` changes, when a seated player changes their avatar (the seat's `look`), and when one comes or goes (the seat's `connected`); when the live connection comes back (`hub:turn-resync`) the game fetches what it missed |
+
+**Who is there.** Each joined seat in `summary.seats` has `connected`: its
+player has the game, or any page of the site, open right now (an idle or
+hidden tab counts). Use it for "Waiting for Ann" (with a dot) instead of
+guessing from timers. It updates live: a `turn` event follows a player coming
+or going, a couple of seconds after it settles (a reload never flickers).
+Only players seated in the same game get it, and it is absent for a player
+who hides their presence (privacy "nobody"), across a block, and from an
+older hub: treat absent as unknown. `summary.handOverAt` is when this player
+may let the computer play for a due player who isn't connected (`null` when
+nobody else is due, or in a tournament match).
+
+**The "your turn" buzz.** Every online game gets it with no code: when the
+player **becomes** due on a live update while the game's page is visible,
+the phone gives a short buzz (`navigator.vibrate([60, 40, 60])`). Never for
+the next step of their own turn, a move they may make out of turn
+(`mayAct`), a game just opened, a catch-up after being away, or a game they
+muted; never when they turned "Buzz when it's my turn" off in the menu's
+Settings (kept on the device), when the page or system asks for less motion
+(`data-hub-motion="reduce"`, `prefers-reduced-motion`), or where the device
+can't vibrate (iOS Safari: silently nothing). The hub has no sound setting
+yet, so it plays no sound. Opt out with `hub.turns.setYourTurnBuzz(false)`
+or `game.setYourTurnBuzz(false)`.
+
+**No polling needed.** Live `turn` events bring every committed move (a
+broadcast whose views fail is sent again a moment later), a gap in `seq`
+makes the page catch up, and as a safety net a visible page waiting on
+another player's move fetches the game again after 15 s without hearing
+anything (`TURN_QUIET_MS`). Don't add your own refresh timer.
 
 While a turn game is open, `hub.resume.save` saves nothing (`blockedBy: 'turns'`):
 the hub holds the game.
 
 ### 16.4 Who plays, and kid safety
 
-- **Claimed accounts only** (guests can't hold a seat: they can't get alerts
-  and could lose the account).
+- **Guests play too**, the same as accounts: create, join (a link or an open
+  seat) and start games. A guest gets live toasts (pushes need an account),
+  only ever quick-chat, and can't be invited (invites are for friends). When
+  they save their account their games stay theirs; when they log in to an
+  existing one, their seats move to it.
 - **The hub's Invite to play picker** lists your game too (from a friend's card
   in the Friends window or their player card): picking it starts an online game
   with that friend's seat held (`createTurnGame` with `invite`, `autoStart`, and
@@ -1668,8 +1782,9 @@ the hub holds the game.
   everyone; strangers in an open-seat game get quick-chat and emotes only.
   Every line is reportable (`kind: 'turn_chat'`). Moves and progress labels
   are game-written, never typed.
-- Caps: 30 games going per player (10 per game), 10 new games a day, 30 moves
-  a minute; suspended players can read their games but not move (the others
+- Caps: 30 games going per player (10 per game), 10 new games a day, 120 moves
+  a minute with at most 30 in any ten seconds (room for a card game's quick
+  chains: a Skip-Bo play run, Phase 10's draw, lay, hits and discard); suspended players can read their games but not move (the others
   may let the computer play their turn).
 
 ### 16.5 Leaving, bots, deadlines, the end
@@ -1677,18 +1792,40 @@ the hub holds the game.
 - **Leave** any time: the seat goes to the computer when the game has bots
   (`autoMove`), otherwise the remaining players win. With nobody left the game
   ends. A player who left can't come back.
+- **The computer's moves** come after the mover's own `move()` has resolved,
+  one at a time with a short pause (about 0.75 s, none in tests), each as its
+  own live `move` event, so players see every computer move arrive. A hub
+  restart mid-way picks up where it stopped, and a computer move the hub
+  was too busy to make is tried again shortly (1 s, then 2, 4, … up to a
+  minute); any other failure is logged and flags the game for an admin.
 - **No deadline by default.** A game created with `deadline: '1d' | '3d' | '7d'`
   lets the others `letComputerPlay()` an overdue turn; otherwise a stuck game
   is resolved by a nudge or by leaving.
+- **The computer never takes over on its own.** A seat goes to the computer
+  only when its player leaves, an admin hands it over, or `start()` fills an
+  empty seat; being away, idle or offline, however long, never changes a
+  seat. One exception, by choice: when a player has been due for 2 minutes
+  (`turnHandOverAfterMs`) and isn't connected at all (an idle tab still
+  counts as here), another player may `letComputerPlay()` for them (the page
+  knows when from `summary.handOverAt` and the seat's `connected`, or just
+  asks `game.canLetComputerPlay()`). The
+  computer then plays that seat for the rest of the game; it shows as
+  `bot`, named "Ava (computer, Sam's pick)", and everyone (Ava too) is told
+  who chose it. Ava takes her seat back just by opening the game (the others
+  hear she's back). A refusal never says whether she is online.
+- **Tournament matches** (§15.5) never let the computer in: no seat is
+  filled by it, `letComputerPlay()` is refused, and a player who doesn't
+  turn up forfeits by the tournament's own clock.
 - **The end**: `outcome` is recorded as trusted results, the game leaves
-  everyone's "Your games", and `rematch()` invites the same friends.
+  everyone's "Your games", and `rematch()` brings everyone back to one new game.
 
 ### 16.6 "Your turn" alerts
 
 The hub tells a player it's their turn through the same alerts as invites: a
 toast when they have the site open, otherwise a push (after 2 minutes, and not
 if they looked at the game first), then reminders at +1 day, +3 days and
-weekly (four at most), reset by a move. Several games at once make one push
+weekly (four at most), reset when the turn passes to them again (a step of
+their own, such as a draw before the discard, keeps the same turn). Several games at once make one push
 ("It's your turn in 3 games"). Players choose in the Notifications window
 ("Tell me when it's my turn", per game, quiet hours) and per game with
 `game.setNotify`; it is on by default for players who already allow pushes,
@@ -1703,17 +1840,39 @@ usernames. Your game needs no code for any of this.
   import { checkTurnRules } from '@diffenderfer-games/hub/turns';
   import rules from '../src/rules';
 
-  checkTurnRules(rules, { seats: [2, 4], games: 50, plant: (state, seat, marker) => plantInHand(state, seat, marker) });
+  checkTurnRules(rules, {
+    seats: [2, 4], games: 50,
+    plant: (state, seat, marker) => plantInHand(state, seat, marker),
+    revealed: (state, marker) => state.discard.includes(marker),         // played face up: public from now on
+    shuffleHidden: (state, seat, rng) => redealOthers(state, seat, rng),  // the twin table (below)
+  });
   ```
 
-  It plays seeded games to the end and fails on: a game that never ends, an
-  empty `toAct` mid-game, a state that doesn't survive JSON, `Math.random`
-  (the same seed must play the same game), an illegal `autoMove`, a seat seeing
+  It plays seeded games to the end, moving every seat in `toAct` (not only
+  the first) and, half the time, a seat in `mayAct` whose `autoReact` (or
+  your `reactMove`) has a move, and fails on: a game that never ends, an
+  empty `toAct` mid-game, a `toAct` or `mayAct` seat that doesn't exist, a
+  state that doesn't survive JSON, `Math.random` (the same seed must play
+  the same game), an illegal `autoMove` or `autoReact`, a seat seeing
   another seat's planted secret in `view` or `eventView`, oversized moves or
-  states, and old `fixtures` that need `migrate`.
+  states, and old `fixtures` that need `migrate`. Its report counts
+  `outOfTurn` moves.
+- **Secrets that become public.** A planted card that your rules rightly
+  reveal (played or discarded face up, shown at the end) is not a leak: pass
+  `revealed(state, marker)`, true once the marker is public in `state`, and
+  the kit stops checking that marker for the rest of the game. Until then it
+  is still checked.
+- **The twin table** (`shuffleHidden(state, seat, rng)`): return a copy of
+  the state with everything `seat` may not see shuffled or redealt (the
+  deck's order, the other hands' cards, each hand keeping its count). After
+  every move the kit checks each seat's `view` of the twin is exactly its
+  view of the real state, which catches leaks a planted marker can't (an
+  order, a count, a hint derived from a hidden card).
 - **Two browsers** (puppeteer, like §12): two players in two contexts; create +
   invite + join + start, a move arriving live on the other page, one page
   closed and reopened from Your games (missed moves replayed), leave (the
   computer plays on), the end. The reference game is `apps-test/turndemo`
   ("Turn Tac Toe", `TURNDEMO_DIR`) with `test/e2e/turn-games.test.mjs` and
-  `test/api/turns.test.mjs`.
+  `test/api/turns.test.mjs`; moves out of turn and tournament matches have
+  `apps-test/jumpdemo` with `test/e2e/turn-out-of-turn.test.mjs` and
+  `test/api/turns-out-of-turn.test.mjs`.

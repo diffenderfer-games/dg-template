@@ -101,11 +101,12 @@
     "changes": []
   },
   "dependencies": {
-    "@diffenderfer-games/hub": "2.0.0-next.7",
+    "@diffenderfer-games/hub": "2.0.0-next.9",
     "pixi.js": "^8.6.0",
     "three": "^0.186.1"
   },
   "devDependencies": {
+    "@diffenderfer-games/world": "2.0.0-next.9",
     "@eslint/js": "^10.0.1",
     "@types/node": "^22.20.5",
     "@types/three": "^0.186.0",

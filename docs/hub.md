@@ -1951,6 +1951,48 @@ text. Players see "avatar", "Make your avatar", "Edit avatar", never "look",
 
 ---
 
+## The world (`game.world`)
+
+The hub has a walkable world: tile-map rooms where players' avatars walk, sit at
+tables and use portals between rooms (design: `docs/plans/world.md`). The hub's own
+rooms (`lounge`, `park`, `station`, `camp`) need nothing from games. A game can have
+**its own room**, served as the world `game.<slug>`:
+
+```jsonc
+"game": {
+  "world": {
+    "map": "world/lobby.json",            // optional: a committed dg-world@1 map file (wins when valid)
+    "generate": {                          // optional: generate it (or the fallback for a bad file)
+      "type": "lounge",                    // a hub world type: lounge, park, station, camp
+      "seed": "garbage",                   // default: the game's slug
+      "needs": { "tables": 6, "game": "Garbage", "portals": ["park"] }
+    }
+  }
+}
+```
+
+- Give `map`, `generate` or both. The hub reads the map file at load, checks it
+  (shape, sizes, every spot reachable, a `start` spawn) and runs its text (title,
+  labels, game names) through the content filter; a missing or invalid file falls
+  back to `generate`. **The hub never runs a game's script**: generate your map at
+  build time and commit the JSON.
+- Make maps with `@diffenderfer-games/world` (the generator, builder and validator) or
+  in [Tiled](https://www.mapeditor.org/) and convert: `npx dg-world from-tiled
+  world/lobby.tmj world/lobby.json` (and `to-tiled` back). `npx dg-world check
+  world/lobby.json` prints every problem. A map file is at most **256 KB**; layers are
+  saved compressed (`"encoding": "rle"`). Bump the map's `revision` when you change it.
+- Same seed and needs, same map: a generated map records its `generatorVersion`, and
+  the hub serves every map under a content hash, so players fetch it once per change.
+- **`npx hub-doctor`** checks a `game.world.map` file (it exists, is valid and is
+  within the size limit) and warns about an unknown world type.
+
+The live world runs over the hub socket (`world.*` ops and events, contract
+`realtime/ops/world.ts`): the hub referees every step with the same collision code
+the client walks with, shows each player the others near them, overflows a full room
+into a second instance, allows only quick-chat bubbles and emotes (emotes only in
+quiet zones; nothing when chat is off), and remembers where each player stood. The
+map file is `GET /_api/world/maps/<key>?rev=<rev>`. Games don't call any of this.
+
 ## Content safety & the rejection contract
 
 **Everything players type** is checked server-side before it's stored or shown:
@@ -2192,6 +2234,11 @@ fields go through the filter and answer **422** `content_rejected` on refusal.
 - `GET  /_hub/avatar/<code>.svg?f=&e=&lx=&ly=&s=&b=` (*public*) → the server-rendered SVG (`immutable` for a real code; the silhouette for garbage)
 - Socket: `ev:avatar {userId, code}` to your own tabs, your friends and the players and spectators in your room or race
 
+### The world ([The world](#the-world-gameworld))
+- `GET  /world/maps/:key?rev=` → `{key, rev, map}` (a `dg-world@1` file; `key` is `lounge`, `park`, `station`, `camp` or `game.<slug>`; `immutable` with the current `rev`; 404 `world_not_found`)
+- Socket ops: `world.enter {world, spawn?}` → place · `world.leave` · `world.move {steps[≤12], facing?}` → `{at, facing, accepted}` · `world.sit {object, index}` · `world.stand` · `world.teleport {portal}` → place · `world.say {quick}` (quick-chat only)
+- Socket events: `world.state {instance, join, update, leave}` · `world.say {instance, userId, quick, text}`; presence carries `world`
+
 ### Messages (`handlers/messages.js`, mutual friends only)
 - `GET  /social/conversations` → `{conversations:[{user, last, unread}]}`
 - `GET  /social/messages/:userId?before=<id>` → `{messages (oldest→newest, ≤50), more, mode:'on'|'quick'|'off'}`
@@ -2243,8 +2290,8 @@ chat) is on the WebSocket **`/_ws`**: JSON envelopes `{t:'op', id, op, d}` →
 ### Online games over days (claimed accounts; see docs/multiplayer.md §16)
 - `POST /turns` `{game,mode?,options?,invite?,link?,public?,seats?,bots?,deadline?}` → `TurnGameView` · `GET /turns/:id` → `TurnGameView` (seated players only)
 - `POST /turns/:id/join` `{key?}` · `POST /turns/join` `{key}` · `POST /turns/:id/start` · `POST /turns/:id/invite` `{userIds}`
-- `POST /turns/:id/moves` `{seq,move}` → `{game,events}` (403 `not_your_turn`, 409 `stale`, 422 `illegal` + `rule`, 500 `rules_error`, 413 over 2 KB; 30/min)
-- `GET  /turns/:id/history?since=<seq>` → `{moves:[{seq,seat,events,at}]}` · `POST /turns/:id/leave` · `/nudge` · `/rematch` · `/auto` · `/chat` `{text?|quick?}` · `PUT /turns/:id/notify` `{mode}`
+- `POST /turns/:id/moves` `{seq,move}` → `{game,events}` (403 `not_your_turn`, 409 `stale`, 422 `illegal` + `rule`, 500 `rules_error`, 503 `rules_busy`, 413 over 2 KB; 30/min)
+- `GET  /turns/:id/history?since=<seq>` → `{moves:[{seq,seat,events,at}]}` · `POST /turns/:id/leave` · `/nudge` · `/rematch` · `/auto` (an overdue turn, or an absent player's seat for the rest of the game) · `/chat` `{text?|quick?}` · `PUT /turns/:id/notify` `{mode}`
 - `GET  /turns[?game=]` → `{games:[SavedGame]}` · `GET /open-turns[?game=]` → `{games:[OpenTurnGame]}`
 - Socket events `turn` (per seat: `{id,game,seq,seat,events,view,summary,outcome}`) and `turn.chat` `{id,line}`.
 

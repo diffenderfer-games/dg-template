@@ -298,6 +298,11 @@ analytics — with **nothing to set up**. The host injects a style-isolated menu
   game, hub relay rooms, own-server tickets, kid-safe chat) add
   `game.multiplayer` and follow **`docs/multiplayer.md`**. Every game — online or
   not — calls `hub.overlay.autoPause(...)` so it pauses when the hub menu opens.
+- **Your own room in the world:** the hub's walkable world gives a game a room with
+  `game.world` (a committed `dg-world@1` map file, `{ "map": "world/lobby.json" }`, or a
+  generated one, `{ "generate": { "type": "lounge", "needs": { … } } }`). Make maps with
+  `@diffenderfer-games/world` or in Tiled (`npx dg-world from-tiled`); `hub-doctor`
+  checks the file. See `docs/hub.md` "The world".
 - **Opt out** of hub injection with `"hub": false` or PWA tags with `"pwa": false`;
   **move the menu** with `menuPosition`.
 
