@@ -29,7 +29,7 @@ import { FakeSaved, savedEntry } from './fake-saved.ts';
 import { FakeMenu, FakeMp, FakeNotify, FakePresence, FakeSocial } from './fake-social.ts';
 import { FakeTurns } from './fake-turns.ts';
 
-/** Which planned hub APIs the fake has (each off by default, like the published client): the world (next.9). */
+/** Which planned hub APIs the fake has (each off by default, like the published client): the world's tables (W2/W3, coming). */
 export type PlannedFlags = { world?: boolean };
 
 /** How to build a FakeHub. */

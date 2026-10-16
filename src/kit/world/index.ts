@@ -1,15 +1,17 @@
 /**
- * kit/world: the game's tables in the hub's world (game.world), and Quick match.
+ * kit/world: game tables in the hub's world and Quick match (world W2, coming); the page side.
  * Source: dg-template src/kit/world/ (kit v1.0). Copy byte-identical; change it in the template first.
  * Docs: docs/kit/world.md
  *
- * Planned hub (world.md §3, W2–W4). The world is the hub's: a game mostly
- * declares data. `worldBlock` derives the `game.world` block world.md §3.1
- * would default to from `game.multiplayer` and `game.race`, so `new-game` can
- * write it once the pinned contract accepts it (the manifest is strict, so
- * until W2 it stays out of package.json). Launches from a table arrive as
- * ordinary host/guest launches with `launch.table` (kit/online passes its
- * options to the game's `start`).
+ * The world is live (hub client next.9) and a game's own room is data
+ * (`game.world`: a map file or a generated room; kit/world/room.ts makes and
+ * checks it for scripts and tests). Tables that launch a game are still
+ * planned (world.md §3, W2): `worldBlock` derives the default tables world.md
+ * §3.1 describes from `game.multiplayer` and `game.race` (not in the manifest
+ * yet: its strict schema refuses `world.tables`), and launches from a table
+ * will arrive as ordinary host/guest launches with `launch.table` (kit/online
+ * passes its options to the game's `start`). Everything here is behind a
+ * feature check.
  */
 import type { HubLike } from '../core/hub-like.ts';
 

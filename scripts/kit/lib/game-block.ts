@@ -6,10 +6,11 @@
  * - `changes`: kid language (no jargon, no violent words), at most 280 characters;
  * - `labels`: only the hub's vocabulary;
  * - boards: every board the game's code uses is declared in `leaderboards`;
- * - `world` (world.md §3.1): keys, titles, player ranges and counts.
+ * - `world`: the live `game.world` shape (a map file or a generated room).
  */
 import { GAME_LABELS } from '@diffenderfer-games/hub-contract';
 import { wordingProblems } from '../../../src/kit/core/wording.ts';
+import { parseGameWorld } from '../../../src/kit/world/room.ts';
 import { arr, isRecord, rec, str, type JsonRecord, type JsonValue } from './json-file.ts';
 
 const JARGON =
@@ -49,40 +50,13 @@ export function checkBoards(game: JsonRecord, used: readonly string[]): string[]
     .map((b) => `leaderboards: the code submits to "${b}" but game.leaderboards doesn't declare it`);
 }
 
-const KEY = /^[A-Za-z0-9_-]{1,32}$/;
-
-/** world.md §3.1 validation (warnings; the hub's registry has the last word). */
-export function checkWorld(world: JsonValue | undefined, modes: readonly string[]): string[] {
-  if (world === undefined) return [];
-  const w = rec(world);
-  if (!w) return ['world: must be an object'];
-  const problems: string[] = [];
-  const tables = arr(w.tables);
-  if (tables.length > 8) problems.push(`world.tables: ${tables.length} table types (at most 8)`);
-  let total = 0;
-  tables.forEach((t, i) => {
-    const table = rec(t);
-    if (!table) return void problems.push(`world.tables[${i}]: must be an object`);
-    const key = str(table.key) ?? '';
-    if (!KEY.test(key)) problems.push(`world.tables[${i}].key: [A-Za-z0-9_-]{1,32}`);
-    const title = str(table.title) ?? '';
-    if (title.length === 0 || title.length > 24) problems.push(`world.tables[${i}].title: 1 to 24 characters`);
-    const players = arr(table.players);
-    const [lo, hi] = [players[0], players[1]];
-    if (typeof lo !== 'number' || typeof hi !== 'number' || lo < 1 || hi > 8 || lo > hi)
-      problems.push(`world.tables[${i}].players: [min, max] within 1..8`);
-    const mode = str(table.mode);
-    if (mode !== undefined && mode !== 'race' && !modes.includes(mode))
-      problems.push(`world.tables[${i}].mode: "${mode}" isn't a declared mode`);
-    const count = typeof table.count === 'number' ? table.count : 1;
-    if (count < 1 || count > 6) problems.push(`world.tables[${i}].count: 1 to 6`);
-    total += count;
-    const options = table.options;
-    if (options !== undefined && JSON.stringify(options).length > 1024)
-      problems.push(`world.tables[${i}].options: at most 1 KB`);
-  });
-  if (total > 16) problems.push(`world.tables: ${total} tables in all (at most 16)`);
-  return problems;
+/**
+ * `game.world` (hub.md "The world"): the hub's own schema (hub-contract's
+ * `GameWorld`: a `map` file, a `generate` block, or both). hub-doctor also
+ * checks the map file itself; `npm run world:check` checks the room.
+ */
+export function checkWorld(world: JsonValue | undefined): string[] {
+  return parseGameWorld(world).problems;
 }
 
 /** The `multiplayer.modes[].key` list. */

@@ -7,7 +7,10 @@
  * these reasons. When the hub publishes a phase, the kit's next minor version
  * flips its entry to `true` and the tests run (docs/kit/CHANGELOG.md).
  * Saved games, online games over days and avatars shipped in client
- * 2.0.0-next.6 (avatar fixes in next.7); the world is coming in next.9.
+ * 2.0.0-next.6 (avatar fixes in next.7; online games on the server, presence,
+ * moves out of turn and the buzz in next.8). The world shipped in next.9: the
+ * live world (W0) and a game's own room (`game.world`, the W4 map files);
+ * game tables in the world (W2) and in-game presence (W3) are still coming.
  */
 
 /** A hub phase, the plan that defines it, and whether the pinned client has it. */
@@ -18,9 +21,16 @@ export const HUB_PHASES = {
   avatars0: { label: 'avatars phase 0 (hub.avatar data + API; next.6)', shipped: true },
   avatars2: { label: 'avatars phase 2 (the designer; next.6)', shipped: true },
   avatars4: { label: 'avatars phase 4 (the Pixi and three.js adapters; next.6)', shipped: true },
-  worldW2: { label: 'world W2 (game.world tables, launch.table, quickMatch; coming in next.9)', shipped: false },
-  worldW3: { label: 'world W3 (People panel, reactions, setRoster; coming in next.9)', shipped: false },
-  worldW4: { label: 'world W4 (dg-room@1 room files, the converter; coming in next.9)', shipped: false },
+  world0: {
+    label: 'world W0 (the live world: walking, presence, /_hub/world.js, the walker figure; next.9)',
+    shipped: true,
+  },
+  worldW2: { label: 'world W2 (game tables in the world, launch.table, quickMatch; coming)', shipped: false },
+  worldW3: { label: 'world W3 (People panel, reactions, setRoster; coming)', shipped: false },
+  worldW4: {
+    label: "world W4 (a game's own room: game.world map files or generate, dg-world, hub-doctor; next.9)",
+    shipped: true,
+  },
 } as const;
 
 /** A planned hub phase key. */

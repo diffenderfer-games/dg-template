@@ -11,7 +11,7 @@
 import { existsSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { checkBoards, checkChanges, checkLabels, checkWorld, modeKeys } from './lib/game-block.ts';
+import { checkBoards, checkChanges, checkLabels, checkWorld } from './lib/game-block.ts';
 import { rec, readJsonFile } from './lib/json-file.ts';
 import { driftedFiles, readKitManifest } from './lib/kit-manifest.ts';
 import { expandPath } from './lib/modules.ts';
@@ -51,7 +51,7 @@ const game = rec(pkg.game);
 if (!game) {
   problems.push('package.json has no `game` block');
 } else {
-  problems.push(...checkChanges(game.changes), ...checkLabels(game.labels), ...checkWorld(game.world, modeKeys(game)));
+  problems.push(...checkChanges(game.changes), ...checkLabels(game.labels), ...checkWorld(game.world));
   const configPath = join(ROOT, 'src', 'game', 'config.ts');
   if (existsSync(configPath)) {
     try {

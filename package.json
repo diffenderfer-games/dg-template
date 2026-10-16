@@ -25,8 +25,10 @@
     "hub-doctor": "hub-doctor",
     "new-game": "node scripts/kit/new-game.ts",
     "build:rules": "node scripts/kit/build-rules.ts",
-    "world:build": "node scripts/kit/world.ts build",
     "world:check": "node scripts/kit/world.ts check",
+    "world:generate": "node scripts/kit/world.ts generate",
+    "world:tiled": "node scripts/kit/world.ts tiled",
+    "world:build": "node scripts/kit/world.ts build",
     "test:hub": "node --test --test-concurrency=1 \"tests/hub/**/*.test.ts\"",
     "shots": "node scripts/kit/shots.ts",
     "shots:hub": "node scripts/kit/shots.ts --hub",
@@ -110,6 +112,15 @@
         "Your move!",
         "Last coin!"
       ]
+    },
+    "world": {
+      "generate": {
+        "type": "lounge",
+        "needs": {
+          "tables": 4,
+          "game": "Coin Dash"
+        }
+      }
     },
     "changes": []
   },
