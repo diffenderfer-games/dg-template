@@ -1,14 +1,22 @@
 // Appendix B rows 56–63: hub APIs that were planned. Saved games, online games the hub runs and avatars are
 // live (next.6 to next.8) and run; the world shipped in next.9 without tables (W2) or in-game presence (W3), so
 // those rows stay skipped (kit/testing/phases.ts). The kit's online-games screen is tests/hub-events/turns.test.ts.
-import { describe, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { envelope } from '../../src/kit/online/wire.ts';
 import { rosterSync } from '../../src/kit/online/roster.ts';
-import { bootGame } from './_support/harness.ts';
+import { bootGame, HAS } from './_support/harness.ts';
 import { planned } from './_support/planned.ts';
 
+/** A planned test that needs a feature this game may not have (skipped with the reason). */
+const needs = (has: boolean, why: string, ...phases: Parameters<typeof planned>) =>
+  has ? planned(...phases) : (name: string, fn: () => Promise<void>): void => it.skip(`${name} [skipped: ${why}]`, fn);
+
+/** Row 56 opens a day in progress; row 62 redraws the title's bust. */
+const withDaily = needs(HAS.daily, 'this game declares no daily', 'savedGames01');
+const withBust = needs(HAS.avatar, 'this game has no src/game/avatar.ts', 'avatars0');
+
 describe('planned hub APIs', () => {
-  planned('savedGames01')(
+  withDaily(
     'row 56: hub.saved: opened routes by kind, onOpen switches without a reload, change refreshes Continue',
     async () => {
       let day = '';
@@ -24,7 +32,7 @@ describe('planned hub APIs', () => {
       g.hook.toTitle?.();
       await g.settle();
       expect(g.ui.querySelector('[data-testid="continue"]')?.textContent).toMatch(/Daily challenge · Oct 14/);
-      g.fake.saved.add({ id: 'r1', kind: 'run', progress: { label: '9 coins', fraction: null } });
+      g.fake.saved.add({ id: 'r1', kind: 'run', progress: { label: 'Level 9', fraction: null } });
       await g.settle();
       expect(g.ui.querySelector('[data-testid="continue-r1"]')).not.toBeNull();
       await g.fake.saved.open('r1');
@@ -100,7 +108,7 @@ describe('planned hub APIs', () => {
     ]);
   });
 
-  planned('avatars0')('row 62: a look change re-renders the title bust and the badges, with no reload', async () => {
+  withBust('row 62: a look change re-renders the title bust and the badges, with no reload', async () => {
     const g = await bootGame();
     await g.settle();
     const bust = g.ui.querySelector('[data-testid="avatar-demo"] dg-avatar');

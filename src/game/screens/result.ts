@@ -11,8 +11,8 @@ import { HUD } from '../strings.ts';
 export function result(ctx: GameContext<Profile, Run>, el: HTMLElement, info: ResultInfo<Run>): void {
   const body = el.querySelector('.kit-result-body');
   if (!body) return;
-  const n = h('strong', { 'data-testid': 'result-coins' }, '0');
-  body.append(h('p', {}, 'Coins: ', n));
+  const n = h('strong', { 'data-testid': 'result-score' }, '0');
+  body.append(h('p', {}, 'Score: ', n));
   if (info.mode === 'normal') body.append(h('p', { 'data-testid': 'result-best' }, HUD.best(ctx.profile.data.best)));
   countUp(n, 0, info.run.score);
 }

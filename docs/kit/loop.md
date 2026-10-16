@@ -59,7 +59,7 @@ const dt = clampDt(frameMs); // a variable-dt game: seconds, clamped to 0.05
 ## Tests
 
 - `tests/kit/layout/layout-loop.test.ts`: N fixed steps for M ms with alpha in [0, 1), the `maxFrame` cap, no steps while paused but still rendering, start and stop from the clock, `clampDt`.
-- `tests/game/sim.test.ts`: the stub game's seeded simulation.
+- `tests/game/sim.test.ts`: the game's seeded simulation.
 
 ## Hub API used:
 

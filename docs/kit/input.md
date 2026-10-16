@@ -6,7 +6,7 @@ Source: `src/kit/input/` (KIT: copy byte-identical; change it in the template fi
 
 ## What the game does
 
-Export an `InputSpec` and pass it as `GameDefinition.input`. Keep a `pause` input in `play`: the session pauses on it (Escape, P, the gamepad's Start).
+Export an `InputSpec` and pass it as `GameDefinition.input`. Keep a `pause` input in `play`: the session pauses on it (Escape and the gamepad's Start; never a letter: a word game types them).
 
 ```ts
 import type { VirtualDef } from '@diffenderfer-games/hub';
@@ -19,7 +19,7 @@ const virtual = (width: number): VirtualDef[] => [
 export const controls: InputSpec = {
   groups: {
     play: {
-      inputs: { left: { keys: ['a', 'arrowleft'], touch: { stick: 'move', axis: 'x-' } }, pause: { keys: ['escape', 'p'] } },
+      inputs: { left: { keys: ['a', 'arrowleft'], touch: { stick: 'move', axis: 'x-' } }, pause: { keys: ['escape'], gamepad: { button: 9 } } },
       axes: { move: { x: ['left', 'right'], y: ['up', 'down'] } },
     },
   },
@@ -47,6 +47,42 @@ Call `ctx.controls.relayout(width)` from `ctx.onResize` if your touch layout dep
 - `repeatPress(read, { first, next })`: turn a held button into repeats. Call the returned function once per frame with `dt` in ms.
 - `navTargets(root)`: the list `installMenuNav` uses (also handy in tests).
 
+## What `hub.input` does (facts from the client's types)
+
+- **`keys`** are `KeyboardEvent.key` values, case-insensitive (`' '` is Space).
+- **One `gamepad` mapping per input**: `{ button: n }` or `{ axis: [n, '+' | '-'] }`, not
+  both, not a list (`GamepadMapping` in `@diffenderfer-games/hub`'s `dist/shared/input.d.ts`).
+  The d-pad (buttons 12–15) and the stick (axes 0, 1) need separate inputs.
+- **`down(name)` and `pressed(name)` are per frame**, not per step: with two fixed steps in
+  one frame a press is seen twice, with none it is missed. For a press per step, compare
+  `value(name) >= 0.5` with last step's (the template's `hooks.ts` does).
+- **The hub's controller adapter sends keyboard events from the gamepad** (A → Space, B →
+  Enter…), and they are not trusted (`e.isTrusted === false`). A game that listens to
+  `keydown` itself ignores untrusted events, or the gamepad types and submits.
+- **The hub's on-screen controls** are sticks, d-pads and buttons: there is no on-screen
+  keyboard. `virtual: () => []` turns them off.
+
+## Typing and word games
+
+The hub's input system has no text input, and 26 letter inputs are heavy. A typing game:
+
+- **Listens to `keydown` itself** (letters, Enter, Backspace), only while
+  `ctx.session.screen === 'play' && !ctx.session.paused`; `preventDefault()`s those keys
+  (Enter would click a focused button, Backspace would navigate back); ignores
+  `!e.isTrusted` (the controller adapter, above); queues the keys and **drains the queue in
+  `step`**, so typing is deterministic and works with any number of steps per frame.
+- **Draws its own on-screen keyboard** (DOM, or Pixi with `eventMode = 'static'` and
+  `pointerdown`: Pixi pointer events work with the ticker stopped), sized from
+  `ctx.region()`, and turns the hub's touch controls off (`virtual: () => []`).
+- **Moves a gamepad cursor** over that keyboard: the d-pad and the stick as separate inputs,
+  read once per step, and a cursor that keeps its column between rows.
+- **Pauses on Escape and Start only** (P is a letter).
+- Keeps word lists as generated data in `src/game/data/` (the violent-words lint rule skips
+  it; filter what players see, e.g. the answers and their definitions).
+
+Wordle (`diffenderfer-games/wordle`, `src/game/hooks.ts`, `keyboard.ts`, `controls.ts`)
+is a working example of all of it.
+
 ## Rules it enforces
 
 - One `hub.input.define` for the whole game; groups enabled only when needed: [docs/hub.md Groups, devices, arbitration](../hub.md#groups-devices-arbitration).
@@ -73,7 +109,7 @@ Call `ctx.controls.relayout(width)` from `ctx.onResize` if your touch layout dep
 ## Tests
 
 - `tests/kit/input/input.test.ts`: enable and disable only on change, a sync while hub UI is open, the touch layout switching at 520 px, nav targets, control hints, HUD insets, `repeatPress`.
-- `tests/hub-events/input.test.ts`: the hub input events against the stub game (FakeHub).
+- `tests/hub-events/input.test.ts`: the hub input events against the game (FakeHub).
 
 ## Hub API used:
 

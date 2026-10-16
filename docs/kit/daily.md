@@ -13,7 +13,7 @@ import type { DailyHooks } from '../kit/boot/index.ts';
 
 export const daily: DailyHooks<Run> = {
   // extra fields for hub.daily.complete; `score` defaults to the result's first board
-  meta: (run, outcome) => ({ coins: run.score, seconds: Math.round(run.t) }),
+  meta: (run, outcome) => ({ seconds: Math.round(run.t) }),
   offline: 'play-unrecorded', // or 'toast': only tell the player it needs a connection
 };
 
@@ -22,6 +22,16 @@ export const daily: DailyHooks<Run> = {
 ```
 
 `newRun` gets `opts.mode === 'daily'`, `opts.seed` (the hub's seed) and `opts.day`. Use only `opts.rng` for randomness ([rng](rng.md)).
+
+## A lost day
+
+A day the player loses is cleared and starts again **from its seed** the next
+time (`session.finish` → `resume.clear`): the same day, from the start. For an
+action game that is a fair retry; for a puzzle or word game it means the
+player can try the same answer again. To make a lost day final, have `newRun`
+for that day build a finished-and-lost state from the saved progress, or keep
+the day in progress (don't let `outcome` say `'lost'`) and show the loss
+yourself. The kit has no switch for it yet.
 
 ## What the kit does for you
 

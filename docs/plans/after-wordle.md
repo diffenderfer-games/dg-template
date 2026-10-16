@@ -1,6 +1,11 @@
 # After Wordle: fix the template so the next game goes smoothly
 
-Template only. A task brief for the agent who updates dg-template next. Wordle
+Template only. **Done in kit 1.4 (2026-10-16)**, except the typing/words module
+(§4) and the skin module (§6), which the owner dropped; see the CHANGELOG 1.4
+entry and kit-retros.md. Wordle moves over with `npm run kit:sync` and the steps
+in that entry. Kept as the record of what Wordle ran into.
+
+A task brief for the agent who updates dg-template next. Wordle
 (`../wordle`, `diffenderfer-games/wordle`) was the first real game made with the
 kit (kit 1.2, 2026-10-16). Everything below cost time, broke the gate, or needed
 research outside the docs.

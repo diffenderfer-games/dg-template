@@ -14,6 +14,9 @@ export type Feature = 'daily' | 'race' | 'online' | 'avatar' | 'turns' | 'world'
 /** What `new-game` was asked for. */
 export type NewGameChoice = { renderer: Renderer; drop: Feature[]; title?: string };
 
+/** Who and what the new game is (package.json `name`, `description`, `author`). */
+export type GameIdentity = { slug: string; title: string; author?: string };
+
 /**
  * Remove, for each dropped feature, the lines tagged `// new-game:<feature>`
  * and every line from `// new-game:<feature>:start` to `// new-game:<feature>:end`.
@@ -38,7 +41,7 @@ export function stripFeatureLines(text: string, drop: readonly Feature[]): strin
 }
 
 /** The files whose `// new-game:<feature>` lines are stripped for dropped features. */
-export const TAGGED_FILES = ['src/game/hooks.ts', 'scripts/shots.config.ts'];
+export const TAGGED_FILES = ['src/game/hooks.ts', 'src/game/screens/title.ts', 'scripts/shots.config.ts'];
 
 /** The source files each optional feature owns (deleted when dropped). */
 export const FEATURE_FILES: Record<Feature, string[]> = {
@@ -54,8 +57,8 @@ export const FEATURE_FILES: Record<Feature, string[]> = {
 const RENDERER_DEPS: Record<Renderer, string[]> = { pixi: ['pixi.js'], three: ['three'], none: [] };
 const ALL_RENDERER_DEPS = ['pixi.js', 'three', '@types/three'];
 
-/** package.json after the choice: renderer deps, labels, the game block's optional features. */
-export function editPackage(pkg: JsonRecord, c: NewGameChoice): JsonRecord {
+/** package.json after the choice: renderer deps, labels, the game block's optional features, its name. */
+export function editPackage(pkg: JsonRecord, c: NewGameChoice, id?: GameIdentity): JsonRecord {
   const keep = new Set(RENDERER_DEPS[c.renderer]);
   if (c.renderer === 'three') keep.add('@types/three');
   const prune = (deps: JsonValue | undefined): JsonRecord => {
@@ -85,7 +88,78 @@ export function editPackage(pkg: JsonRecord, c: NewGameChoice): JsonRecord {
     }
   }
   game.changes = [];
-  return { ...pkg, dependencies: prune(pkg.dependencies), devDependencies: prune(pkg.devDependencies), game };
+  const named: JsonRecord =
+    id === undefined
+      ? {}
+      : {
+          name: id.slug,
+          description: `${id.title}: a diffenderfer.games game.`,
+          ...(id.author === undefined ? {} : { author: id.author }),
+        };
+  return {
+    ...pkg,
+    ...named,
+    dependencies: prune(pkg.dependencies),
+    devDependencies: prune(pkg.devDependencies),
+    game,
+  };
+}
+
+/** Put the game's title into index.html's `<title>` (the browser tab). */
+export function setHtmlTitle(html: string, title: string): string {
+  const safe = title.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  return html.replace(/<title>[^<]*<\/title>/, `<title>${safe}</title>`);
+}
+
+/** A new game's README: its name and where to read on (the kit's notes stay in docs/kit/README.md). */
+export function gameReadme(title: string, slug: string): string {
+  return [
+    `# ${title}`,
+    '',
+    `A [diffenderfer.games](https://diffenderfer.games/${slug}/) game, built on the dg kit.`,
+    '',
+    '- [docs/game.md](docs/game.md): this game: its design, modes, controls and known issues.',
+    '- [CLAUDE.md](CLAUDE.md): how to build and check it.',
+    '- [docs/getting-started.md](docs/getting-started.md) and [docs/kit/README.md](docs/kit/README.md): the kit.',
+    '',
+    '```bash',
+    'npm run dev      # play it',
+    'npm run check    # every local gate (typecheck, tests, lint, format, kit files, hub-doctor, build)',
+    '```',
+    '',
+  ].join('\n');
+}
+
+/** A new game's notes (docs/game.md): the headings to fill in. */
+export function gameNotes(title: string): string {
+  return [
+    `# ${title}: the game's notes`,
+    '',
+    "GAME doc: yours to edit. Keep this game's own notes here (not in CLAUDE.md),",
+    'so the brief stays short and the notes stay in one place.',
+    '',
+    '## Design',
+    '',
+    'TODO(game): what the game is, in a few lines, and what makes it fun.',
+    '',
+    '## Modes',
+    '',
+    'TODO(game): normal, the daily, races, online: what each one is.',
+    '',
+    '## Controls',
+    '',
+    "TODO(game): keys, gamepad and touch. Escape or the gamepad's Start pauses.",
+    '',
+    '## Test drivers',
+    '',
+    "TODO(game): your `__game.extra` drivers. The kit's are in [kit/test-hook.md](kit/test-hook.md).",
+    '',
+    '## Known issues',
+    '',
+    'None yet. Kit tests this game skips are listed with their reasons in',
+    '`tests/kit-skips.json` ([kit/testing.md](kit/testing.md#kit-tests-that-dont-apply)).',
+    '',
+  ].join('\n');
 }
 
 /** Put the game's title into src/game/strings.ts (`COPY.title`), so the title screen says it too. */

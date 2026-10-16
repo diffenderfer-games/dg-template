@@ -14,13 +14,13 @@ const declared: unknown = field(field(JSON.parse(readFileSync(join(ROOT, 'packag
 describe('kit/world: your room (game.world)', () => {
   it('reads a block the hub way: seed defaults to the slug; the key is game.<slug>', () => {
     const { world } = parseGameWorld({ generate: { type: 'lounge', needs: { tables: 2 } } });
-    expect(world && generateRequest(world, 'coin-dash')).toEqual({
+    expect(world && generateRequest(world, 'my-game')).toEqual({
       type: 'lounge',
-      seed: 'coin-dash',
+      seed: 'my-game',
       needs: { tables: 2 },
     });
-    expect(worldKey('coin-dash')).toBe('game.coin-dash');
-    expect(roomPath('coin-dash')).toBe('/world/game.coin-dash');
+    expect(worldKey('my-game')).toBe('game.my-game');
+    expect(roomPath('my-game')).toBe('/world/game.my-game');
     expect(parseGameWorld(undefined)).toEqual({ world: null, problems: [] });
   });
 

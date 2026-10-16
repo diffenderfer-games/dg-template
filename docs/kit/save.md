@@ -76,7 +76,7 @@ Per account, tagged with its owner (`owner` must match the signed-in id or the c
 
 - `tests/kit/save/profile.test.ts` (one regression test per guard)
 - `tests/kit/save/settings-merge.test.ts`
-- `tests/hub-events/progress.test.ts` (auth, reset, online and sync events against the stub game)
+- `tests/hub-events/progress.test.ts` (auth, reset, online and sync events against the game)
 
 ## Hub API used:
 

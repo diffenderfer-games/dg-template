@@ -8,7 +8,7 @@ worker, the test hook). You write the game: its state, its rules, its controls
 and how it looks.
 
 It is built against the hub client that diffenderfer.games runs,
-`@diffenderfer-games/hub` **2.0.0-next.9** (pinned exactly), with online
+`@diffenderfer-games/hub` **2.0.0-next.10** (pinned exactly), with
 online games the hub runs on the kit's own screen and the game's room in the hub's
 world (`@diffenderfer-games/world`, `dg-world`). Coming, and not in it yet:
 game tables in the world.
@@ -17,16 +17,16 @@ game tables in the world.
 
 The long version is [docs/getting-started.md](docs/getting-started.md).
 
-1. Create the repo from this template (private, in the org): [docs/repo-setup.md](docs/repo-setup.md).
-2. `npm install`
-3. `npm run new-game -- --renderer pixi` (or `three`, or `none`)
-4. Fill the `game` block in `package.json` (title, description, labels, features).
-5. Write `src/game/state.ts` and `src/game/rules.ts`.
-6. Map controls in `src/game/controls.ts`.
-7. Draw it: `src/game/render/` and `src/game/screens/`.
-8. Optional: the daily, race and online hooks in `src/game/`.
-9. `npm run check`, `npm run test:hub`, `npm run shots:hub`, then look at `shots/sheet.png`.
-10. Push: the first push deploys it.
+1. In this repo: `npm run create -- <slug> --title "My Game" --renderer pixi` (or `three`, or `none`; `--no-online`, `--no-turns`… for features it won't have). Pick the final name first.
+2. In the new folder (`../<slug>`): `npm run dev`, `npm run check` (it passes as created).
+3. Fill the `game` block in `package.json` (title, description, labels, features).
+4. Write `src/game/state.ts` and `src/game/rules.ts`.
+5. Map controls in `src/game/controls.ts`.
+6. Draw it: `src/game/render/` and `src/game/screens/` ([docs/kit/look.md](docs/kit/look.md)).
+7. Optional: the daily, race and online hooks in `src/game/`.
+8. `npm run check`, `npm run test:hub`, `npm run shots:hub`, `npm run shots`, then look at `shots/sheet.png`.
+9. Write the game's notes in `docs/game.md`.
+10. `npm run first-deploy`: the private repo in the org, its secrets, the first push (it deploys).
 
 `npm run todo` lists every `TODO(game)` left.
 
@@ -46,9 +46,11 @@ The long version is [docs/getting-started.md](docs/getting-started.md).
 ## Commands
 
 ```bash
+npm run create -- <slug> --title "My Game"   # (template) a new game's folder, ready to build
+npm run first-deploy # (game) the repo in the org, its deploy secrets, the first push
 npm run dev          # play it
 npm run check        # typecheck, unit tests, lint, format, kit files, hub-doctor, build
-npm run test:hub     # the kit's hub suites against a real hub test host
+npm run test:hub     # the kit's hub suites against a real hub test host (~20–25 min)
 npm run shots        # screenshots of dist/ (phone + desktop) → shots/sheet.png
 npm run shots:hub    # the hub scenarios (menu, daily, race, invite, lobby, avatar, your games)
 npm run local        # this game on a local hub, on a free port

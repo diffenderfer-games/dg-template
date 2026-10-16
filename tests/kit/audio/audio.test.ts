@@ -16,7 +16,7 @@ import { createStore, hashJson } from '../../../src/kit/core/index.ts';
 import { createSettings } from '../../../src/kit/save/settings.ts';
 import { kitSettingsDefaults } from '../../../src/kit/settings-ui/index.ts';
 import { fakeAudioContext, fakeClock, fakeStorage, type FakeAudioContext } from '../../../src/kit/testing/index.ts';
-import { SongCore } from '../../../src/game/music-core.ts';
+import { ToyCore } from './toy-core.ts';
 
 function engineWith(): { engine: AudioEngine; ctx: FakeAudioContext } {
   const ctx = fakeAudioContext();
@@ -80,9 +80,9 @@ describe('audio engine', () => {
     let t = 0;
     let plays = 0;
     const throttle = throttleSfx(() => t, 3, 100);
-    for (let i = 0; i < 10; i++) throttle('coin', () => plays++);
+    for (let i = 0; i < 10; i++) throttle('blip', () => plays++);
     t = 150;
-    throttle('coin', () => plays++);
+    throttle('blip', () => plays++);
     expect(plays).toBe(4);
   });
 });
@@ -97,20 +97,20 @@ describe('music', () => {
 
   it('a MusicCore renders the same samples for the same song (snapshot)', () => {
     const render = () => {
-      const core = new SongCore(48000);
+      const core = new ToyCore(48000);
       core.handle({ bpm: 108, root: 45, volume: 0.18 });
       return renderChunk(core, 96000, 512, { now: () => 0 });
     };
     const a = render();
     expect([...a.left.slice(0, 64)]).toEqual([...render().left.slice(0, 64)]);
-    expect(hashJson([...a.left].map((v) => Math.round(v * 1e6)))).toMatchInlineSnapshot(`"042e72d1918d5b6f"`);
+    expect(hashJson([...a.left].map((v) => Math.round(v * 1e6)))).toMatchInlineSnapshot(`"71dda20c90ef65ea"`);
   });
 
   it('the stream schedules chunks back to back on sample boundaries, ahead of time, and counts underruns', async () => {
     const clock = fakeClock(0);
     const ctx = fakeAudioContext(48000);
     ctx.state = 'running';
-    const port = mainThreadPort((sr) => new SongCore(sr), clock);
+    const port = mainThreadPort((sr) => new ToyCore(sr), clock);
     const stream = new MusicStream(ctx, ctx.createGain(), port, clock, { chunk: 4800, aheadS: 0.5, maxInflight: 2 });
     stream.start({ bpm: 108, root: 45, volume: 0.18 });
     for (let i = 0; i < 20; i++) clock.advance(10);
@@ -141,18 +141,18 @@ describe('music', () => {
     );
     let played = 0;
     const audio = createKitAudio({
-      hooks: { sfx: { coin: () => void played++ } },
+      hooks: { sfx: { blip: () => void played++ } },
       settings,
       clock: fakeClock(0),
       create: () => ctx,
       secure: false,
     });
-    audio.play('coin');
+    audio.play('blip');
     expect(played).toBe(0); // not unlocked yet
     window.dispatchEvent(new Event('pointerdown'));
-    audio.play('coin');
+    audio.play('blip');
     settings.set({ sound: false });
-    audio.play('coin');
+    audio.play('blip');
     expect(played).toBe(1);
     expect(audio.telemetry()).toMatchObject({ unlocked: true, underruns: 0 });
     audio.dispose();

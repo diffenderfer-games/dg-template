@@ -38,7 +38,7 @@ Declare the room in `package.json` (the template does):
 ```json
 "game": {
   "world": {
-    "generate": { "type": "lounge", "needs": { "tables": 4, "game": "Coin Dash" } }
+    "generate": { "type": "lounge", "needs": { "tables": 4, "game": "My Game" } }
   }
 }
 ```

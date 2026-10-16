@@ -2,30 +2,26 @@
  * The game's controls: one declaration for keys, gamepad, mouse and touch. (GAME: yours to edit.)
  *
  * The hub draws the on-screen controls and maps gamepads (docs/hub.md "Input
- * system"). The kit enables `play` only while playing. Keep the `pause` input:
- * the kit pauses on it (Escape, P, the gamepad's Start).
+ * system", docs/kit/input.md). The kit enables `play` only while playing.
+ * Keep the `pause` input: the kit pauses on it (Escape, the gamepad's Start).
+ * Don't put letters on `pause`: a word game types them.
  */
 import type { VirtualDef } from '@diffenderfer-games/hub';
 import type { InputSpec } from '../kit/input/index.ts';
 
-/** The touch layout for a viewport width (phones get a smaller stick). TODO(game): your on-screen controls. */
+/** The touch layout for a viewport width (phones get a smaller button). TODO(game): your on-screen controls. */
 function virtual(width: number): VirtualDef[] {
-  const small = width < 520;
-  return [{ id: 'move', type: 'joystick', place: 'bottom-left', size: small ? 120 : 150 }];
+  return [{ id: 'act', type: 'button', place: 'bottom-right', size: width < 520 ? 96 : 120, label: 'Score' }];
 }
 
-/** TODO(game): your inputs. `move` is read with `hub.input.vector('move')`. */
+/** TODO(game): your inputs. `action` is read with `hub.input.value('action')`. */
 export const controls: InputSpec = {
   groups: {
     play: {
       inputs: {
-        left: { keys: ['a', 'arrowleft'], gamepad: { axis: [0, '-'] }, touch: { stick: 'move', axis: 'x-' } },
-        right: { keys: ['d', 'arrowright'], gamepad: { axis: [0, '+'] }, touch: { stick: 'move', axis: 'x+' } },
-        up: { keys: ['w', 'arrowup'], gamepad: { axis: [1, '-'] }, touch: { stick: 'move', axis: 'y-' } },
-        down: { keys: ['s', 'arrowdown'], gamepad: { axis: [1, '+'] }, touch: { stick: 'move', axis: 'y+' } },
-        pause: { keys: ['escape', 'p'], gamepad: { button: 9 } },
+        action: { keys: [' '], gamepad: { button: 0 }, touch: { button: 'act' } },
+        pause: { keys: ['escape'], gamepad: { button: 9 } },
       },
-      axes: { move: { x: ['left', 'right'], y: ['up', 'down'] } },
     },
   },
   virtual,

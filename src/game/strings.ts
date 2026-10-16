@@ -7,15 +7,14 @@
  */
 import type { KitStrings } from '../kit/core/strings.ts';
 
-/** TODO(game): your title, tagline and how-to-play lines. */
+/** TODO(game): your title, tagline and how-to-play lines (`new-game --title` sets the title). */
 export const COPY = {
-  title: 'Coin Dash',
-  tagline: 'Grab the coins before time is up!',
+  title: 'My Game',
+  tagline: 'Score as many points as you can!',
   howTo: [
-    'Move with the arrow keys, WASD, a gamepad stick, or the on-screen stick.',
-    'Touch a coin to collect it. A new one appears somewhere else.',
-    'Daily challenge: collect the target number of coins in time. Everyone gets the same coins today.',
-    'Race: the first to collect them all wins.',
+    'Press Space, the gamepad’s A button or the on-screen button to score a point.',
+    'Daily challenge: reach the target before time is up. Everyone gets the same target today.',
+    'Race: the first to reach the target wins.',
   ],
 } as const;
 
@@ -24,7 +23,7 @@ export const KIT_OVERRIDES: Partial<KitStrings> = {};
 
 /** The HUD's words. */
 export const HUD = {
-  coins: (n: number, target: number) => (target > 0 ? `Coins ${n} / ${target}` : `Coins ${n}`),
+  score: (n: number, target: number) => (target > 0 ? `Score ${n} / ${target}` : `Score ${n}`),
   time: (s: number) => `Time ${s}`,
   best: (n: number) => `Best ${n}`,
 };

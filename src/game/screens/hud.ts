@@ -9,19 +9,19 @@ import { timeLeft } from '../rules.ts';
 import type { Profile, Run } from '../state.ts';
 import { HUD } from '../strings.ts';
 
-let coins: HTMLElement | null = null;
+let score: HTMLElement | null = null;
 let time: HTMLElement | null = null;
 
 /** TODO(game): what your HUD shows. */
 export const hud: HudHooks<Profile, Run> = {
   mount(_ctx, el) {
-    coins = h('span', { 'data-testid': 'hud-coins' });
+    score = h('span', { 'data-testid': 'hud-score' });
     time = h('span', { 'data-testid': 'hud-time' });
-    el.append(coins, time);
+    el.append(score, time);
   },
   update(_ctx, run) {
-    const c = HUD.coins(run.score, run.target);
-    if (coins && coins.textContent !== c) coins.textContent = c;
+    const s = HUD.score(run.score, run.target);
+    if (score && score.textContent !== s) score.textContent = s;
     const left = timeLeft(run);
     const tx = left === null ? '' : HUD.time(left);
     if (time && time.textContent !== tx) time.textContent = tx;

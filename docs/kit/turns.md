@@ -17,21 +17,21 @@ rematches for everyone, guests and the your-turn buzz.
 ## What the game does
 
 1. **The rules**, `src/game/turns/rules.ts`: a `TurnRules` object, the module's
-   default export. The template has a working example, "take the last coin"
-   (players take 1 to 3 coins; whoever takes the last one wins):
+   default export. The template has a working example, "take the last one"
+   (players take 1 to 3 from a pile; whoever takes the last one wins):
 
    ```ts
    import type { TurnRules } from '../../kit/turns/rules.ts';
 
-   export const rules: TurnRules<CoinPile, Take, PileView> = {
+   export const rules: TurnRules<Pile, Take, PileView> = {
      version: 1,
-     setup: ({ seats, rng }) => ({ coins: 15 + rng.int(6), turn: 0, seats, winner: null }),
-     view: (s) => ({ coins: s.coins, turn: s.turn, winner: s.winner }),
+     setup: ({ seats, rng }) => ({ left: 15 + rng.int(6), turn: 0, seats, winner: null }),
+     view: (s) => ({ left: s.left, turn: s.turn, winner: s.winner }),
      toAct: (s) => (s.winner === null ? [s.turn] : []),
      apply(s, seat, move) { /* return { state } or { error: 'not_your_turn' } */ },
      outcome: (s) => (s.winner === null ? null : { winners: [s.winner] }),
-     progress: (s) => ({ label: `${s.coins} coins left`, fraction: 1 - s.coins / 20 }),
-     autoMove: (s) => ({ take: s.coins % 4 === 0 ? 1 : s.coins % 4 }),
+     progress: (s) => ({ label: `${s.left} left in the pile`, fraction: 1 - s.left / 20 }),
+     autoMove: (s) => ({ take: s.left % 4 === 0 ? 1 : s.left % 4 }),
    };
    export default rules;
    ```
@@ -53,7 +53,10 @@ rematches for everyone, guests and the your-turn buzz.
    canMove, move(move) }`; `canMove` is true on the player's turn and for a
    move out of turn (`mayActNow`). Validate `view` (it is untrusted JSON).
    `create` (optional) is what every new game is made with (`mode`,
-   `options`, `seats`, `deadline`).
+   `options`, `seats`, `deadline`). `testMove(board)` gives a legal move for
+   this player from the board, or null: the kit's hub suite plays with it
+   (`__game.turnsMove()`, the test contract in
+   [testing.md](testing.md#what-the-kits-tests-need-from-your-game)).
 
 3. **package.json** (multiplayer.md [§16.1](../multiplayer.md#161-declare-gameturns)):
 
@@ -63,7 +66,7 @@ rematches for everyone, guests and the your-turn buzz.
        "rules": "dist-rules/rules.mjs",
        "players": [2, 4],
        "bots": true,
-       "quickChat": ["Good move!", "Your move!", "Last coin!"]
+       "quickChat": ["Good move!", "Your move!", "Last one!"]
      }
    }
    ```

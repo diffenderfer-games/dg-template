@@ -25,8 +25,8 @@ What players see on the title (never "run", "turn game" or "instance"):
 
 | Saved game | Row (each is a Continue button with this line under it) |
 |---|---|
-| The saved game | Continue, with `6 coins · 48 s left` under it (the label `run.progress` gave) |
-| A day in progress | `Daily challenge · Oct 14 (6 coins)` |
+| The saved game | Continue, with `6 points · 24 s left` under it (the label `run.progress` gave) |
+| A day in progress | `Daily challenge · Oct 14 (6 points)` |
 | An online game | `Online with Sam · your turn` (a game that plays them only) |
 
 ## What the hub does

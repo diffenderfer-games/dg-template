@@ -6,7 +6,7 @@ import { wordingProblems } from '../../src/kit/core/index.ts';
 
 const rng = (seed: number): ReturnType<typeof createTurnRng> => createTurnRng(turnRngStateFromSeed(seed));
 
-describe('turn rules (take the last coin)', () => {
+describe('turn rules (take the last one)', () => {
   it('passes checkTurnRules: deterministic, legal computer moves, never stuck, small JSON', () => {
     const report = checkTurnRules(rules, { seats: [2, 3], games: 30 });
     expect(report.games).toBe(60);

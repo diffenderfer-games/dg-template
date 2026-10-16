@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { editPackage, parseNewGameArgs, setCopyTitle, stripFeatureLines } from '../../scripts/kit/lib/scaffold.ts';
+import {
+  editPackage,
+  gameNotes,
+  gameReadme,
+  parseNewGameArgs,
+  setCopyTitle,
+  setHtmlTitle,
+  stripFeatureLines,
+} from '../../scripts/kit/lib/scaffold.ts';
 
 describe('new-game', () => {
   it('parses the renderer and the features to drop', () => {
@@ -19,8 +27,8 @@ describe('new-game', () => {
   });
 
   it('puts the title into COPY.title', () => {
-    const src = ['export const COPY = {', "  title: 'Coin Dash',", "  tagline: 'x',", '};'].join('\n');
-    expect(setCopyTitle(src, "Kit's Pixi")).toBe(src.replace("'Coin Dash'", "'Kit\\'s Pixi'"));
+    const src = ['export const COPY = {', "  title: 'My Game',", "  tagline: 'x',", '};'].join('\n');
+    expect(setCopyTitle(src, "Kit's Pixi")).toBe(src.replace("'My Game'", "'Kit\\'s Pixi'"));
   });
 
   it('strips start/end blocks too', () => {
@@ -49,13 +57,13 @@ describe('new-game', () => {
   });
 
   it('--no-world drops game.world; --title also names the generated room', () => {
-    const pkg = { game: { labels: [], world: { generate: { type: 'lounge', needs: { game: 'Coin Dash' } } } } };
+    const pkg = { game: { labels: [], world: { generate: { type: 'lounge', needs: { game: 'My Game' } } } } };
     expect(editPackage(pkg, { renderer: 'none', drop: ['world'] }).game).not.toHaveProperty('world');
     expect(editPackage(pkg, { renderer: 'none', drop: [], title: 'Orbs' }).game).toMatchObject({
       title: 'Orbs',
       world: { generate: { needs: { game: 'Orbs' } } },
     });
-    expect(pkg.game.world.generate.needs.game).toBe('Coin Dash'); // the input is left alone
+    expect(pkg.game.world.generate.needs.game).toBe('My Game'); // the input is left alone
   });
 
   it('--no-turns drops game.turns; online games the hub runs alone keep the multiplayer label', () => {
@@ -69,5 +77,22 @@ describe('new-game', () => {
       labels: ['board', '2d', 'multiplayer'],
       turns: { rules: 'dist-rules/rules.mjs' },
     });
+  });
+
+  it('names the game: package.json name, description and author; the tab title; README and notes', () => {
+    const pkg = { name: 'dg-game', description: 'the template', author: 'x', game: { labels: [] } };
+    const id = { slug: 'word-pop', title: 'Word Pop', author: 'Sam' };
+    expect(editPackage(pkg, { renderer: 'none', drop: [] }, id)).toMatchObject({
+      name: 'word-pop',
+      description: 'Word Pop: a diffenderfer.games game.',
+      author: 'Sam',
+    });
+    expect(setHtmlTitle('<head>\n<title>My Game</title>\n</head>', 'Cats & Dogs')).toBe(
+      '<head>\n<title>Cats &amp; Dogs</title>\n</head>',
+    );
+    expect(gameReadme('Word Pop', 'word-pop')).toMatch(/^# Word Pop\n/);
+    const notes = gameNotes('Word Pop');
+    for (const h of ['## Design', '## Modes', '## Controls', '## Test drivers', '## Known issues'])
+      expect(notes).toContain(h);
   });
 });

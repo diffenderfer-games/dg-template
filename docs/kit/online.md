@@ -92,8 +92,8 @@ Test ids: `online`, `quick-match`, `lobby-start`, `lobby-invite`, `lobby-bell`, 
 
 - `tests/kit/online/online.test.ts`: wire round trip and dropped versions, the 8 KB limit, successor and freshest backup, error words, the launch adapter, `onlineGame` validation, computer seats and restore.
 - `tests/hub-events/online.test.ts` (FakeHub): rows 34 to 55 of the hub-event table: launches, rooms, host takeover, away and gone seats, kicked, ended once, closed reasons, chat, chat modes, presence and busy, `hub:rt-failed`.
-- `tests/game/online.test.ts`: the stub game's rules (same seed, computer players, table options, bad input, backup restore).
-- `tests/hub/kit/online.test.ts` (real hub, browsers): the [multiplayer.md §12](../multiplayer.md#required-scenarios) scenarios against the stub game, below.
+- `tests/game/online.test.ts`: the game's own rules (same seed, computer players, table options, bad input, backup restore).
+- `tests/hub/kit/online.test.ts` (real hub, browsers): the [multiplayer.md §12](../multiplayer.md#required-scenarios) scenarios against the game (skipped without `game.multiplayer`), below.
 
 ### §12 scenarios in `tests/hub/kit/online.test.ts`
 

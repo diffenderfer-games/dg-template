@@ -35,6 +35,35 @@ Title, HUD, pause and result decoration go through `GameDefinition.screens` (see
 
 `KIT_CSS` is themed by CSS variables the game sets in `src/game/theme.css`: `--kit-bg`, `--kit-panel`, `--kit-fg`, `--kit-muted`, `--kit-accent`, `--kit-accent-fg`, `--kit-accent-2`, `--kit-warn`, `--kit-radius`, `--kit-font`. Screens keep clear of the safe area, the race HUD (`--hub-race-hud-top` and `--hub-race-hud-bottom`) through `--kit-top` and `--kit-bottom`. Focus rings use the hub's `--hub-focus-*` variables and show only for keys and pad.
 
+## Styling the kit's screens
+
+The kit puts its CSS (`<style id="kit-css">`) **first** in `<head>`, so the game's
+`src/game/theme.css` comes after it and wins every tie. Override with plain selectors:
+`:root { --kit-bg: #1b1030; }`, `.kit-btn { border-radius: 18px; }`. No `html:root` or
+`html .kit-btn` tricks are needed. The look every game is held to is
+[look.md](look.md); the kit's default look is only a scaffold.
+
+## The kit's screen markup
+
+What the kit draws into `#ui` (`#ui[data-screen]` is the current screen). Tests, the
+screenshot runner and menu navigation go by `data-testid` and `data-nav`, never by
+structure, so a game may restyle any of it, move `.kit-menu` into its own panel, or
+replace a button's contents, as long as the buttons keep their test ids.
+
+| Screen | Markup (test ids in brackets) |
+| --- | --- |
+| title | `div.kit-title-screen.kit-dim` > `h1.kit-title` [`game-title`], `p.kit-tagline` (when there is a tagline), `div.kit-menu` > the buttons: `continue` (the first saved game) and `continue-<id>` (the others), `play`, `daily`, `race`, `race-browse`, `turns-new`, `online`, `quick-match`, `settings`, `howto` (only the features the game has) |
+| loading | `div.kit-loading` > `p.kit-tagline` |
+| play | `div` > `div.kit-corner` > `button.kit-btn.kit-pause-btn` [`pause`]; `div.kit-hud` [`hud`] (the game's `screens.hud` mounts into it) |
+| pause | `div.kit-dim` > `h2.kit-title`, `div.kit-menu` > [`resume`], [`restart`], [`settings`], [`quit`] |
+| result | `div.kit-dim` > `h2.kit-title` [`result-title`], `div.kit-result-body` (the game's `screens.result` fills it), `div.kit-menu` > [`play-again`], [`quit`] |
+| modals | `div.kit-modal` [`modal`, or the modal's own id: `howto`, `confirm`, `settings`…] > `div.kit-modal-sheet` > `h2.kit-modal-title`, `div.kit-modal-body`, `div.kit-modal-buttons` (`confirm-yes`, `confirm-no`, `howto-ok`) |
+
+A kit button is `button.kit-btn[data-nav]` (`.kit-primary` for the main one) >
+`span.kit-btn-icon` (optional), `span.kit-btn-label`, `span.kit-btn-sub` (optional: the
+Continue row's label, "Done today"). Buttons in `.kit-menu` slide in one after another
+(`stagger`).
+
 ## Toasts
 
 `toast(text, { ms?, kind?, actions? })` shows a short message and returns a dismiss function. It closes itself after 3 s (8 s with actions) or when an action is pressed.

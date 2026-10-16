@@ -1,48 +1,59 @@
 <#
 .SYNOPSIS
-  Asks for a new game's name and look (2D, 3D or no canvas), creates it from
-  the dg-template (npm install + npm run new-game), adds a desktop shortcut
-  for it, and drops you into a Claude Code session in the new folder.
+  Creates a new game from the dg-template (npm run create), adds a desktop
+  shortcut for it, and drops you into a Claude Code session in the new folder.
+
+.DESCRIPTION
+  With no parameters it asks for the name and the look (2D, 3D or no canvas).
+  With -Name it asks nothing, so an agent can run it:
+
+    tools\New-Game.ps1 -Name "Word Pop" -Renderer none -NoOnline -NoTurns -NoWorld -NoShortcut -NoLaunch
+
+  The folder (the slug) is the name in lowercase with dashes: pick the final
+  name first, it is also the repo and the URL. The copy is the template's last
+  commit (HEAD); uncommitted changes in dg-template are not copied.
 #>
+param(
+    [string]$Name,
+    [ValidateSet('pixi', 'three', 'none')][string]$Renderer,
+    [switch]$NoDaily,
+    [switch]$NoRace,
+    [switch]$NoOnline,
+    [switch]$NoTurns,
+    [switch]$NoWorld,
+    [switch]$NoAvatar,
+    [switch]$NoShortcut,
+    [switch]$NoLaunch
+)
 
 $ErrorActionPreference = 'Stop'
 
 $templateRoot = Split-Path -Parent $PSScriptRoot          # .../dg-template
 $gitHubRoot   = Split-Path -Parent $templateRoot          # .../Documents/GitHub
 
-$reservedNames = @(
-    'CON', 'PRN', 'AUX', 'NUL',
-    'COM1', 'COM2', 'COM3', 'COM4', 'COM5', 'COM6', 'COM7', 'COM8', 'COM9',
-    'LPT1', 'LPT2', 'LPT3', 'LPT4', 'LPT5', 'LPT6', 'LPT7', 'LPT8', 'LPT9'
-)
+# The slug: lowercase a-z, 0-9 and dashes (the folder, the repo, the URL).
+function Get-Slug([string]$display) {
+    $slug = ($display.ToLower() -replace '[^a-z0-9]+', '-').Trim('-')
+    return $slug
+}
 
 function Read-NewGameName {
     while ($true) {
-        $name = Read-Host "`nWhat's the name of your new game?"
-        $name = $name.Trim()
+        $name = (Read-Host "`nWhat's the name of your new game?").Trim()
         if ([string]::IsNullOrWhiteSpace($name)) {
             Write-Host "Please type a name." -ForegroundColor Yellow
             continue
         }
-
-        $folder = ($name -replace '[<>:"/\\|?*]', '') -replace '\s+', '-'
-        $folder = $folder.Trim('.', ' ', '-')
-        if ([string]::IsNullOrWhiteSpace($folder)) {
-            Write-Host "That name doesn't leave any valid characters for a folder - try something else." -ForegroundColor Yellow
+        $slug = Get-Slug $name
+        if ([string]::IsNullOrWhiteSpace($slug)) {
+            Write-Host "That name has no letters or digits to make a folder from - try something else." -ForegroundColor Yellow
             continue
         }
-        if ($reservedNames -contains $folder.ToUpper()) {
-            Write-Host "'$folder' is a reserved Windows name - try something else." -ForegroundColor Yellow
+        if (Test-Path (Join-Path $gitHubRoot $slug)) {
+            Write-Host "A folder called '$slug' already exists in Documents\GitHub. Pick another name." -ForegroundColor Yellow
             continue
         }
-
-        $target = Join-Path $gitHubRoot $folder
-        if (Test-Path $target) {
-            Write-Host "A folder called '$folder' already exists in Documents\GitHub. Pick another name." -ForegroundColor Yellow
-            continue
-        }
-
-        return [PSCustomObject]@{ Display = $name; Folder = $folder; Path = $target }
+        return $name
     }
 }
 
@@ -62,42 +73,42 @@ function Read-Renderer {
     }
 }
 
-Write-Host "=== New diffenderfer.games project ===" -ForegroundColor Cyan
-$game = Read-NewGameName
-$renderer = Read-Renderer
+if (-not $Name) {
+    Write-Host "=== New diffenderfer.games project ===" -ForegroundColor Cyan
+    $Name = Read-NewGameName
+    if (-not $Renderer) { $Renderer = Read-Renderer }
+}
+if (-not $Renderer) { $Renderer = 'pixi' }
+$slug = Get-Slug $Name
+if ([string]::IsNullOrWhiteSpace($slug)) { throw "'$Name' has no letters or digits to make a folder from" }
+$path = Join-Path $gitHubRoot $slug
 
-Write-Host "`nCreating '$($game.Folder)' from the template..." -ForegroundColor Cyan
-robocopy $templateRoot $game.Path /E /XD .git node_modules dist tools shots .tmp | Out-Null
+$createArgs = @($slug, '--title', $Name, '--renderer', $Renderer)
+if ($NoDaily)  { $createArgs += '--no-daily' }
+if ($NoRace)   { $createArgs += '--no-race' }
+if ($NoOnline) { $createArgs += '--no-online' }
+if ($NoTurns)  { $createArgs += '--no-turns' }
+if ($NoWorld)  { $createArgs += '--no-world' }
+if ($NoAvatar) { $createArgs += '--no-avatar' }
 
-Push-Location $game.Path
+Push-Location $templateRoot
 try {
-    Write-Host "Installing packages (a minute or two)..." -ForegroundColor Cyan
-    npm install --no-audit --no-fund
-    if ($LASTEXITCODE -ne 0) { throw "npm install failed" }
-    npm run new-game -- --renderer $renderer --title "$($game.Display)"
-    if ($LASTEXITCODE -ne 0) { throw "npm run new-game failed" }
-} catch {
-    Write-Host "($($_.Exception.Message) - run 'npm install' and 'npm run new-game -- --renderer $renderer' by hand.)" -ForegroundColor DarkYellow
+    npm run create -- @createArgs
+    if ($LASTEXITCODE -ne 0) { throw "npm run create failed" }
 } finally {
     Pop-Location
 }
 
-Push-Location $game.Path
-try {
-    git init | Out-Null
-    git add -A | Out-Null
-    git commit -m "Start $($game.Display)" --quiet | Out-Null
-} catch {
-    Write-Host "(Skipped git init - you can run it by hand later.)" -ForegroundColor DarkYellow
-} finally {
-    Pop-Location
+if (-not $NoShortcut) {
+    & (Join-Path $PSScriptRoot 'New-ClaudeShortcut.ps1') -Path $path -Name $Name
+    Write-Host "A desktop shortcut was created so you can jump back in any time." -ForegroundColor Green
 }
 
-& (Join-Path $PSScriptRoot 'New-ClaudeShortcut.ps1') -Path $game.Path -Name $game.Display
+Write-Host "`n'$Name' is ready at $path" -ForegroundColor Green
+Write-Host "First deploy (the private repo, its secrets, the first push): npm run first-deploy" -ForegroundColor Green
 
-Write-Host "`n'$($game.Display)' is ready at $($game.Path)" -ForegroundColor Green
-Write-Host "A desktop shortcut was created so you can jump back in any time." -ForegroundColor Green
-Write-Host "`nStarting Claude..." -ForegroundColor Cyan
-
-Set-Location $game.Path
-claude
+if (-not $NoLaunch) {
+    Write-Host "`nStarting Claude..." -ForegroundColor Cyan
+    Set-Location $path
+    claude
+}

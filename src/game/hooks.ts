@@ -8,7 +8,8 @@
  * `defineGame(hub, game)` (src/main.ts) does every hub duty around these
  * hooks: pause, saves, Continue, the daily, races, scores, menus, the test
  * hook. Fill in the files this imports; `npm run todo` lists what's left.
- * Every hook is described in docs/kit/hooks.md.
+ * Every hook is described in docs/kit/hooks.md; what the kit's own tests need
+ * from them is in docs/kit/testing.md § "What the kit's tests need from your game".
  */
 import type { GameDefinition } from '../kit/boot/index.ts';
 import type { InputLike } from '../kit/core/index.ts';
@@ -21,7 +22,7 @@ import { daily } from './daily.ts'; // new-game:daily
 import { race } from './race.ts'; // new-game:race
 import { createOnline } from './online.ts'; // new-game:online
 import { turns } from './turns/board.ts'; // new-game:turns
-import { newRun, outcome, progress, solve, steerToCoin, step, type StepInput } from './rules.ts';
+import { addScore, autoInput, newRun, outcome, progress, solve, step, type StepInput } from './rules.ts';
 import { hud } from './screens/hud.ts';
 import { result } from './screens/result.ts';
 import { title } from './screens/title.ts';
@@ -40,6 +41,15 @@ export function createGame(createView: ViewFactory): GameDefinition<Profile, Run
   let input: InputLike | null = null;
   /** Set by the autoplay test driver for one step. */
   let auto: StepInput | null = null;
+  /** Was the action button held last step? */
+  let held = false;
+  /** A press, counted once on the step it goes down: an edge per step (not per frame), so it is never counted twice. */
+  const pressed = (): boolean => {
+    const down = (input?.value('action') ?? 0) >= 0.5;
+    const edge = down && !held;
+    held = down;
+    return edge;
+  };
   return {
     copy: COPY,
     strings: KIT_OVERRIDES,
@@ -55,21 +65,23 @@ export function createGame(createView: ViewFactory): GameDefinition<Profile, Run
     },
 
     newRun: (_ctx, opts) =>
-      newRun(opts.mode, opts.seed, { coins: typeof opts.params?.coins === 'number' ? opts.params.coins : undefined }),
+      newRun(opts.mode, opts.seed, {
+        target: typeof opts.params?.target === 'number' ? opts.params.target : undefined,
+      }),
 
     step(ctx, run, dt) {
-      const got = step(run, dt, auto ?? ctx.hub.input.vector('move'));
+      const got = step(run, dt, auto ?? { press: pressed() });
       auto = null;
       if (got > 0) {
-        view?.collected?.(run.coin);
-        ctx.audio.play('coin');
+        view?.scored?.(run);
+        ctx.audio.play('score');
         ctx.haptic();
       }
     },
 
     render: (_ctx, run, alpha) => view?.draw(run, alpha),
     outcome,
-    result: (run) => ({ boards: { high: run.score }, incr: { played: 1 }, max: { bestCoins: run.score } }),
+    result: (run) => ({ boards: { high: run.score }, incr: { played: 1 }, max: { bestScore: run.score } }),
 
     onResult(ctx, run) {
       ctx.profile.update((p) => {
@@ -78,6 +90,7 @@ export function createGame(createView: ViewFactory): GameDefinition<Profile, Run
       });
     },
 
+    // The test contract (docs/kit/testing.md): `snap().score` is the score and `addScore` raises it.
     snap: (run): JsonObject =>
       run === null
         ? { menu: true }
@@ -89,8 +102,9 @@ export function createGame(createView: ViewFactory): GameDefinition<Profile, Run
             over: run.over,
             seed: run.seed,
           },
+    addScore,
     autoplay: (_ctx, run) => {
-      auto = steerToCoin(run);
+      auto = autoInput(run);
     },
     solve,
     testHook,
@@ -102,7 +116,7 @@ export function createGame(createView: ViewFactory): GameDefinition<Profile, Run
     avatar, // new-game:avatar
     // new-game:online:start
     online: createOnline({
-      input: () => input?.vector('move') ?? { x: 0, y: 0 },
+      input: () => ({ press: (input?.value('action') ?? 0) >= 0.5 }),
       render: (v, me) => view?.drawOnline?.(v, me),
     }),
     // new-game:online:end

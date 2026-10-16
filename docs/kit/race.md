@@ -13,16 +13,18 @@ import type { RaceHooks } from '../kit/boot/index.ts';
 
 export const race: RaceHooks<Run> = {
   // Live stats for the HUD: numbers, booleans or "#rrggbb"; never text; at most 12.
-  stats: (run) => ({ coins: run.score }),
+  stats: (run) => ({ score: run.score }),
   // 0..1, how far along (the HUD bars).
   progress: (run) => (run.target > 0 ? run.score / run.target : 0),
   // Params for the Race button (hub.race.create). Default: the manifest defaults.
-  params: () => ({ coins: RACE_DEFAULTS.coins }),
+  params: () => ({ target: RACE_DEFAULTS.target }),
 };
 // hooks.ts: race, // and newRun builds the race game from opts.seed, opts.rng and opts.params only
 ```
 
 `newRun(ctx, { mode: 'race', seed, rng, params })` must build the game from `seed` and `params` only. Use `opts.rng` for randomness.
+
+Players never see a param's `key` (only its `title` and option values), so name keys for the code (`target`, `words`, `level`). The kit's suites read the first param's key and default from `game.race.params[0]`; nothing assumes a name.
 
 ## What the kit does for you
 
@@ -64,7 +66,7 @@ Game side: `RaceHooks<R>` (`stats`, `progress?`, `params?`) in `kit/boot`.
 ## Tests
 
 - `tests/kit/race/race.test.ts`: stats checks, input locked until the go and after the end with `finish` sent once, status throttling and the reload stash, a failed create told in kid words.
-- `tests/hub-events/race.test.ts`: the hub's race events against the stub game (FakeHub).
+- `tests/hub-events/race.test.ts`: the hub's race events against the game (FakeHub; skipped without `game.race`).
 - `tests/hub/kit/race.test.ts` (real hub, two players): create, Open races, join, same seed, live HUD, "Leave race?" on pause, finish, result, done. This covers [§14.5](../multiplayer.md#145-testing).
 
 ## Hub API used:

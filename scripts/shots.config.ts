@@ -9,13 +9,13 @@ import type { Scenario } from './kit/shots/types.ts';
 /** TODO(game): the screens worth checking after every change (a level select, a boss, the shop…). */
 export const scenarios: Scenario[] = [
   {
-    name: 'many-coins',
+    name: 'big-score',
     target: 'static',
     checks: 'the HUD with a two-digit score',
     run: async (c) => {
       await c.open();
       await c.drive('newGame');
-      await c.drive('extra.addCoins', 42);
+      await c.drive('addScore', 42);
       await c.wait(300);
     },
   },

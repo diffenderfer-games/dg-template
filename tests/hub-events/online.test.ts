@@ -1,8 +1,16 @@
 // Appendix B rows 34–55: launches, rooms, seats, chat, social, presence, the runtime.
-import { describe, expect, it } from 'vitest';
+import { expect, it } from 'vitest';
 import { envelope } from '../../src/kit/online/wire.ts';
 import type { FakeRoom } from '../../src/kit/testing/index.ts';
-import { bootGame, type Booted } from './_support/harness.ts';
+import { bootGame, describeIf, HAS, type Booted } from './_support/harness.ts';
+import { toyOnline, toyView } from './_support/toys.ts';
+
+/** The online suites run only for a game with online play in hub rooms. */
+const describe = describeIf(HAS.online, 'this game declares no game.multiplayer');
+
+/** Boot with the toy online game in place of the game's own: these suites test the kit's rooms, not one game's rules. */
+const boot = (o: Parameters<typeof bootGame>[0] = {}): Promise<Booted> =>
+  bootGame({ ...o, patch: { online: toyOnline(), ...o?.patch } });
 
 /** The fake room the player is in. */
 function roomOf(g: Booted): FakeRoom {
@@ -24,7 +32,7 @@ async function hostAndStart(g: Booted): Promise<FakeRoom> {
 
 describe('launches (multiplayer.md §6)', () => {
   it('row 34: host: onLaunch is registered at boot before any await; the room is created once, for the party', async () => {
-    const g = await bootGame();
+    const g = await boot();
     const names = g.fake.log.names();
     expect(names.indexOf('mp.onLaunch')).toBeLessThan(names.indexOf('getSave'));
     g.fake.mp.launch({ kind: 'host', partyId: 'p1' });
@@ -36,12 +44,12 @@ describe('launches (multiplayer.md §6)', () => {
   });
 
   it('row 35: guest: joins the join info now, or when onJoinInfo brings it (row 41)', async () => {
-    const g = await bootGame();
+    const g = await boot();
     g.fake.mp.launch({ kind: 'guest', partyId: 'p1', joinInfo: { room: 'ROOM1' } });
     await g.settle();
     expect(g.fake.log.last('rooms.join')?.args[0]).toBe('ROOM1');
 
-    const w = await bootGame();
+    const w = await boot();
     w.fake.mp.launch({ kind: 'guest', partyId: 'p2' });
     await w.settle();
     expect(w.fake.log.count('rooms.join')).toBe(0);
@@ -52,7 +60,7 @@ describe('launches (multiplayer.md §6)', () => {
 
   it('row 36: join (also via an invite link or a rejoin) joins launch.room', async () => {
     for (const via of [undefined, 'link', 'rejoin'] as const) {
-      const g = await bootGame();
+      const g = await boot();
       g.fake.mp.launch(via === undefined ? { kind: 'join', room: 'JOIN1' } : { kind: 'join', room: 'JOIN1', via });
       await g.settle();
       expect(g.fake.log.last('rooms.join')?.args, String(via)).toEqual(['JOIN1', false]);
@@ -60,18 +68,18 @@ describe('launches (multiplayer.md §6)', () => {
   });
 
   it('row 37: watch joins as a spectator and sends no input', async () => {
-    const g = await bootGame();
+    const g = await boot();
     g.fake.mp.launch({ kind: 'watch', room: 'W1' });
     await g.settle();
     expect(g.fake.log.last('rooms.join')?.args).toEqual(['W1', true]);
     const room = roomOf(g);
-    room.receive(1, envelope('view', { players: [], coin: { x: 1, y: 1 }, target: 3, winner: null }, 1));
+    room.receive(1, envelope('view', toyView(), 1));
     await g.frames(30);
     expect(room.sent).toHaveLength(0);
   });
 
   it('row 38: a tournament match offers no "Play again"', async () => {
-    const g = await bootGame();
+    const g = await boot();
     g.fake.mp.launch({ kind: 'host', partyId: 't1', tournament: { id: 1, title: 'Cup', match: 'm1', opponent: null } });
     await g.settle();
     const room = roomOf(g);
@@ -83,14 +91,14 @@ describe('launches (multiplayer.md §6)', () => {
   });
 
   it("row 39: a race launch is the hub's (it joins the race itself)", async () => {
-    const g = await bootGame();
+    const g = await boot();
     g.fake.mp.launch({ kind: 'guest', mode: 'race', partyId: 'r', joinInfo: { room: 'R' } });
     await g.settle();
     expect(g.fake.log.count('rooms.join')).toBe(0);
   });
 
   it('row 40: a launch before mount waits, is handled once, and wins over the title', async () => {
-    const g = await bootGame({ before: (f) => f.mp.launch({ kind: 'join', room: 'EARLY' }) });
+    const g = await boot({ before: (f) => f.mp.launch({ kind: 'join', room: 'EARLY' }) });
     expect(g.fake.log.named('rooms.join')).toHaveLength(1);
     expect(g.hook.screen()).toBe('lobby');
     expect(g.calls.count('screen.title')).toBe(0);
@@ -99,21 +107,16 @@ describe('launches (multiplayer.md §6)', () => {
 
 describe('rooms (multiplayer.md §8)', () => {
   it('row 42: when the host role moves here, the freshest backup takes over and play goes on', async () => {
-    const g = await bootGame();
+    const g = await boot();
     g.fake.mp.launch({ kind: 'join', room: 'H1' });
     await g.settle();
     const room = roomOf(g);
-    const state = (score: number) => ({
-      rng: 1,
-      players: [
-        { id: 1, x: 100, y: 100, score: 0, dx: 0, dy: 0 },
-        { id: 2, x: 300, y: 300, score, dx: 0, dy: 0 },
-      ],
-      coin: { x: 800, y: 500 },
-      target: 10,
-      winner: null,
-    });
-    room.receive(2, envelope('view', { players: [], coin: { x: 1, y: 1 }, target: 10, winner: null }, 1));
+    const state = (score: number) =>
+      toyView([
+        { id: 1, score: 0 },
+        { id: 2, score },
+      ]);
+    room.receive(2, envelope('view', toyView(), 1));
     room.receive(2, envelope('backup', state(1), 10));
     room.receive(2, envelope('backup', state(4), 20));
     room.setInfo({ hostId: 1 });
@@ -124,19 +127,19 @@ describe('rooms (multiplayer.md §8)', () => {
   });
 
   it('row 43: invalid messages are dropped; valid views are drawn', async () => {
-    const g = await bootGame();
+    const g = await boot();
     g.fake.mp.launch({ kind: 'join', room: 'V' });
     await g.settle();
     const room = roomOf(g);
     room.receive(1, { v: 99, t: 'view', d: {}, at: 0 });
     room.receive(1, envelope('view', { nope: true }, 1));
     expect(g.hook.screen()).toBe('lobby');
-    room.receive(1, envelope('view', { players: [], coin: { x: 1, y: 1 }, target: 3, winner: null }, 2));
+    room.receive(1, envelope('view', toyView(), 2));
     expect(g.hook.screen()).toBe('play');
   });
 
   it('row 44: an away or gone seat is played by the computer and handed back without a reset', async () => {
-    const g = await bootGame();
+    const g = await boot();
     const room = await hostAndStart(g);
     room.seatChange(2, 'away');
     await g.frames(120);
@@ -149,7 +152,7 @@ describe('rooms (multiplayer.md §8)', () => {
   });
 
   it('row 45: abandoned: the match goes on with the computer', async () => {
-    const g = await bootGame();
+    const g = await boot();
     const room = await hostAndStart(g);
     room.seatChange(2, 'gone');
     await g.frames(10);
@@ -157,7 +160,7 @@ describe('rooms (multiplayer.md §8)', () => {
   });
 
   it('row 46: kicked: back to the title with a message', async () => {
-    const g = await bootGame();
+    const g = await boot();
     g.fake.mp.launch({ kind: 'join', room: 'K' });
     await g.settle();
     roomOf(g).kicked();
@@ -167,7 +170,7 @@ describe('rooms (multiplayer.md §8)', () => {
   });
 
   it('row 47: ended is handled once; online play writes no normal board', async () => {
-    const g = await bootGame();
+    const g = await boot();
     const room = await hostAndStart(g);
     room.endedBy({ winners: [1] });
     room.endedBy({ winners: [1] });
@@ -184,7 +187,7 @@ describe('rooms (multiplayer.md §8)', () => {
       ['gone', /away too long/],
       ['moved', /moved/],
     ] as const) {
-      const g = await bootGame();
+      const g = await boot();
       g.fake.mp.launch({ kind: 'join', room: 'C' });
       await g.settle();
       roomOf(g).close(reason);
@@ -194,7 +197,7 @@ describe('rooms (multiplayer.md §8)', () => {
   });
 
   it('row 51: room errors become friendly words and a safe screen', async () => {
-    const g = await bootGame();
+    const g = await boot();
     g.fake.rooms.joinError = 'room_full';
     g.fake.mp.launch({ kind: 'join', room: 'FULL' });
     await g.settle();
@@ -205,7 +208,7 @@ describe('rooms (multiplayer.md §8)', () => {
 
 describe('chat, social, presence, the runtime', () => {
   it('row 49: delivered text is shown as text; a softened line says so; a rejected one keeps the draft and the hint', async () => {
-    const g = await bootGame();
+    const g = await boot();
     g.press('online');
     await g.settle();
     const room = roomOf(g);
@@ -236,7 +239,7 @@ describe('chat, social, presence, the runtime', () => {
       ['quick', false, true, false],
       ['off', false, false, true],
     ] as const) {
-      const g = await bootGame();
+      const g = await boot();
       g.press('online');
       await g.settle();
       g.fake.rooms.current?.setInfo({ chatMode: mode });
@@ -248,7 +251,7 @@ describe('chat, social, presence, the runtime', () => {
   });
 
   it('row 52: social events update nothing that pauses the game', async () => {
-    const g = await bootGame();
+    const g = await boot();
     await g.start();
     g.fake.social.emit('counts', { online: 3, inGame: 1, friendsOnline: 1 });
     g.fake.social.emit('party', null);
@@ -256,7 +259,7 @@ describe('chat, social, presence, the runtime', () => {
   });
 
   it('row 53: presence per screen (coalesced), busy during the match, quiet during play', async () => {
-    const g = await bootGame();
+    const g = await boot();
     const before = g.fake.log.count('presence.set');
     g.hook.toTitle?.();
     await g.settle();
@@ -272,7 +275,7 @@ describe('chat, social, presence, the runtime', () => {
   });
 
   it('row 54: hub:rt-failed turns the Play online button off until hub:rt-ready', async () => {
-    const g = await bootGame();
+    const g = await boot();
     g.fake.runtime(false);
     await g.settle();
     expect(g.ui.querySelector<HTMLButtonElement>('[data-testid="online"]')?.disabled).toBe(true);
@@ -282,7 +285,7 @@ describe('chat, social, presence, the runtime', () => {
   });
 
   it('row 55: pass-through hub events (changes-seen, prefetch, play-online-changed, account) change nothing', async () => {
-    const g = await bootGame();
+    const g = await boot();
     await g.start();
     for (const ev of ['hub:changes-seen', 'hub:prefetch', 'hub:play-online-changed', 'hub:account']) {
       g.fake.events.dispatchEvent(new CustomEvent(ev, { detail: {} }));

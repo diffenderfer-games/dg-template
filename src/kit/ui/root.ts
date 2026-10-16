@@ -19,14 +19,18 @@ export type UiRoot = {
 
 let current: UiRoot | null = null;
 
-/** Use `root` (default: `#ui`, created when missing) for kit UI, and add the kit's CSS once. */
+/**
+ * Use `root` (default: `#ui`, created when missing) for kit UI, and add the kit's CSS once, FIRST in
+ * `<head>`: the game's theme.css comes after it, so a plain `:root { --kit-bg: … }` or `.kit-btn { … }`
+ * there wins every tie (docs/kit/ui.md § "Styling the kit's screens").
+ */
 export function mountUi(root?: HTMLElement, clock: Clock = realClock): UiRoot {
   const el = root ?? document.getElementById('ui') ?? createRoot();
   if (!document.getElementById('kit-css')) {
     const style = document.createElement('style');
     style.id = 'kit-css';
     style.textContent = KIT_CSS;
-    document.head.appendChild(style);
+    document.head.prepend(style);
   }
   el.classList.add('kit-ui');
   const reduced = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;

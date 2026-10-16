@@ -22,7 +22,7 @@ const scores: ScoreSpec = {
 // in the game definition
 {
   scores,
-  result: (run, outcome) => ({ boards: { high: run.score }, incr: { played: 1 }, max: { bestCoins: run.score } }),
+  result: (run, outcome) => ({ boards: { high: run.score }, incr: { played: 1 }, max: { bestScore: run.score } }),
 }
 ```
 
@@ -59,7 +59,7 @@ Note: the game definition's own `ResultNumbers` (in `kit/boot`) is the same shap
 ## Tests
 
 - `tests/kit/scores/scores.test.ts`
-- `tests/hub-events/progress.test.ts` and `tests/hub-events/race.test.ts` exercise it through the booted stub game.
+- `tests/hub-events/progress.test.ts` and `tests/hub-events/race.test.ts` exercise it through the booted game.
 
 ## Hub API used:
 

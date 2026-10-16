@@ -155,6 +155,11 @@ export type TurnsHooks<P extends JsonObject, R extends JsonObject> = {
   draw(ctx: GameContext<P, R>, el: HTMLElement, board: TurnBoard): void;
   /** What every new game is made with (`hub.turns.create`): a mode, options, seats, a deadline. */
   create?: Pick<TurnCreateOptions, 'mode' | 'options' | 'seats' | 'deadline'>;
+  /**
+   * Test contract: a legal move for this player from the board, or null (`__game.turnsMove()`
+   * makes it). The kit's hub suite plays online games with it (docs/kit/testing.md).
+   */
+  testMove?(board: TurnBoard): GamePayload | null;
 };
 
 /** The whole game, as `defineGame` takes it. */
@@ -192,6 +197,11 @@ export type GameDefinition<P extends JsonObject, R extends JsonObject> = {
   snap?(run: R | null): JsonObject;
   /** Test driver: steer one step toward winning (`__game.autoplay`). */
   autoplay?(ctx: GameContext<P, R>, run: R): void;
+  /**
+   * Test driver: add `n` to the score (`__game.addScore`). Part of the test contract
+   * (docs/kit/testing.md § "What the kit's tests need from your game"): `snap(run).score` shows it.
+   */
+  addScore?(run: R, n: number): void;
   /** Test driver: make the game won now (`__game.solveNow`). */
   solve?(run: R): void;
   /** Extra test drivers (src/game/test-hook.ts). */

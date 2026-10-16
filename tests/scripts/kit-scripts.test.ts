@@ -71,7 +71,7 @@ describe('kit:check: the game block', () => {
   it('game.world is the live shape: a map file, a generated room, or both (hub.md "The world")', () => {
     expect(checkWorld(undefined)).toEqual([]);
     expect(checkWorld({ map: 'world/lobby.json' })).toEqual([]);
-    expect(checkWorld({ generate: { type: 'lounge', needs: { tables: 4, game: 'Coin Dash' } } })).toEqual([]);
+    expect(checkWorld({ generate: { type: 'lounge', needs: { tables: 4, game: 'My Game' } } })).toEqual([]);
     expect(checkWorld({})[0]).toMatch(/needs a map file, a generate block, or both/);
     expect(checkWorld({ map: 'world/lobby.tmj' })[0]).toMatch(/world.map: must be a .json map file/);
     // The W2 tables are not in the manifest yet: the strict schema refuses them.

@@ -3,7 +3,7 @@
 import assert from 'node:assert/strict';
 import { field, strField } from '../../../src/kit/core/json.ts';
 import { shortDay } from '../../../src/kit/core/strings.ts';
-import { api, e2e, env, game, ready, SLUG, today, until, waitScreen, type Player } from '../_kit.ts';
+import { api, e2e, env, game, ready, SLUG, today, unlessDeclared, until, waitScreen, type Player } from '../_kit.ts';
 
 const e = env();
 
@@ -33,11 +33,11 @@ e2e(
     const a = await t.newPlayer(undefined, `/${SLUG}/?daily=${yesterday}`);
     await ready(a);
     await inDaily(a);
-    await a.page.evaluate(() => window.__game?.extra?.addCoins?.(3));
+    await game.addScore(a, 3);
     await game.toTitle(a); // saves the day, then pauses it
     await waitScreen(a, 'title');
     await until(
-      async () => /^3 coins/.test((await daysInProgress(a))[yesterday] ?? '') || null,
+      async () => ((await daysInProgress(a))[yesterday] ?? '') !== '' || null, // with the game's own label
       "yesterday's day saved",
     );
     assert.deepEqual(await credited(a), []);
@@ -53,20 +53,26 @@ e2e(
     await until(async () => (await credited(a)).includes(yesterday) || null, "yesterday's credit");
     assert.deepEqual(await daysInProgress(a), {});
   },
+  { skip: unlessDeclared('dailyChallenges', 'the daily') },
 );
 
-e2e('saved: a day opened from Your games (?hub_open=…&hub_kind=daily) goes straight into that day', e, async (t) => {
-  const a = await t.newPlayer(undefined, `/${SLUG}/`);
-  await ready(a);
-  const day = today(-2);
-  const started = await api(a).post(`/games/${SLUG}/daily/${day}/start`);
-  assert.equal(started.status, 200);
-  const id = strField(started.body, 'instanceId');
-  assert.match(id, /^sg_/);
-  await a.goto(`/${SLUG}/?hub_open=${id}&hub_kind=daily`);
-  await ready(a);
-  await inDaily(a);
-  await game.toTitle(a);
-  await waitScreen(a, 'title');
-  assert.ok(Object.keys(await daysInProgress(a)).includes(day), 'leaving pauses the day: it stays in progress');
-});
+e2e(
+  'saved: a day opened from Your games (?hub_open=…&hub_kind=daily) goes straight into that day',
+  e,
+  async (t) => {
+    const a = await t.newPlayer(undefined, `/${SLUG}/`);
+    await ready(a);
+    const day = today(-2);
+    const started = await api(a).post(`/games/${SLUG}/daily/${day}/start`);
+    assert.equal(started.status, 200);
+    const id = strField(started.body, 'instanceId');
+    assert.match(id, /^sg_/);
+    await a.goto(`/${SLUG}/?hub_open=${id}&hub_kind=daily`);
+    await ready(a);
+    await inDaily(a);
+    await game.toTitle(a);
+    await waitScreen(a, 'title');
+    assert.ok(Object.keys(await daysInProgress(a)).includes(day), 'leaving pauses the day: it stays in progress');
+  },
+  { skip: unlessDeclared('dailyChallenges', 'the daily') },
+);

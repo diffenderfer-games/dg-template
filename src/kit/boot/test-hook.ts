@@ -1,5 +1,5 @@
 /**
- * kit/boot: `window.__game` for the stub game and every game built on defineGame.
+ * kit/boot: `window.__game` for every game built on defineGame.
  * Source: dg-template src/kit/boot/ (kit v1.0). Copy byte-identical; change it in the template first.
  * Docs: docs/kit/test-hook.md
  */
@@ -7,6 +7,7 @@ import { driversAllowed } from '../core/env.ts';
 import { isJson, type JsonObject } from '../core/json.ts';
 import { installTestHook, type GameHookDrivers, type GameTestHook } from '../test-hook/index.ts';
 import type { OnlineFlow } from './online-flow.ts';
+import type { TurnsFlow } from './turns-flow.ts';
 import { toast } from '../ui/toast.ts';
 import type { Session } from './session.ts';
 import type { GameContext, GameDefinition } from './types.ts';
@@ -24,7 +25,7 @@ function onlineDrivers(flow: OnlineFlow): GameHookDrivers['online'] {
 }
 
 /** The kit's version (kit.json `kitVersion`). */
-export const KIT_VERSION = '1.3';
+export const KIT_VERSION = '1.4';
 
 /** Install the hook for a defineGame game. */
 export function installGameHook<P extends JsonObject, R extends JsonObject>(o: {
@@ -35,6 +36,7 @@ export function installGameHook<P extends JsonObject, R extends JsonObject>(o: {
   drivers?: boolean;
   audio?: { telemetry(): JsonObject };
   online?: OnlineFlow | null;
+  turns?: TurnsFlow | null;
 }): GameTestHook {
   const { game, session, ctx } = o;
   return installTestHook(
@@ -57,6 +59,9 @@ export function installGameHook<P extends JsonObject, R extends JsonObject>(o: {
         if (session.run !== null) game.solve?.(session.run);
       },
       loseNow: () => session.finish('lost'),
+      addScore: (n) => {
+        if (session.run !== null && typeof n === 'number') game.addScore?.(session.run, n);
+      },
       setState: (state) => {
         if (isJson(state) && game.run.validate(state)) {
           session.run = state;
@@ -68,6 +73,7 @@ export function installGameHook<P extends JsonObject, R extends JsonObject>(o: {
       toast: (text) => void toast(text),
       extra: game.testHook?.(ctx) ?? {},
       ...(o.online ? { online: onlineDrivers(o.online) } : {}),
+      ...(o.turns ? { turnsMove: () => o.turns?.testMove() ?? false } : {}),
     }),
     { allowDrivers: o.drivers ?? driversAllowed() },
   );

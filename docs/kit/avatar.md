@@ -21,7 +21,7 @@ It edits `src/game/avatar.ts`, which exports `avatar: AvatarHooks`:
 import type { AvatarHooks } from '../kit/avatar/index.ts';
 
 export const avatar: AvatarHooks = {
-  feelOn: { coin: 'bigPlay', win: 'win', lose: 'lose', waiting: 'waiting' },
+  feelOn: { score: 'bigPlay', win: 'win', lose: 'lose', waiting: 'waiting' },
   titleDemo: true,
 };
 ```

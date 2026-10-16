@@ -1,6 +1,6 @@
 // KIT suite (race games): two players race the same game (multiplayer.md §14.5).
 import assert from 'node:assert/strict';
-import { e2e, env, game, L, ready, SLUG, waitScreen, type Player } from '../_kit.ts';
+import { e2e, env, game, L, ready, SLUG, unlessDeclared, waitScreen, type Player } from '../_kit.ts';
 
 const e = env({ env: { HUB_LIMITS_JSON: JSON.stringify({ raceCountdownMs: 1200 }) } });
 
@@ -21,7 +21,6 @@ e2e(
     await Promise.all([mode(alice), mode(bob)]);
     const [sa, sb] = await Promise.all([game.snap(alice), game.snap(bob)]);
     assert.equal(sa.seed, sb.seed);
-    assert.equal(sa.target, 10);
     // The live HUD; the pause button asks "Leave race?" instead of pausing.
     await alice.find(`${L}.so-hud .so-hudrow`, `${alice.name} (you)`);
     await alice.gone(`${L}.so-dialog .so-rcode`);
@@ -38,4 +37,5 @@ e2e(
     await alice.click(`${L}.so-dialog button`, 'Done');
     await waitScreen(alice, 'title');
   },
+  { skip: unlessDeclared('race', 'races') },
 );

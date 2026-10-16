@@ -17,7 +17,7 @@ The kit calls these; you fill them in. `npm run todo` lists the open
 | `newRun(ctx, opts)` | A new game. Use only `opts.rng`; `opts.mode`, `opts.day`, `opts.params` | `rules.ts` |
 | `step(ctx, run, dt)` | Every fixed step while playing (read `ctx.hub.input`) | `rules.ts` |
 | `render(ctx, run, alpha)` | Every frame (`run` is null on menus) | `render/` |
-| `outcome(run)` | After each step: `'won'`, `'lost'` or null | `rules.ts` |
+| `outcome(run)` | After each step: `'won'`, `'lost'` or null. The kit finishes the game **the frame it returns non-null** (see below) | `rules.ts` |
 
 ## Optional
 
@@ -34,12 +34,35 @@ The kit calls these; you fill them in. `npm run todo` lists the open
 | `daily` | `meta(run, outcome)`, `offline` ([daily.md](daily.md)) |
 | `race` | `stats(run)`, `progress(run)`, `params()` ([race.md](race.md)) |
 | `online` | `onlineGame({...})` from `online.ts` ([online.md](online.md)) |
-| `turns` | `draw(ctx, el, board)`, `create`: the board of an online game the hub runs, from `turns/board.ts` ([turns.md](turns.md)) |
+| `turns` | `draw(ctx, el, board)`, `create`, `testMove(board)`: the board of an online game the hub runs, from `turns/board.ts` ([turns.md](turns.md)) |
 | `audio` | Sound and music ([audio.md](audio.md)) |
 | `avatar` | Faces ([avatar.md](avatar.md)) |
-| `snap(run)` | A JSON summary for tests and shots (`__game.snap()`) |
+| `snap(run)` | A JSON summary for tests and shots (`__game.snap()`), with a numeric `score` |
+| `addScore(run, n)` | Raise the score by `n` (`__game.addScore`) |
 | `autoplay(ctx, run)`, `solve(run)` | Test drivers (`__game.autoplay`, `__game.solveNow`) |
 | `testHook(ctx)` | Extra drivers (`test-hook.ts`) |
+
+`snap`, `addScore`, `solve` and `turns.testMove` are the **test contract**: the kit's
+own suites need them (and nothing else of your game):
+[testing.md](testing.md#what-the-kits-tests-need-from-your-game).
+
+## Endings take time: keep `outcome` null until they're done
+
+The session finishes the game (result screen, scores, the daily's completion)
+the frame `outcome(run)` first returns non-null. A game with an ending
+animation (the last row flips, a celebration, a slow-motion knockout) keeps
+`outcome` null until it is over: count the animation in the rules, in the
+saved game (`phase: 'ending'`, `phaseT`), so it pauses with the game and
+replays the same from a saved game:
+
+```ts
+// rules.ts
+export function step(run: Run, dt: number): void {
+  if (run.phase === 'ending') run.phaseT += dt;
+  // … when the last move lands: run.phase = 'ending'; run.phaseT = 0;
+}
+export const outcome = (run: Run) => (run.phase === 'ending' && run.phaseT >= ENDING_SECONDS ? run.result : null);
+```
 
 ## The context
 

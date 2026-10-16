@@ -41,10 +41,11 @@ describe('serveDist', () => {
 });
 
 describe('screenshot scenarios', () => {
-  it('names are unique; planned ones say which hub phase they wait on', () => {
+  it('names are unique; skipped ones say why (a hub phase they wait on, or a feature the game lacks)', () => {
     const names = KIT_SCENARIOS.map((s) => s.name);
     expect(new Set(names).size).toBe(names.length);
-    for (const s of KIT_SCENARIOS.filter((x) => x.skip)) expect(s.skip).toMatch(/^waits on /);
+    for (const s of KIT_SCENARIOS.filter((x) => x.skip))
+      expect(s.skip).toMatch(/^(waits on |this game (declares|has) no )/);
     expect(names).toEqual(expect.arrayContaining(['title', 'pause', 'hub-menu', 'daily-done', 'lobby', 'race-result']));
   });
 });

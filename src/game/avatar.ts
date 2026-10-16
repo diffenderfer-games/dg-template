@@ -11,6 +11,6 @@ import type { AvatarHooks } from '../kit/avatar/index.ts';
 
 /** TODO(game): your events and the feeling each one shows. */
 export const avatar: AvatarHooks = {
-  feelOn: { coin: 'bigPlay', win: 'win', lose: 'lose', waiting: 'waiting' },
+  feelOn: { score: 'bigPlay', win: 'win', lose: 'lose', waiting: 'waiting' },
   titleDemo: true,
 };

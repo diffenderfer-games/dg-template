@@ -14,6 +14,6 @@ export type View = {
   draw(run: Run | null, alpha: number): void;
   /** Draw an online match (`me` is this player's user id). */
   drawOnline?(view: OnlineView | null, me: number): void;
-  /** Make a quick effect where a coin was collected (optional juice). */
-  collected?(at: { x: number; y: number }): void;
+  /** A quick effect when the player scores (optional juice). */
+  scored?(run: Run): void;
 };

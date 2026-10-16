@@ -9,13 +9,20 @@ plan), so a game builds alone and an agent can read every line.
 
 | Kind | Where | Who changes it |
 |---|---|---|
-| **KIT** | `src/kit/`, `scripts/kit/`, `tests/kit/`, `tests/hub-events/`, `tests/hub/_kit.ts`, `tests/hub/kit/`, `tests/scripts/`, `docs/kit/`, configs, the deploy workflow | The template only. In a game, `npm run kit:check` fails if one differs. |
-| **GAME** | `src/game/`, `tests/game/`, `scripts/shots.config.ts`, `scripts/sim.ts`, `docs/game.md`, `CLAUDE.md`, `package.json` | The game. Files carry `(GAME: yours to edit.)` in their header. |
+| **KIT** | `src/kit/`, `scripts/kit/`, `tests/kit/`, `tests/hub-events/`, `tests/hub/_kit.ts`, `tests/hub/kit/`, `tests/scripts/`, `docs/kit/`, `docs/getting-started.md`, `docs/repo-setup.md`, configs (`eslint.config.ts`, `vitest.config.ts`, `tsconfig.base.json`, Prettier, `.gitattributes`), the deploy workflow | The template only. In a game, `npm run kit:check` fails if one differs. |
+| **GAME** | `src/game/`, `tests/game/`, `tests/kit-skips.json`, `scripts/shots.config.ts`, `scripts/sim.ts`, `docs/game.md`, `README.md`, `CLAUDE.md`, `index.html`, `package.json` | The game. Files carry `(GAME: yours to edit.)` in their header. |
 | **SYNCED** | `HANDOFF.md`, `docs/hub.md`, `docs/multiplayer.md`, `server/hub-server.mjs` | The hub. `npm run sync-docs` / `npm run sync-hub-server` copy them; never edit. |
 
 A game that needs different kit behaviour writes it in `src/game/` (a hook, or
 a wrapper) instead of editing `src/kit/`. If the kit should change for
 everyone, change the template first.
+
+**Kit tests that don't apply** to a game are never deleted or edited: suites for
+features the game doesn't declare skip on their own, and any other kit test that
+doesn't fit is listed with its reason in `tests/kit-skips.json` (GAME), which every
+runner honours: [testing.md](testing.md#kit-tests-that-dont-apply). The kit's tests
+need only a short test contract from the game:
+[testing.md](testing.md#what-the-kits-tests-need-from-your-game).
 
 ## Modules
 
@@ -104,6 +111,8 @@ module you edited locally, copies, updates `kit.json` and runs `npm run check`.
 
 The deploy's `check` job is the gate: `npm run check`, then `npm run test:hub`
 on the org's self-hosted runner. See [../repo-setup.md](../repo-setup.md#the-deploy-workflow).
+`DG_HOST` is not set on the runner today, so CI skips the hub suites with a
+warning: run `npm run test:hub` locally before a push that changes hub behaviour.
 
 ## Scripts
 
@@ -111,3 +120,7 @@ Every `npm run` script is a small file in `scripts/kit/` (KIT) with its usage
 in its header comment; shared helpers are in `scripts/kit/lib/` (paths, ports,
 the browser, serving `dist/`, process tracking, `kit.json`). The GAME scripts
 are `scripts/shots.config.ts` (your screenshot scenarios) and `scripts/sim.ts`.
+
+A procedure longer than one command is a script, not a list of commands to
+paste: `npm run create` (a new game's folder, in the template), `npm run new-game`,
+`npm run first-deploy` (the repo, its secrets, the first push), `npm run test:hub`.

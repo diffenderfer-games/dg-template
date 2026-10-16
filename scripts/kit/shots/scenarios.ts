@@ -7,10 +7,29 @@
  * through `window.__game` (the runner pre-defines `__HUB_TEST__`, so drivers
  * exist) and the hub through its own UI and URL params.
  */
+import { existsSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { waitsOn } from '../../../src/kit/testing/phases.ts';
+import { ROOT } from '../lib/paths.ts';
 import type { Scenario, ShotContext } from './types.ts';
 
 const L = '#hub-social-layer >>> ';
+
+/**
+ * How long a screen's entrance takes to settle (cards that pop in, buttons that slide in 60 ms
+ * apart: docs/kit/look.md). Scenarios that open a screen wait this long, so the shot isn't half-drawn.
+ */
+const SETTLE_MS = 800;
+
+/** This game's `game` block (package.json). */
+const BLOCK: unknown = Reflect.get(Object(JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8'))), 'game');
+
+/** Skip a scenario for a feature the game doesn't have: `game.<key>` unset, or the file missing. */
+function needs(key: string): { skip?: string } {
+  if (key.startsWith('src/')) return existsSync(join(ROOT, key)) ? {} : { skip: `this game has no ${key}` };
+  const v: unknown = typeof BLOCK === 'object' && BLOCK !== null ? Reflect.get(BLOCK, key) : undefined;
+  return v === undefined || v === null || v === false ? { skip: `this game declares no game.${key}` } : {};
+}
 const today = (offset = 0): string => new Date(Date.now() + offset * 86_400_000).toISOString().slice(0, 10);
 
 /** Wait until the hub's renderer has drawn the title's bust (`<dg-avatar>` upgraded, with its drawing). */
@@ -28,7 +47,10 @@ export const KIT_SCENARIOS: Scenario[] = [
     name: 'title',
     target: 'static',
     checks: 'the title, Continue rows, room for the menu button',
-    run: (c) => c.open(),
+    run: async (c) => {
+      await c.open();
+      await c.wait(SETTLE_MS);
+    },
   },
   {
     name: 'menu',
@@ -48,6 +70,7 @@ export const KIT_SCENARIOS: Scenario[] = [
     run: async (c) => {
       await c.open();
       await c.press('howto');
+      await c.wait(SETTLE_MS);
     },
   },
   {
@@ -57,6 +80,7 @@ export const KIT_SCENARIOS: Scenario[] = [
     run: async (c) => {
       await c.open();
       await c.press('settings');
+      await c.wait(SETTLE_MS);
     },
   },
   {
@@ -80,6 +104,7 @@ export const KIT_SCENARIOS: Scenario[] = [
       await c.wait(300);
       await c.drive('pause');
       await c.screen('pause');
+      await c.wait(SETTLE_MS);
     },
   },
   {
@@ -93,7 +118,7 @@ export const KIT_SCENARIOS: Scenario[] = [
       await c.wait(1500);
       await c.drive('loseNow');
       await c.screen('result');
-      await c.wait(700);
+      await c.wait(SETTLE_MS);
     },
   },
   {
@@ -150,6 +175,7 @@ export const KIT_SCENARIOS: Scenario[] = [
   },
   {
     name: 'daily-start',
+    ...needs('dailyChallenges'),
     target: 'hub',
     checks: 'today’s daily, started from its deep link',
     run: async (c) => {
@@ -163,6 +189,7 @@ export const KIT_SCENARIOS: Scenario[] = [
   },
   {
     name: 'daily-done',
+    ...needs('dailyChallenges'),
     target: 'hub',
     checks: 'the win screen and the menu button’s calendar turned green',
     run: async (c) => {
@@ -175,6 +202,7 @@ export const KIT_SCENARIOS: Scenario[] = [
   },
   {
     name: 'continue',
+    ...needs('resumable'),
     target: 'hub',
     checks: 'the title’s Continue row after a reload',
     run: async (c) => {
@@ -189,6 +217,7 @@ export const KIT_SCENARIOS: Scenario[] = [
   },
   {
     name: 'invite',
+    ...needs('multiplayer'),
     target: 'hub',
     checks: 'an invite toast over the game',
     run: async (c) => {
@@ -206,6 +235,7 @@ export const KIT_SCENARIOS: Scenario[] = [
   },
   {
     name: 'lobby',
+    ...needs('multiplayer'),
     target: 'hub',
     checks: 'the lobby: names with faces, Invite, the bell, chat',
     run: async (c) => {
@@ -213,6 +243,7 @@ export const KIT_SCENARIOS: Scenario[] = [
       await c.open();
       await c.press('online');
       await c.screen('lobby');
+      await c.wait(SETTLE_MS);
       const code = await c.page.evaluate(() => document.querySelector('[data-testid="room-code"]')?.textContent ?? '');
       await c.open('', b.page);
       await b.page.evaluate((code) => {
@@ -226,6 +257,7 @@ export const KIT_SCENARIOS: Scenario[] = [
   },
   {
     name: 'race-hud',
+    ...needs('race'),
     target: 'hub',
     checks: 'the race HUD clear of the game’s HUD',
     run: async (c) => {
@@ -242,6 +274,7 @@ export const KIT_SCENARIOS: Scenario[] = [
   },
   {
     name: 'race-result',
+    ...needs('race'),
     target: 'hub',
     checks: 'the hub’s race result card',
     run: async (c) => {
@@ -272,6 +305,7 @@ export const KIT_SCENARIOS: Scenario[] = [
   },
   {
     name: 'avatar',
+    ...needs('src/game/avatar.ts'),
     target: 'hub',
     checks: 'your avatar’s bust under the title’s buttons with Edit avatar, covering nothing',
     run: async (c) => {
@@ -283,6 +317,7 @@ export const KIT_SCENARIOS: Scenario[] = [
   },
   {
     name: 'avatar-designer',
+    ...needs('src/game/avatar.ts'),
     target: 'hub',
     checks: 'Edit avatar opens the hub’s designer over the game',
     run: async (c) => {
@@ -303,13 +338,14 @@ export const KIT_SCENARIOS: Scenario[] = [
   },
   {
     name: 'your-games',
+    ...needs('dailyChallenges'),
     target: 'hub',
     checks:
       'the title lists every saved game: Continue (the saved game) and Daily challenge · <yesterday> (a day in progress)',
     run: async (c) => {
       await c.open(`?daily=${today(-1)}`);
       await c.page.waitForFunction(() => document.querySelector('[data-screen="play"]') !== null, { timeout: 20_000 });
-      await c.drive('extra.addCoins', 3);
+      await c.drive('addScore', 3);
       await c.drive('toTitle'); // saves the day, then pauses it: it stays in progress
       await c.screen('title');
       await c.drive('newGame');

@@ -14,7 +14,7 @@ import type { ResumeSpec } from '../kit/resume/index.ts';
 const run: ResumeSpec<Run> = {
   version: 1, // bump when Run changes shape: older saves then read as nothing saved
   validate: isRun, // (x: Json) => x is Run; check every field you rely on
-  progress: (r) => ({ label: `${r.score} of ${r.target} coins`, fraction: r.score / r.target }),
+  progress: (r) => ({ label: `${r.score} of ${r.target} points`, fraction: r.score / r.target }),
   title: (r) => (r.mode === 'daily' ? 'Daily' : null), // optional name
   // legacySlot: 'run',  // an old hub.getSave slot that used to hold the game; migrated once, then deleted
 };
@@ -58,7 +58,7 @@ const run: ResumeSpec<Run> = {
 ## Tests
 
 - `tests/kit/resume/resume.test.ts`
-- `tests/hub-events/resume.test.ts` (Continue and the page hiding, through the booted stub game)
+- `tests/hub-events/resume.test.ts` (Continue and the page hiding, through the booted game)
 - `tests/hub/kit/progress.test.ts` (Continue in a real browser)
 
 ## Hub API used:

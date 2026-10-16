@@ -42,17 +42,12 @@ const see = (p: Player, what: string, ok: (s: Shown) => boolean, timeout = 20_00
     timeout,
   );
 
-/** Take coins when the board allows it (a live event may redraw it at any moment). */
-const take = (p: Player): Promise<boolean> =>
-  until(
-    () =>
-      p.page.evaluate(() => {
-        const b = document.querySelector<HTMLButtonElement>('[data-testid="take-1"]:not([disabled])');
-        b?.click();
-        return b !== null;
-      }),
-    `${p.name} takes a coin`,
-  );
+/**
+ * Make a move when the board allows it (a live event may redraw it at any moment): the game's
+ * `turns.testMove`, through `__game.turnsMove()` (the test contract, docs/kit/testing.md).
+ */
+const move = (p: Player): Promise<boolean> =>
+  until(() => p.page.evaluate(() => window.__game?.turnsMove?.() === true), `${p.name} makes a move`);
 
 e2e(
   'turns: a link game in two browsers: live moves, quick-chat, "Waiting for…", the hand-over, the end',
@@ -83,7 +78,7 @@ e2e(
     await see(ann, 'her turn', (s) => s.kind === 'mine');
     await see(bob, `"${ann.name} is playing"`, (s) => s.status === `${ann.name} is playing`);
 
-    await take(ann);
+    await move(ann);
     await see(bob, "Ann's move, live", (s) => s.seq === 1 && s.kind === 'mine');
 
     if (phrase !== null) {
@@ -107,7 +102,7 @@ e2e(
     for (let i = 0; i < 30; i++) {
       const s = await shown(ann);
       if (s.phase === 'ended') break;
-      if (s.kind === 'mine') await take(ann);
+      if (s.kind === 'mine') await move(ann);
       await see(ann, 'the game goes on', (n) => n.phase === 'ended' || n.seq > s.seq);
     }
     const end = await see(ann, 'the end', (s) => s.phase === 'ended');

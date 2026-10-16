@@ -114,11 +114,11 @@ Every hook gets a `GameContext` (built once in `context.ts`):
 
 ## Tests
 
-There is no `tests/kit/boot/`. Boot is covered through the stub game:
+There is no `tests/kit/boot/`. Boot is covered through the game's own hooks:
 
 - `tests/hub-events/*.test.ts` (FakeHub, one file per hub event group: `daily`, `input`, `online`, `overlay`, `planned`, `progress`, `race`, `resume`).
 - `tests/hub/kit/*.test.ts` (real hub, browser): `pause`, `progress`, `race`, `online`, `saved`, `avatar`, `planned` (skipped), `fake-parity`.
-- `tests/game/*.test.ts` for the stub game's own rules.
+- `tests/game/*.test.ts` for the game's own rules.
 
 ## Hub API used:
 

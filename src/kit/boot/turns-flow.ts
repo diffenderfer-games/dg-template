@@ -57,7 +57,9 @@ export class TurnsFlow {
   private nudge: (() => boolean) | null = null;
   private readonly o: {
     hub: HubLike;
-    hooks: Pick<TurnsHooks<JsonObject, JsonObject>, 'create'> & { draw(el: HTMLElement, board: TurnBoard): void };
+    hooks: Pick<TurnsHooks<JsonObject, JsonObject>, 'create' | 'testMove'> & {
+      draw(el: HTMLElement, board: TurnBoard): void;
+    };
     clock: Clock;
     screens: Screens;
     host: TurnsFlowHost;
@@ -197,6 +199,29 @@ export class TurnsFlow {
     this.redraw();
   }
 
+  /** The board the game draws (and its test move reads). */
+  private board(game: TurnGameLike): TurnBoard {
+    return {
+      view: game.view,
+      summary: game.summary,
+      mySeat: game.mySeat,
+      canMove: game.summary.phase === 'playing' && (game.summary.isMyTurn || game.mayActNow),
+      move: (move) => this.act(() => game.move(move)),
+    };
+  }
+
+  /** The test driver `__game.turnsMove()`: make the game's `testMove` when this player may move. */
+  testMove(): boolean {
+    const game = this.current;
+    const pick = this.o.hooks.testMove;
+    if (game === null || pick === undefined) return false;
+    const board = this.board(game);
+    const move = board.canMove ? pick(board) : null;
+    if (move === null) return false;
+    void board.move(move);
+    return true;
+  }
+
   /** Redraw the screen and the board, and ask about the hand-over again when its time comes. */
   private redraw(): void {
     const game = this.current;
@@ -204,15 +229,7 @@ export class TurnsFlow {
     if (game === null || screen === null) return;
     const now = this.o.clock.now();
     screen.update(game, now);
-    const playing = game.summary.phase === 'playing';
-    const board: TurnBoard = {
-      view: game.view,
-      summary: game.summary,
-      mySeat: game.mySeat,
-      canMove: playing && (game.summary.isMyTurn || game.mayActNow),
-      move: (move) => this.act(() => game.move(move)),
-    };
-    this.o.hooks.draw(screen.board, board);
+    this.o.hooks.draw(screen.board, this.board(game));
     this.recheck?.();
     const wait = nextCheckIn(game.summary, now);
     this.recheck = wait === null ? null : this.o.clock.after(wait + 50, () => this.redraw());

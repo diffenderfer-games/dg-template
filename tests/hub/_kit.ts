@@ -13,16 +13,32 @@
  * instead. The kit's JS is untyped, so this file checks each export once and
  * gives it a type (a trust boundary).
  */
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { basename, join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import type { ElementHandle, Page } from 'puppeteer-core';
 import type {} from '../../src/kit/test-hook/index.ts';
+import { listedPath, readKitSkips, skipReason } from '../../scripts/kit/lib/kit-skips.ts';
 import type { JsonObject } from '../../src/kit/core/json.ts';
 
 /** This game's folder and slug (the folder name, lowercased, like the hub). */
 export const ROOT = resolve(import.meta.dirname, '..', '..');
 export const SLUG = (process.env.DEPLOY_SLUG ?? basename(ROOT)).toLowerCase();
+
+/** This game's `game` block (package.json), read once. */
+export const GAME_BLOCK: unknown = Reflect.get(
+  Object(JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8'))),
+  'game',
+);
+
+/**
+ * Skip a suite for a feature the game doesn't declare: false when `game.<key>`
+ * is set (truthy), else the reason (for `e2e(…, { skip })`).
+ */
+export function unlessDeclared(key: string, what: string): string | false {
+  const v: unknown = typeof GAME_BLOCK === 'object' && GAME_BLOCK !== null ? Reflect.get(GAME_BLOCK, key) : undefined;
+  return v === undefined || v === false || v === null ? `this game declares no game.${key} (${what})` : false;
+}
 
 /** The hub checkout with the test kit. */
 export const HUB = resolve(process.env.DG_HOST ?? join(ROOT, '..', 'diffenderfer-games'));
@@ -104,7 +120,14 @@ export function env(o: { env?: Record<string, string>; apps?: Record<string, str
   return e;
 }
 
-/** One test (a fresh toolkit; page errors fail it; screenshots on failure). `skip`: false, or the reason. */
+/** The kit tests this game skips (tests/kit-skips.json), and this suite's file as the list writes it. */
+const SKIPS = readKitSkips(ROOT).skips;
+const FILE = listedPath(ROOT, process.argv[1] ?? '');
+
+/**
+ * One test (a fresh toolkit; page errors fail it; screenshots on failure). `skip`: false, or the reason.
+ * A test listed in tests/kit-skips.json is skipped with the list's reason.
+ */
 export function e2e(
   name: string,
   e: E2eEnv,
@@ -118,7 +141,7 @@ export function e2e(
       if (!isTest(t)) throw new Error('e2e() passed something unexpected');
       await fn(t);
     },
-    opts,
+    { ...opts, skip: opts.skip || (skipReason(SKIPS, FILE, [name]) ?? false) },
   );
 }
 
@@ -184,6 +207,9 @@ export const game = {
   autoplay: (p: Player, on = true): Promise<void> => p.page.evaluate((v) => window.__game?.autoplay?.(v), on),
   toTitle: (p: Player): Promise<void> => p.page.evaluate(() => window.__game?.toTitle?.()),
   pause: (p: Player): Promise<void> => p.page.evaluate(() => window.__game?.pause?.()),
+  /** The test contract's score driver (docs/kit/testing.md): `snap().score` grows by `n`. */
+  addScore: (p: Player, n: number): Promise<void> => p.page.evaluate((v) => window.__game?.addScore?.(v), n),
+  loseNow: (p: Player): Promise<void> => p.page.evaluate(() => window.__game?.loseNow?.()),
 };
 
 /** Wait until the game is mounted (`body[data-ready]`) and the hook is there. */

@@ -100,6 +100,12 @@ export default tseslint.config(
     rules: { 'no-restricted-syntax': ['error', ...HTML_SINKS, ...VIOLENT_COPY] },
   },
   {
+    // Generated data (word lists, dictionaries, level packs) is not UI copy: a word list holds
+    // "shoot" and "dead". What players see of it is the game's to filter (a clean answer list).
+    files: ['src/game/data/**/*.ts'],
+    rules: { 'no-restricted-syntax': ['error', ...HTML_SINKS] },
+  },
+  {
     files: ['src/game/strings.ts', 'src/kit/core/strings.ts'],
     rules: { 'no-restricted-syntax': ['error', ...HTML_SINKS, ...VIOLENT_COPY, ...KIND_COPY] },
   },

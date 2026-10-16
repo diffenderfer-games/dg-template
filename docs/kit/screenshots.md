@@ -22,6 +22,9 @@ Output in `shots/` (git-ignored):
 - `sheet.png`: every shot on one labelled sheet, zoomed to fit 2048 × 2048;
 - `index.html`: the same sheet, full size, with a filter box.
 
+**Run `npm run shots` last**: each run rewrites `sheet.png` with only that run's
+scenarios (`npm run cover` leaves a one-shot sheet behind it).
+
 **Any console error fails the run** (the hub's expected ones are allowed: a
 404 from a static server's `/_api`, a closed `/_ws`, offline loads). Then
 **read `shots/sheet.png`** and check each shot against its "checks" line.
@@ -50,6 +53,16 @@ yesterday's daily in progress). Skipped until game tables in the world ship
 (world W2), saying so on the sheet: `table-launch`. The template's own
 `turns` scenario (`scripts/shots.config.ts`) shows an online game the hub runs
 against the computer; `new-game --no-turns` removes it.
+
+Scenarios for a feature the game doesn't have skip on their own, saying so on the
+sheet: `daily-*` and `your-games` without `game.dailyChallenges`, `continue` without
+`game.resumable`, `invite` and `lobby` without `game.multiplayer`, `race-*` without
+`game.race`, `avatar*` without `src/game/avatar.ts`.
+
+Scenarios that open a screen (`title`, `howto`, `settings`, `pause`, `gameover`,
+`lobby`) wait 800 ms for its entrance (cards popping in, buttons sliding in) so the shot
+isn't half-drawn. Do the same in your own scenarios: `await c.wait(800)` after the screen
+appears.
 
 ## Writing a scenario
 
@@ -81,6 +94,28 @@ The context gives `open(query?)`, `drive(path, ...args)`, `screen(name)`,
 
 `npm run cover` takes the `cover` scenario at desktop size and copies it to
 `cover.png`; point `game.image` at it.
+
+The kit's `cover` plays `autoplay` for 2.5 s: fine for an action game, a poor tile for a
+word or card game. Make your own: exclude the kit's and add a `cover` scenario that sets
+up a good-looking board with a showcase driver:
+
+```ts
+// scripts/shots.config.ts
+export const exclude = ['cover'];
+export const scenarios: Scenario[] = [
+  {
+    name: 'cover',
+    target: 'static',
+    checks: 'the catalog tile: a board mid-game that shows what the game is',
+    run: async (c) => {
+      await c.open();
+      await c.drive('newGame');
+      await c.drive('extra.showcase'); // src/game/test-hook.ts: a nice board, no randomness
+      await c.wait(800);
+    },
+  },
+];
+```
 
 ## A local hub
 

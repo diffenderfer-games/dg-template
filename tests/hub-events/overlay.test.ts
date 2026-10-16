@@ -17,7 +17,7 @@ describe('hub UI over the game (multiplayer.md §4)', () => {
   });
 
   it('row 2: an action game stays paused when hub UI closes; a turn-based one resumes only if the hub paused it', async () => {
-    const action = await bootGame();
+    const action = await bootGame({ patch: { resumeOnClose: false } });
     await action.start();
     action.fake.openOverlay('menu')();
     await action.frames(1);

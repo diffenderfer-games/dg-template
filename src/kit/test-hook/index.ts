@@ -38,6 +38,8 @@ export type GameHookDrivers = {
   solveNow(): void;
   /** Lose at once. */
   loseNow(): void;
+  /** Add `n` to the score (`snap().score` shows it): the kit's suites use it (docs/kit/testing.md). */
+  addScore(n: number): void;
   setState(state: Json): void;
   autoplay(on: boolean): void;
   /** Show a kit toast (the `toast` screenshot). */
@@ -52,6 +54,8 @@ export type GameHookDrivers = {
     /** The latest view this player draws. */
     view(): Json;
   };
+  /** Online games the hub runs: make the game's `turns.testMove` now (false: not this player's move). */
+  turnsMove(): boolean;
   /** Anything the game adds (src/game/test-hook.ts). */
   extra: Record<string, (...args: Json[]) => Json | void>;
 };

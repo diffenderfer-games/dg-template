@@ -6,7 +6,7 @@ Source: `src/kit/layout/` (KIT: copy byte-identical; change it in the template f
 
 ## What the game does
 
-Use `ctx.region()` and `ctx.onResize` from the `GameContext`; they are built on this module. The stub game's renderer gets `region: () => ctx.region()` and fits its arena into it.
+Use `ctx.region()` and `ctx.onResize` from the `GameContext`; they are built on this module. The game's renderer gets `region: () => ctx.region()` and lays its scene out in it (the Pixi starter's `stage.layout()`, or `stage.fit(arena)` for a fixed arena).
 
 ```ts
 import { letterbox, isPhone, fitText, type Region } from '../kit/layout/index.ts';

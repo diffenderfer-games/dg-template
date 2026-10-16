@@ -28,6 +28,17 @@ beforeEach(() => {
   mountUi(undefined, clock);
 });
 
+describe("the kit's CSS", () => {
+  it("goes first in <head>, so the game's theme.css wins every tie", () => {
+    document.getElementById('kit-css')?.remove();
+    const theme = document.head.appendChild(document.createElement('style'));
+    mountUi(undefined, clock);
+    expect(document.head.firstElementChild?.id).toBe('kit-css');
+    expect(theme.previousElementSibling).not.toBeNull();
+    theme.remove();
+  });
+});
+
 describe('h(): text only, never HTML', () => {
   it('escapes text (player names, chat) and sets attributes, classes, styles and handlers', () => {
     const onclick = vi.fn();

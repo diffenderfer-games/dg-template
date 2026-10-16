@@ -66,7 +66,7 @@ syncMenuButton(hub, { playing: true, paused: pause.paused });
 ## Tests
 
 - `tests/kit/pause/pause.test.ts`
-- `tests/hub-events/overlay.test.ts` (rows 1 to 8, against the stub game)
+- `tests/hub-events/overlay.test.ts` (rows 1 to 8, against the game)
 - `tests/hub/kit/pause.test.ts` (a real hub: open the menu, check the overlay log and the pause screen)
 - `tests/hub/kit/fake-parity.test.ts` (FakeHub gives the same overlay log as the real hub)
 

@@ -5,8 +5,9 @@
  *
  * Fails when a file listed in kit.json was edited or deleted (change it in
  * the template and `kit:sync`, or fork it out of src/kit/ and say so in
- * docs/game.md), when a `src/kit/` file isn't in kit.json, or when the
- * `game` block breaks a rule hub-doctor doesn't check (lib/game-block.ts).
+ * docs/game.md), when a `src/kit/` file isn't in kit.json, when the
+ * `game` block breaks a rule hub-doctor doesn't check (lib/game-block.ts), or
+ * when tests/kit-skips.json lists something that isn't a kit test.
  */
 import { existsSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
@@ -14,6 +15,7 @@ import { pathToFileURL } from 'node:url';
 import { checkBoards, checkChanges, checkLabels, checkWorld } from './lib/game-block.ts';
 import { rec, readJsonFile } from './lib/json-file.ts';
 import { driftedFiles, readKitManifest } from './lib/kit-manifest.ts';
+import { KIT_SKIPS_FILE, readKitSkips } from './lib/kit-skips.ts';
 import { expandPath } from './lib/modules.ts';
 import { isTemplate, ROOT } from './lib/paths.ts';
 
@@ -66,7 +68,19 @@ if (!game) {
   }
 }
 
-// 3. leftovers from the template
+// 3. the kit tests this game skips (tests/kit-skips.json): kit test files that exist, each with a reason
+const kitFiles = new Set(Object.values(manifest?.modules ?? {}).flatMap((m) => Object.keys(m.files)));
+const listed = readKitSkips(ROOT);
+problems.push(...listed.problems);
+for (const s of listed.skips) {
+  if (!kitFiles.has(s.file))
+    problems.push(
+      `${KIT_SKIPS_FILE}: ${s.file} is not a kit test file (your own tests are yours to change; kit tests are listed in kit.json)`,
+    );
+}
+const skipNote = listed.skips.length === 0 ? '' : `, ${listed.skips.length} kit test(s) skipped in ${KIT_SKIPS_FILE}`;
+
+// 4. leftovers from the template
 if (!isTemplate() && existsSync(join(ROOT, 'src', 'game')) && readdirSync(join(ROOT, 'src', 'game')).length === 0) {
   warnings.push('src/game/ is empty');
 }
@@ -78,5 +92,5 @@ if (problems.length > 0) {
   process.exit(1);
 }
 console.log(
-  `kit:check: ok (kit ${manifest?.kitVersion ?? '?'}, ${Object.keys(manifest?.modules ?? {}).length} modules)`,
+  `kit:check: ok (kit ${manifest?.kitVersion ?? '?'}, ${Object.keys(manifest?.modules ?? {}).length} modules${skipNote})`,
 );

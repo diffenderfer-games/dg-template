@@ -11,17 +11,12 @@ export const PROFILE_VERSION = 1;
 /** Bump when the saved game's shape changes: older saved games then read as none. */
 export const RUN_VERSION = 1;
 
-/** The arena, in game units (renderers scale it to fit). */
-export const ARENA = { width: 1600, height: 1000 } as const;
-
 /** Tuning. TODO(game): your game's numbers. */
 export const TUNING = {
-  speed: 640,
-  playerHalf: 30,
-  coinRadius: 22,
-  pickup: 56,
-  normalSeconds: 60,
-  dailySeconds: 45,
+  /** Seconds in a normal game. */
+  normalSeconds: 30,
+  /** Seconds to reach the daily's target. */
+  dailySeconds: 20,
 } as const;
 
 /**
@@ -33,4 +28,4 @@ export const BOARDS = {
 } as const;
 
 /** Race params: the defaults of `game.race.params` (keep both in step). TODO(game): your race options. */
-export const RACE_DEFAULTS = { coins: 10 } as const;
+export const RACE_DEFAULTS = { target: 20 } as const;

@@ -1,23 +1,35 @@
 # Make a new game in 10 steps
 
-KIT doc. The template comes with a working example, **Coin Dash** ("grab the
-coins"): a normal game, a daily challenge, races and an online party mode. You
-replace its insides with your game; the kit keeps doing the hub's jobs.
+KIT doc. A new game starts as a small placeholder: each press of the action
+button scores a point, with a normal game, a daily challenge, races, online
+play in hub rooms and online games the hub runs all wired up. Every part of it
+is a `TODO(game)` stub with neutral names (`score`, `target`), so you replace
+its insides with your game; the kit keeps doing the hub's jobs.
 
-## Step 1. Create the repo
+## Step 1. Make the game's folder
 
-From the template, as a private repo in the `diffenderfer-games` org, with the
-deploy secrets: [repo-setup.md](repo-setup.md). On Windows,
-`tools/New-Game.ps1` (in the template) does steps 1–3 for a local folder.
-
-## Step 2. Install
+Pick the final name first: the slug (lowercase `a-z0-9-`) is the folder, the
+repo and the URL (renaming later means a new folder). In `dg-template`:
 
 ```bash
-npm install
-npm run dev     # the example game; move with WASD, arrows, a gamepad or the stick
+npm run create -- word-pop --title "Word Pop" --renderer none --no-online --no-turns
 ```
 
-## Step 3. Pick a renderer and features
+It copies the template's last commit (never uncommitted changes) to
+`../word-pop`, runs `new-game` there (step 3) and `npm install`, and makes the
+first commit. On Windows, `tools/New-Game.ps1` does the same and adds a desktop
+shortcut ([repo-setup.md](repo-setup.md)).
+
+## Step 2. Play it
+
+```bash
+npm run dev     # the placeholder: press Space, a gamepad's A or the on-screen button
+npm run check   # every local gate: a new game passes it as created
+```
+
+## Step 3. A renderer and features (`npm run create` did this)
+
+`create` runs `new-game` with the same flags; in a plain copy of the template:
 
 ```bash
 npm run new-game -- --renderer pixi            # 2D (PixiJS v8)
@@ -27,8 +39,16 @@ npm run new-game -- --renderer pixi --no-online --no-race --title "My Game"
 ```
 
 It copies the starter into `src/game/render/`, removes the other renderers'
-packages, sets the `2d`/`3d` label and drops the features you said no to
-(`--no-daily`, `--no-race`, `--no-online`, `--no-turns`, `--no-world`, `--no-avatar`). Run it once.
+packages, sets the `2d`/`3d` label, drops the features you said no to
+(`--no-daily`, `--no-race`, `--no-online`, `--no-turns`, `--no-world`,
+`--no-avatar`), names the game (package.json `name`, the browser tab's
+`<title>`, the title screen, a short `README.md`, blank notes in
+`docs/game.md`) and runs `npm install`. Run it once.
+
+The Pixi starter lays the scene out in screen pixels from the play region
+(`stage.layout()`: phone word and card games, a keyboard that fills the
+width); an action game with a fixed field uses `stage.fit({ width, height })`
+instead, which letterboxes the arena.
 
 ## Step 4. The `game` block
 
@@ -46,14 +66,18 @@ catalog filter: see [HANDOFF.md](../HANDOFF.md)), and the features you keep:
   progress (`Run`). Plain JSON types, so the kit can save and validate them.
 - `src/game/rules.ts`: pure functions. No DOM, no hub, no `Math.random`, no
   `Date`: all randomness from the seeded RNG kept in the state, so a daily or
-  a race is the same game for everyone ([kit/rng.md](kit/rng.md)).
+  a race is the same game for everyone ([kit/rng.md](kit/rng.md)). An ending
+  animation keeps `outcome` null until it's done ([kit/hooks.md](kit/hooks.md)).
 - Unit-test the rules in `tests/game/` and check the tuning with `npm run sim`.
+- Keep the test contract in `hooks.ts` (`snap().score`, `addScore`, `solve`):
+  the kit's own tests use it ([kit/testing.md](kit/testing.md#what-the-kits-tests-need-from-your-game)).
 
 ## Step 6. Controls
 
 `src/game/controls.ts`: one declaration for keys, gamepad, mouse and touch.
 The hub draws the on-screen controls ([kit/input.md](kit/input.md)). Keep the
-`pause` input.
+`pause` input (Escape and Start). A typing or word game reads the keyboard
+itself: [kit/input.md](kit/input.md#typing-and-word-games).
 
 ## Step 7. Draw it
 
@@ -62,7 +86,9 @@ screen and every animation (the kit's default look is a scaffold, not a
 finished game).
 
 - `src/game/render/`: the scene (from the starter you picked).
-- `src/game/screens/`: decorate the kit's title, HUD and result screens.
+- `src/game/screens/`: decorate the kit's title, HUD and result screens. The
+  kit's markup and test ids, and how `theme.css` overrides the kit's CSS:
+  [kit/ui.md](kit/ui.md#styling-the-kits-screens).
 - `src/game/strings.ts`: the words players read. No violent words, and never
   "run" or "turn game".
 
@@ -90,18 +116,28 @@ lists the saved game and days in progress ([kit/saved.md](kit/saved.md)).
 
 ```bash
 npm run check        # typecheck, unit tests, lint, format, kit files, hub-doctor, build
-npm run test:hub     # the kit's hub suites (pause, saves, daily, saved games, avatars, race, online, online games the hub runs, your room) on a real hub
-npm run shots        # phone + desktop screenshots of dist/
+npm run test:hub     # the kit's hub suites on a real hub (~20–25 min; one file: npm run test:hub -- tests/hub/kit/progress.test.ts)
 npm run shots:hub    # the hub scenarios
+npm run shots        # phone + desktop screenshots of dist/ (run it last: it rewrites the sheet)
 ```
 
 Then **look at `shots/sheet.png`** (with Read, if you are an agent). Add your
 own scenes to `scripts/shots.config.ts`. See [kit/testing.md](kit/testing.md)
 and [kit/screenshots.md](kit/screenshots.md).
 
-## Step 10. Push
+The kit's tests for features your game doesn't declare skip on their own. A
+kit test that still doesn't fit your game is listed, with the reason, in
+`tests/kit-skips.json`, never deleted or edited:
+[kit/testing.md](kit/testing.md#kit-tests-that-dont-apply).
 
-Push to `main`/`master`. The deploy's gate runs the same checks and the hub
-suites, then the first deploy puts the game on the host
-([repo-setup.md](repo-setup.md)). Write the game's own notes in
-[game.md](game.md) as you go.
+## Step 10. The first deploy
+
+```bash
+npm run first-deploy
+```
+
+It creates the private repo in the org, sets its deploy secrets, pushes, and
+watches the gate (the same checks) and the deploy put the game on the host
+([repo-setup.md](repo-setup.md#the-first-deploy)). After that, every push to
+the default branch deploys. Write the game's own notes in [game.md](game.md)
+as you go.

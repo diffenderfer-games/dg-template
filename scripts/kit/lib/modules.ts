@@ -11,7 +11,7 @@ import { existsSync, readdirSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
 
 /** The kit's version: `major.minor`. A major means a hook signature changed (see the CHANGELOG). */
-export const KIT_VERSION = '1.3';
+export const KIT_VERSION = '1.4';
 
 /** A module: its version and the paths (files or folders) it owns. */
 export type KitModuleDef = { version: string; paths: string[] };
@@ -24,37 +24,47 @@ function srcModule(name: string, version = '1.0'): KitModuleDef {
 /** Every module. */
 export const KIT_MODULES: Record<string, KitModuleDef> = {
   core: srcModule('core', '1.2'),
-  testing: srcModule('testing', '1.3'),
+  testing: srcModule('testing', '1.4'),
   rng: srcModule('rng'),
   'daily-puzzle': srcModule('daily-puzzle'),
-  save: srcModule('save'),
-  resume: srcModule('resume', '1.1'),
-  daily: srcModule('daily', '1.1'),
-  pause: srcModule('pause'),
-  scores: srcModule('scores'),
-  'test-hook': srcModule('test-hook', '1.1'),
-  boot: srcModule('boot', '1.3'),
-  input: srcModule('input'),
-  layout: srcModule('layout', '1.1'),
-  loop: srcModule('loop'),
-  ui: srcModule('ui', '1.1'),
+  save: srcModule('save', '1.1'),
+  resume: srcModule('resume', '1.2'),
+  daily: srcModule('daily', '1.2'),
+  pause: srcModule('pause', '1.1'),
+  scores: srcModule('scores', '1.1'),
+  'test-hook': srcModule('test-hook', '1.2'),
+  boot: srcModule('boot', '1.4'),
+  input: srcModule('input', '1.1'),
+  layout: srcModule('layout', '1.2'),
+  loop: srcModule('loop', '1.1'),
+  ui: srcModule('ui', '1.2'),
   'settings-ui': srcModule('settings-ui'),
-  race: srcModule('race'),
-  online: srcModule('online', '1.1'),
-  audio: srcModule('audio'),
+  race: srcModule('race', '1.1'),
+  online: srcModule('online', '1.2'),
+  audio: srcModule('audio', '1.1'),
   haptics: srcModule('haptics'),
   server: srcModule('server', '1.2'),
-  saved: srcModule('saved', '1.2'),
-  turns: srcModule('turns', '1.3'),
-  avatar: srcModule('avatar', '1.2'),
-  world: srcModule('world', '1.3'),
-  'hub-events': { version: '1.2', paths: ['tests/hub-events'] },
-  'hub-suites': { version: '1.3', paths: ['tests/hub/_kit.ts', 'tests/hub/kit'] },
-  scripts: { version: '1.4', paths: ['scripts/kit', 'tests/scripts'] },
+  saved: srcModule('saved', '1.3'),
+  turns: srcModule('turns', '1.4'),
+  avatar: srcModule('avatar', '1.3'),
+  world: srcModule('world', '1.4'),
+  'hub-events': { version: '1.3', paths: ['tests/hub-events'] },
+  'hub-suites': { version: '1.4', paths: ['tests/hub/_kit.ts', 'tests/hub/kit'] },
+  scripts: { version: '1.5', paths: ['scripts/kit', 'tests/scripts'] },
   ci: { version: '1.0', paths: ['.github/workflows/deploy.yml'] },
-  config: { version: '1.0', paths: ['eslint.config.ts', 'tsconfig.base.json', '.prettierrc.json', '.prettierignore'] },
+  config: {
+    version: '1.1',
+    paths: [
+      'eslint.config.ts',
+      'vitest.config.ts',
+      'tsconfig.base.json',
+      '.prettierrc.json',
+      '.prettierignore',
+      '.gitattributes',
+    ],
+  },
   docs: {
-    version: '1.4',
+    version: '1.5',
     paths: [
       'docs/kit/look.md',
       'docs/kit/look',

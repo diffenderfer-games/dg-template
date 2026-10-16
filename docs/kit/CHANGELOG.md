@@ -4,6 +4,83 @@ KIT doc. One entry per kit version; per module inside. A **major** version
 means a hook's signature changed: the entry says how to move a game over.
 `npm run kit:sync` prints the entries newer than a game's `kit.json`.
 
+## 1.4 (2026-10-16)
+
+After Wordle, the first real game (docs/plans/after-wordle.md): **the kit's
+tests now pass in any game**, not only the template's example. They ask the
+game for its shapes and need only a short test contract; suites for features a
+game doesn't declare skip on their own; and a kit test that still doesn't fit
+is listed with its reason in `tests/kit-skips.json` instead of being deleted.
+New games start neutral (no Coin Dash), and making one, and its first deploy,
+are one command each.
+
+To move a game over:
+
+1. `npm run kit:sync` (it now brings `vitest.config.ts` and `.gitattributes` too: the
+   `config` module).
+2. Give the definition the test contract
+   ([testing.md](testing.md#what-the-kits-tests-need-from-your-game)): `addScore: (run, n) =>
+   void (run.score += n)` beside `snap` (whose `score` the suites read), and, with
+   `game.turns`, `turns.testMove(board)` (a legal move, or null). Drop an
+   `extra.addCoins`-style driver the kit's tests used to need.
+3. Put back the kit tests you deleted or moved (`kit:sync` restores them; delete the
+   `tests/game/kit-*` copies), then `npm run check`. List any kit test that still
+   doesn't fit in `tests/kit-skips.json` with the reason, and in `docs/game.md` "Known
+   issues".
+4. Drop CSS workarounds: the kit's CSS now comes first in `<head>`, so `html:root` /
+   `html .kit-…` can be plain `:root` / `.kit-…` in theme.css.
+5. A song of your own can live in `src/game/music-core.ts` again: the audio test no
+   longer snapshots it.
+
+- **boot** 1.4: `GameDefinition.addScore(run, n)` (the test contract) and
+  `TurnsHooks.testMove(board)`; `window.__game.addScore(n)` and `turnsMove()`.
+  `KIT_VERSION` 1.4.
+- **test-hook** 1.2: `addScore` and `turnsMove` in `GameHookDrivers`.
+- **ui** 1.2: the kit's CSS is inserted first in `<head>` (`head.prepend`), so the
+  game's theme.css wins every tie; ui.md documents every kit screen's markup and test ids.
+- **hub-events** 1.3: the suites ask the game: saved games, days in progress and
+  profiles come from playing it (`savedGame`, `savedDay`, `profileAfter`), the race
+  param from `game.race.params[0]`, boards from the game's `result`; numbers, not
+  words; `HAS` / `describeIf` skip the daily, race, resume, online and turns suites
+  for a game without them; the online and turns suites use kit-owned toys
+  (`_support/toys.ts`); the conflict test checks the cloud slot ends merged.
+- **hub-suites** 1.4: `unlessDeclared(key)` skips the progress (Continue, daily),
+  saved, race, online and lobby suites for a game without the feature, and the
+  avatar title tests without `src/game/avatar.ts`; `game.addScore` / `game.loseNow`;
+  the best score is matched as a number; the turns suite plays with
+  `__game.turnsMove()`; `e2e()` honours `tests/kit-skips.json`.
+- **audio** 1.1: the MusicCore snapshot uses a kit-owned `tests/kit/audio/toy-core.ts`.
+- **scripts** 1.5: `npm run create` (a new game's folder from the template's HEAD,
+  no questions), `npm run first-deploy` (the private repo, its secrets, the push,
+  the run watched), `npm run test:hub` is `scripts/kit/test-hub.ts` (one file:
+  `npm run test:hub -- <file>`; skips listed files); `tests/kit-skips.json`
+  (`lib/kit-skips.ts`, `vitest-skips.ts`), checked by `kit:check`; `new-game` names
+  the game (package.json `name`, `description`, `author`, index.html's `<title>`, a
+  README, blank `docs/game.md`), strips the avatar line from `screens/title.ts`,
+  removes every template plan and runs `npm install` (`--no-install`); a template
+  test makes a game with every `--no-*` flag and runs its typecheck and unit tests;
+  the kit's screenshot scenarios skip features the game doesn't have and wait for
+  screens to settle.
+- **config** 1.1: `vitest.config.ts` and `.gitattributes` (LF everywhere) join the
+  kit; lint no longer applies the violent-words rule to `src/game/data/**`
+  (generated word lists).
+- **testing**, **input**, **daily**, **race**, **turns**, **layout**, **loop**,
+  **online**, **pause**, **resume**, **save**, **saved**, **scores**, **avatar**,
+  **world** (docs): the test contract and kit skips (testing.md), sim `maxSteps`,
+  `test:hub` timing; `hub.input` facts and typing games (input.md); a lost day
+  restarts from its seed (daily.md); race param keys are never shown (race.md);
+  `testMove` (turns.md); neutral examples (`score`, `target`) everywhere.
+- **docs** 1.5: getting-started and repo-setup use `npm run create` and
+  `npm run first-deploy` (and say `DG_HOST` isn't set in CI: the hub suites are
+  skipped there); hooks.md: the game finishes the frame `outcome` is non-null;
+  screenshots.md: the cover pattern, run `shots` last.
+- **The template** (not synced): the example is a neutral placeholder (a press
+  scores a point; `score`, `target`, a pile for online games) instead of Coin Dash;
+  the starters draw it; the Pixi starter has `stage.layout()` (screen pixels from the
+  play region) beside `stage.fit(arena)`; `pause` is Escape and Start (no P);
+  `tools/New-Game.ps1` calls `npm run create` and takes `-Name`, `-Renderer`,
+  `-No*`, `-NoShortcut`, `-NoLaunch`.
+
 ## 1.3 (2026-10-16)
 
 The hub client is pinned at **2.0.0-next.10** (what diffenderfer.games runs),

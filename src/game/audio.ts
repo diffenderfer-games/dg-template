@@ -13,7 +13,7 @@ const SONG: Song = { bpm: 108, root: 45, volume: 0.18 };
 /** TODO(game): your sounds and song. */
 export const audio: AudioHooks = {
   sfx: {
-    coin: (s) => {
+    score: (s) => {
       s.tone({ freq: 880, to: 1320, dur: 0.09, type: 'triangle', vol: 0.25 });
       s.tone({ freq: 1320, to: 1760, dur: 0.12, type: 'triangle', vol: 0.18, delay: 0.06 });
     },

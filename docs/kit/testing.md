@@ -54,21 +54,75 @@ fake.auth(null); // hub:auth (log out)
 | `HUB_PHASES`, `HubPhase`, `shipped(...)`, `waitsOn(...)` | The hub-phase list |
 | `simulate`, `seedRange`, `formatReport`, `SimSpec`, `SimReport` | The sim (`kit/testing/sim.ts`, imported by path, not from the index) |
 
+## What the kit's tests need from your game
+
+The kit's suites (`tests/hub-events/`, `tests/hub/kit/`) run against **your** hooks. They
+ask the game for its shapes (a saved game is made by starting one, adding to its score and
+pausing; a profile by finishing games; the race param comes from `game.race.params[0]`)
+and need only this list, the **test contract**:
+
+| The game gives | Used for |
+| --- | --- |
+| `snap(run)` with a numeric `score` | Every suite reads the score through `__game.snap()` |
+| `addScore(run, n)` in the definition: `snap().score` grows by `n` (`__game.addScore(n)`) | Saved games, Continue, the daily, races, saves |
+| `solve(run)`: the game is won now (`__game.solveNow()`) | Dailies and races that finish |
+| `[data-testid="title-best"]` and `[data-testid="result-best"]` with the best score as a number in them (`Best 7`, `7 ★`) | Saves reach the title and another device |
+| A profile whose `best` follows the score of a normal game (`onResult`), and `profile.merge` / `validate` that accept what the game pushes | Account switches, conflicts |
+| `result(run).boards` naming boards in `scores.boards` (or none) | Boards get the numbers the game named |
+| `turns.testMove(board)`: a legal move for this player, or null (`__game.turnsMove()`), when the game declares `game.turns` | The hub suite plays an online game the hub runs |
+| `run.validate` that accepts the game's own saved games | Continue, days in progress |
+
+Words never matter: the suites match numbers (`/\b7\b/`) and test ids, not `'Best 7'`.
+The online and turns hub-event suites use kit-owned toys (`tests/hub-events/_support/toys.ts`)
+in place of your `online` / `turns` hooks, so they test the kit's rooms and turns screen,
+not your rules: your rules are tested in `tests/game/`.
+
+## Kit tests that don't apply
+
+Suites for features the game doesn't declare are **skipped on their own**, with the reason
+in the test's name: no `game.multiplayer` (online rooms, the lobby), no `game.turns`,
+no `game.race`, no `game.dailyChallenges`, no `game.resumable`, no `game.world`, no
+`src/game/avatar.ts` (the title's bust). The kit's screenshot scenarios for them skip too.
+
+A kit test that still doesn't fit the game (it assumes something your game does
+differently on purpose) is **listed, never deleted**, in `tests/kit-skips.json` (a
+GAME file) with the reason:
+
+```json
+{
+  "skip": {
+    "tests/hub/kit/world.test.ts": "no room in the world yet",
+    "tests/hub-events/overlay.test.ts > row 2: an action game stays paused when hub UI closes; a turn-based one resumes only if the hub paused it": "a word game: hub UI never pauses it"
+  }
+}
+```
+
+- A key is a kit test file (every test in it) or `<file> > <test name>` (the test's own
+  title, or its full name `describe > … > it`).
+- vitest leaves listed files out and skips listed tests with the reason
+  (`scripts/kit/vitest-skips.ts`); `npm run test:hub` and `e2e()` do the same. The
+  files stay, so `kit:sync` and `kit:check` are untouched; `kit:check` fails on an
+  entry that isn't a kit test or has no reason, and counts the skips.
+- Say so in `docs/game.md` "Known issues" too.
+- Never skip (or weaken) a kit test of a feature the game has just to get green: fix the
+  game, or change the test in the template so it asks the game (the test contract above).
+- Your own tests (`tests/game/`) are yours: change them freely.
+
 ## The test pyramid
 
 1. Unit tests, vitest (`npm test`, which runs `--project kit --project hub-events --project game`):
    - `kit`: `tests/kit/**` and `tests/scripts/**`, one module at a time (Node; a file opts into jsdom with `// @vitest-environment jsdom`).
-   - `hub-events`: `tests/hub-events/**`, the kit against the stub game on a `FakeHub` (jsdom).
+   - `hub-events`: `tests/hub-events/**`, the kit against the game's own hooks on a `FakeHub` (jsdom).
    - `game`: `tests/game/**`, your rules, determinism and sims (jsdom).
    - `slow`: `**/*.slow.test.ts`, long sims and the 365-day daily harness (`npm run test:slow`).
-2. Hub suites, a real hub in a real browser: `npm run test:hub` runs `node --test` on `tests/hub/**/*.test.ts`, one file at a time.
+2. Hub suites, a real hub in a real browser: `npm run test:hub` (`scripts/kit/test-hub.ts`) runs `node --test` on `tests/hub/**/*.test.ts`, one file at a time. All of them take **20–25 minutes** (one test host per file); run one file with `npm run test:hub -- tests/hub/kit/progress.test.ts`. The test host **rebuilds the game from source** for each file: don't edit the game while it runs (work in another clone).
 3. Screenshots (`npm run shots`, `npm run shots:hub`) look at the real thing; see the screenshots doc.
 
 Put most checks at the bottom: they are fast and need no browser.
 
 ### Hub-event tests
 
-`tests/hub-events/_support/harness.ts` boots the stub game on a fresh `FakeHub`:
+`tests/hub-events/_support/harness.ts` boots the game (its own hooks, a recording view) on a fresh `FakeHub`:
 
 ```ts
 import { describe, expect, it } from 'vitest';
@@ -84,7 +138,7 @@ it('opening hub UI pauses the game once', async () => {
 });
 ```
 
-`g.fake` is the `FakeHub`, `g.hook` is `window.__game`, `g.ui` is the kit's DOM, `g.press(testid)` clicks a kit button, `g.frames(n)` runs n 16 ms frames, `g.settle()` lets promises run. The suites test the kit contract through the stub game's real hooks, not pixels, so a game that replaces the stubs keeps them green.
+`g.fake` is the `FakeHub`, `g.hook` is `window.__game`, `g.ui` is the kit's DOM, `g.press(testid)` clicks a kit button, `g.frames(n)` runs n 16 ms frames, `g.settle()` lets promises run; `g.calls` records the game's hooks (`newRun`, `step`, `result`, `onResult`, screens). The harness also asks the game: `HAS` (the features it declares; `describeIf(HAS.race, why)` skips a suite without them), `RACE_PARAM`, `savedGame(score)`, `savedDay(day, score)`, `profileAfter(...scores)`, `playTo(g, score)`, `resultBoards(g)`. The suites test the kit through the game's real hooks, not pixels, and need only the test contract (above).
 
 ### Planned hub tests
 
@@ -128,7 +182,7 @@ It throws `checkTurnRules: …` with the seed; the report is `{ games, moves, lo
 
 ### Sim
 
-`kit/testing/sim.ts` plays the pure rules many times with a policy and summarizes. `simulate(spec, seedRange(100))` returns `{ games, outcomes, stats }` with min, max, mean and median per measure. `src/game/sim.ts` has this game's `simSpec(mode, skill)`; `npm run sim` prints a report (`npm run sim -- normal 2000 0.5` is mode, games, skill). `tests/game/sim.test.ts` asserts the tuning, for example that a decent player wins the daily, and that a normal game always ends:
+`kit/testing/sim.ts` plays the pure rules many times with a policy and summarizes. `simulate(spec, seedRange(100))` returns `{ games, outcomes, stats }` with min, max, mean and median per measure. `src/game/sim.ts` has this game's `simSpec(mode, skill)`. A game stops after `maxSteps` (default 36,000 steps: 10 minutes) and counts as a `timeout`: an endless mode sets `maxSteps` in its `simSpec`. `npm run sim` prints a report (`npm run sim -- normal 2000 0.5` is mode, games, skill). `tests/game/sim.test.ts` asserts the tuning, for example that a decent player wins the daily, and that a normal game always ends:
 
 ```ts
 const r = simulate(simSpec('daily', 0.8), seedRange(100));
@@ -137,7 +191,7 @@ expect(r.outcomes.won).toBeGreaterThanOrEqual(90);
 
 ### Browser hub suites
 
-`tests/hub/_kit.ts` is the shared header. It loads the hub's own e2e kit from the hub checkout: `DG_HOST` if set, else `../diffenderfer-games` (`test/e2e/helpers.mjs`). One real test host starts per file with this game linked in. Each player is a browser context; console errors fail the test; screenshots are taken on failure. `DG_TEST_URL` points it at a running `npm run local` instead. Main exports: `env()`, `e2e(name, env, fn, opts)`, `game` (hook wrappers: `screen`, `mode`, `paused`, `snap`, `newGame`, `solveNow`, `autoplay`, `toTitle`, `pause`), `ready`, `waitScreen`, `openMenu`, `overlayLog`, `befriend`, `until`, `settle`, `today`, `L`, `SLUG`, `HUB`.
+`tests/hub/_kit.ts` is the shared header. It loads the hub's own e2e kit from the hub checkout: `DG_HOST` if set, else `../diffenderfer-games` (`test/e2e/helpers.mjs`). One real test host starts per file with this game linked in. Each player is a browser context; console errors fail the test; screenshots are taken on failure. `DG_TEST_URL` points it at a running `npm run local` instead. Main exports: `env()`, `e2e(name, env, fn, opts)` (`opts.skip`: false or the reason; tests in `tests/kit-skips.json` skip on their own), `unlessDeclared(key, what)` (the skip reason when `game.<key>` is unset), `GAME_BLOCK`, `game` (hook wrappers: `screen`, `mode`, `paused`, `snap`, `newGame`, `solveNow`, `addScore`, `loseNow`, `autoplay`, `toTitle`, `pause`), `ready`, `waitScreen`, `openMenu`, `overlayLog`, `befriend`, `until`, `settle`, `today`, `L`, `SLUG`, `HUB`.
 
 ```ts
 import { e2e, env, game, ready, SLUG, waitScreen } from '../_kit.ts';

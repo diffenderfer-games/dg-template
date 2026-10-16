@@ -7,8 +7,9 @@ duty. Read [docs/getting-started.md](docs/getting-started.md), then
 
 ## Where things live
 
-- **GAME** (yours): `src/game/`, `tests/game/`, `scripts/shots.config.ts`,
-  `scripts/sim.ts`, `docs/game.md`, `package.json`, this file.
+- **GAME** (yours): `src/game/`, `tests/game/`, `tests/kit-skips.json`,
+  `scripts/shots.config.ts`, `scripts/sim.ts`, `docs/game.md`, `README.md`,
+  `index.html`, `package.json`, this file.
 - **KIT** (shared, byte-identical in every game): `src/kit/`, `scripts/kit/`,
   the kit's tests, `docs/kit/`, configs, the deploy workflow. **Never edit
   them here**: write the behaviour in `src/game/`, or change the template and
@@ -29,7 +30,7 @@ Map of the kit: [docs/kit/README.md](docs/kit/README.md).
 - Online play only through the hub (accounts, friends, invites, chat): [docs/kit/online.md](docs/kit/online.md).
 - Show players' avatars (the hub's) wherever you show their names; never draw your own faces for real players: [docs/kit/avatar.md](docs/kit/avatar.md).
 - An own server that writes files on the box declares them in `game.data` so backups take them (`hub-doctor` checks it): [docs/kit/server.md](docs/kit/server.md#backups-gamedata).
-- No violent words in player-facing text ("zap", not "shoot").
+- No violent words in player-facing text ("zap", not "shoot"). Lint checks every string in `src/game/` except generated data in `src/game/data/` (word lists): filter what players see of it yourself.
 - Never say "run" or "turn game" to players.
 - Rules are pure and seeded: no `Math.random`, no `Date` in `src/game/rules.ts` ([docs/kit/rng.md](docs/kit/rng.md)).
 - A line in `game.changes` for each change a player would notice: [docs/kit/whats-new.md](docs/kit/whats-new.md).
@@ -53,8 +54,8 @@ the kit calls it: [docs/kit/hooks.md](docs/kit/hooks.md).
 
 ```bash
 npm run check        # typecheck, unit tests, lint, format, kit files, hub-doctor, build
-npm run test:hub     # the kit's hub suites on a real hub test host
-npm run shots        # then npm run shots:hub
+npm run test:hub     # the kit's hub suites on a real hub test host (~20–25 min; one file: npm run test:hub -- tests/hub/kit/progress.test.ts)
+npm run shots:hub    # then npm run shots (last: it rewrites the sheet)
 ```
 
 Then **look at `shots/sheet.png` with Read** and check each shot against its
@@ -68,7 +69,7 @@ Stop what you start (`npm run clean:procs`).
 ## Definition of done
 
 - Every screen and animation meets [docs/kit/look.md](docs/kit/look.md) (one UI style and its motion, in the game's own colours; the kit's default look is only a scaffold).
-- `npm run check` passes (so `kit:check` is clean and `hub-doctor` is happy).
+- `npm run check` passes (so `kit:check` is clean and `hub-doctor` is happy). Kit tests that don't apply to the game don't block it: features it doesn't declare skip on their own, and any other kit test that doesn't fit is listed with its reason in `tests/kit-skips.json` (never deleted, never edited, never a test of a feature the game has): [docs/kit/testing.md](docs/kit/testing.md#kit-tests-that-dont-apply). Keep the test contract (`snap().score`, `addScore`, `solve`) working.
 - The hub suites pass (`npm run test:hub`), including online ones if the game is online.
 - The contact sheet looks right at phone and desktop sizes.
 - It plays with a keyboard, a gamepad and on a touch screen.
@@ -77,9 +78,12 @@ Stop what you start (`npm run clean:procs`).
 
 ## Conventions
 
-- Never delete scripts or tests; grow them.
+- Never delete scripts or tests; grow them. A kit test that doesn't apply goes in `tests/kit-skips.json` instead.
+- No type assertions (`as`): lint forbids them. Use `satisfies`, a typed `const`, or a type guard.
+- A procedure longer than one command becomes an `npm run` script (and a line in the docs), not a list of commands to paste.
 - Plans go in `docs/plans/`; the game's notes in `docs/game.md`.
 - Commits that don't change the game get `[skip ci]` (pushes deploy).
 - Rules, daily and race code stay deterministic (same seed, same game).
-- Games are private repos in the `diffenderfer-games` org; pushing to the
-  default branch deploys after the gate passes ([docs/repo-setup.md](docs/repo-setup.md)).
+- Games are private repos in the `diffenderfer-games` org; `npm run first-deploy`
+  makes the repo and its secrets and pushes; after that, pushing to the default
+  branch deploys after the gate passes ([docs/repo-setup.md](docs/repo-setup.md)).

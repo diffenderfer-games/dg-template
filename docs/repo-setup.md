@@ -8,24 +8,20 @@ Every game is a **private** repo in the GitHub organization
 **[diffenderfer-games](https://github.com/diffenderfer-games)** (the host is
 [diffenderfer-games/diffenderfer-games](https://github.com/diffenderfer-games/diffenderfer-games)).
 
-1. **Create the repo in the org from this template**:
-   [diffenderfer-games/dg-template](https://github.com/diffenderfer-games/dg-template) →
-   **Use this template** → Owner **diffenderfer-games**, name = the game's slug
-   (lowercase `a-z0-9-`), **Private**. Clone it beside the host repo
-   (`git clone https://github.com/diffenderfer-games/<slug>.git`).
-   Locally, `tools/New-Game.ps1` makes the folder from this template instead
-   (it asks for the name and 2D / 3D / no canvas, runs `npm install` and
-   `npm run new-game`); then create an empty private repo in the org and push to it.
-2. **Add the deploy secrets to the repo** (Settings → Secrets and variables →
-   Actions, or `gh`):
-   `gh secret set DEPLOY_SSH_KEY -R diffenderfer-games/<slug> < ~/.ssh/diffenderfer_deploy`
-   and `gh secret set DEPLOY_HOST -R diffenderfer-games/<slug> -b diffenderfer.games`
-   (`DEPLOY_HOST` defaults to `diffenderfer.games`). Add `DEPLOY_PATH` only when the
-   server folder isn't the repo name. Each repo has its own copies: org secrets would
-   need a paid plan for private repos.
-3. **For the hub suites in CI**, set the repo (or org) variable `DG_HOST` to the
-   hub checkout's path on the runner, and `CHROME_PATH` if Chrome isn't in the
-   default place. Without `DG_HOST` the gate skips the hub suites with a warning.
+1. **Make the game's folder** beside the template and the host repo. Pick the final
+   name first: the slug (lowercase `a-z0-9-`) is the folder, the repo and the URL, and
+   renaming later means a new folder. In `dg-template`:
+   `npm run create -- <slug> --title "My Game" --renderer pixi` (add `--no-online`,
+   `--no-turns`… for the features it won't have). It copies the template's last commit,
+   runs `new-game` and `npm install`, and makes the first commit. On Windows,
+   `tools/New-Game.ps1` does the same and adds a desktop shortcut (it asks for the
+   name, or takes `-Name`, `-Renderer`, `-NoOnline`…, `-NoShortcut`, `-NoLaunch`).
+2. **The first deploy**, in the new folder: `npm run first-deploy` (below). It creates
+   the **private** repo in the org, sets its deploy secrets, pushes and watches the run.
+3. **For the hub suites in CI**, the repo (or org) variable `DG_HOST` is the hub
+   checkout's path on the runner (and `CHROME_PATH` if Chrome isn't in the default
+   place). **It is not set today** (the deploy log shows `DG_HOST:` empty), so the gate
+   skips the hub suites with a warning: run `npm run test:hub` locally instead.
 4. **The org's self-hosted Windows runner deploys it.** One runner on the owner's
    machine serves every private repo in the org; there is nothing to register.
    GitHub-hosted runners are never used. It runs only for a push to the default
@@ -40,6 +36,29 @@ Every game is a **private** repo in the GitHub organization
    "New game checklist" and
    [DEPLOY.md](https://github.com/diffenderfer-games/diffenderfer-games/blob/master/DEPLOY.md)
    § 12 "Adding a new game".)
+
+## The first deploy
+
+```bash
+npm run first-deploy                         # the repo, the secrets, the push, then it watches the run
+npm run first-deploy -- --dry-run            # print what it would do
+npm run first-deploy -- --key ~/.ssh/other_key --no-watch
+```
+
+With the GitHub CLI signed in (`gh auth login`), it:
+
+1. creates `diffenderfer-games/<slug>` as a **private** repo (described by `game.description`),
+   unless it exists;
+2. sets the repo's deploy secrets: `DEPLOY_SSH_KEY` from `~/.ssh/diffenderfer_deploy`
+   (`--key` for another file) and `DEPLOY_HOST` (`--host`, default `diffenderfer.games`).
+   Each repo has its own copies: org secrets would need a paid plan for private repos.
+   Add `DEPLOY_PATH` by hand only when the server folder isn't the repo name;
+3. adds the `origin` remote and pushes the current branch: the gate runs, then the
+   deploy (below);
+4. watches the run to the end (`--no-watch` to skip) and prints the game's URL.
+
+Every step is skipped when it's already done, so it is safe to run again after a
+failure. By hand, in the GitHub UI: Settings → Secrets and variables → Actions.
 
 ## The deploy workflow
 

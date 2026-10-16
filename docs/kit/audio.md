@@ -32,7 +32,7 @@ const SONG: Song = { bpm: 108, root: 45, volume: 0.18 };
 
 export const audio: AudioHooks = {
   sfx: {
-    coin: (s) => {
+    score: (s) => {
       s.tone({ freq: 880, to: 1320, dur: 0.09, type: 'triangle', vol: 0.25 });
       s.tone({ freq: 1320, to: 1760, dur: 0.12, type: 'triangle', vol: 0.18, delay: 0.06 });
     },
@@ -55,7 +55,7 @@ Render at the `sampleRate` the core is given. Mismatched rates make chunk seams 
 
 ## What the kit does
 
-`defineGame` calls `createKitAudio` for you and puts the result on `ctx.audio`. The game calls `ctx.audio.play('coin')`.
+`defineGame` calls `createKitAudio` for you and puts the result on `ctx.audio`. The game calls `ctx.audio.play('score')`.
 
 - **Engine** (`AudioEngine`): music and SFX buses, then a compressor, then the output. The context is created on the first gesture and resumed on every later one, including from iOS `interrupted`. A silent buffer is started inside the gesture. It suspends on `visibilitychange` when hidden and resumes when shown.
 - **Volumes** follow a v-squared curve (a slider at half is a quarter of the power). Sound and music on/off and both volumes follow the player's settings. `duck(true)` lowers the music to 0.3 (the pause screen does this).

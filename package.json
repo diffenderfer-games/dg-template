@@ -24,12 +24,14 @@
     "sync-hub-server": "node scripts/kit/sync-hub-server.ts",
     "hub-doctor": "hub-doctor",
     "new-game": "node scripts/kit/new-game.ts",
+    "create": "node scripts/kit/create.ts",
+    "first-deploy": "node scripts/kit/first-deploy.ts",
     "build:rules": "node scripts/kit/build-rules.ts",
     "world:check": "node scripts/kit/world.ts check",
     "world:generate": "node scripts/kit/world.ts generate",
     "world:tiled": "node scripts/kit/world.ts tiled",
     "world:build": "node scripts/kit/world.ts build",
-    "test:hub": "node --test --test-concurrency=1 \"tests/hub/**/*.test.ts\"",
+    "test:hub": "node scripts/kit/test-hub.ts",
     "shots": "node scripts/kit/shots.ts",
     "shots:hub": "node scripts/kit/shots.ts --hub",
     "shots:sheet": "node scripts/kit/sheet.ts",
@@ -42,8 +44,8 @@
   },
   "game": {
     "type": "static",
-    "title": "Coin Dash",
-    "description": "Grab the coins before time is up. A new daily challenge every day, and races against friends.",
+    "title": "My Game",
+    "description": "Score as many points as you can. A new daily challenge every day, and races against friends.",
     "labels": [
       "arcade",
       "2d",
@@ -67,20 +69,20 @@
     "race": {
       "params": [
         {
-          "key": "coins",
-          "title": "Coins",
+          "key": "target",
+          "title": "Points to win",
           "options": [
-            5,
             10,
-            20
+            20,
+            30
           ],
-          "default": 10
+          "default": 20
         }
       ],
       "stats": [
         {
-          "key": "coins",
-          "title": "Coins"
+          "key": "score",
+          "title": "Score"
         }
       ],
       "minMs": 3000
@@ -96,7 +98,7 @@
       "modes": [
         {
           "key": "party",
-          "title": "Coin Party"
+          "title": "Score party"
         }
       ]
     },
@@ -110,7 +112,7 @@
       "quickChat": [
         "Good move!",
         "Your move!",
-        "Last coin!"
+        "Last one!"
       ]
     },
     "world": {
@@ -118,7 +120,7 @@
         "type": "lounge",
         "needs": {
           "tables": 4,
-          "game": "Coin Dash"
+          "game": "My Game"
         }
       }
     },

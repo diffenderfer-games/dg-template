@@ -39,7 +39,7 @@ import { routeOnce } from './router.ts';
 import { howToModal } from './screens.ts';
 import { Session } from './session.ts';
 import { installGameHook } from './test-hook.ts';
-import type { GameDefinition } from './types.ts';
+import type { GameDefinition, TurnBoard } from './types.ts';
 
 /** Where things go (tests pass fakes; the game passes nothing). */
 export type DefineGameOptions = {
@@ -159,6 +159,7 @@ export function defineGame<P extends JsonObject, R extends JsonObject>(
       hub,
       hooks: {
         ...(hooks.create === undefined ? {} : { create: hooks.create }),
+        ...(hooks.testMove === undefined ? {} : { testMove: (b: TurnBoard) => hooks.testMove?.(b) ?? null }),
         draw: (el, b) => hooks.draw(ctx, el, b),
       },
       clock,
@@ -262,7 +263,7 @@ export function defineGame<P extends JsonObject, R extends JsonObject>(
     await game.mount(ctx);
     session.loop.start();
     await routeOnce({ session, daily, profile, resume, clock, search, launches, online, saved, turns });
-    installGameHook({ game, ctx, session, slug, drivers: o.drivers, audio, online });
+    installGameHook({ game, ctx, session, slug, drivers: o.drivers, audio, online, turns });
     document.body.dataset.ready = '1';
   })();
   const dispose = (): void => {

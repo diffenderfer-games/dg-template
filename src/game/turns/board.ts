@@ -1,5 +1,5 @@
 /**
- * The board of the online game the hub runs: "take the last coin". (GAME: yours to edit.)
+ * The board of the online game the hub runs: "take the last one". (GAME: yours to edit.)
  *
  * The hub runs the rules (rules.ts) on its server; this page only draws the
  * view it is sent and offers the moves. The kit draws everything around it:
@@ -16,11 +16,11 @@ import type { PileView } from './rules.ts';
 /** The view the hub sent, checked (it is untrusted JSON). */
 function pile(view: unknown): PileView | null {
   if (typeof view !== 'object' || view === null) return null;
-  const coins: unknown = Reflect.get(view, 'coins');
+  const left: unknown = Reflect.get(view, 'left');
   const turn: unknown = Reflect.get(view, 'turn');
   const winner: unknown = Reflect.get(view, 'winner');
-  if (typeof coins !== 'number' || typeof turn !== 'number') return null;
-  return { coins, turn, winner: typeof winner === 'number' ? winner : null };
+  if (typeof left !== 'number' || typeof turn !== 'number') return null;
+  return { left, turn, winner: typeof winner === 'number' ? winner : null };
 }
 
 /** TODO(game): draw your board and offer your moves. */
@@ -31,12 +31,17 @@ export const turns: TurnsHooks<Profile, Run> = {
     const takes = [1, 2, 3].map((n) =>
       button(`Take ${n}`, () => void board.move({ take: n }), {
         testid: `take-${n}`,
-        disabled: !board.canMove || n > v.coins,
+        disabled: !board.canMove || n > v.left,
       }),
     );
     el.replaceChildren(
-      h('p.kit-tagline', { 'data-testid': 'pile' }, `${v.coins} coins in the pile. Whoever takes the last one wins.`),
+      h('p.kit-tagline', { 'data-testid': 'pile' }, `${v.left} left in the pile. Whoever takes the last one wins.`),
       h('div.kit-menu', {}, ...takes),
     );
+  },
+  // The test contract (docs/kit/testing.md): a legal move for the kit's hub suite.
+  testMove: (board) => {
+    const v = pile(board.view);
+    return v === null || v.left === 0 ? null : { take: 1 };
   },
 };
