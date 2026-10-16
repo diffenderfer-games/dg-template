@@ -35,3 +35,26 @@ export function driversAllowed(): boolean {
 export function isShotMode(search: string = typeof location === 'undefined' ? '' : location.search): boolean {
   return new URLSearchParams(search).has('shot');
 }
+
+/** Is the page inside a frame (the world's box, or any other page's iframe)? */
+export function inFrame(win: Window | undefined = typeof window === 'undefined' ? undefined : window): boolean {
+  if (win === undefined) return false;
+  try {
+    return win.self !== win.top;
+  } catch {
+    return true; // a cross-origin parent: reading `top` threw
+  }
+}
+
+/**
+ * Is the game playing in the world's box over Adventure Mode (hub.md "Playing over
+ * the world")? In a frame, and opened with `?hub_embed=1` (the host also notes it
+ * as `window.__hubEmbed` before the game can rewrite its URL).
+ */
+export function isEmbedded(
+  win: Window | undefined = typeof window === 'undefined' ? undefined : window,
+  search: string = typeof location === 'undefined' ? '' : location.search,
+): boolean {
+  if (win === undefined || !inFrame(win)) return false;
+  return Reflect.get(win, '__hubEmbed') === 1 || new URLSearchParams(search).get('hub_embed') === '1';
+}

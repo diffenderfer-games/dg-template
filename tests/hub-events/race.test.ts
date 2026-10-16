@@ -76,6 +76,18 @@ describeIf(HAS.race, 'this game declares no game.race')('races (multiplayer.md Â
     expect(g.hook.screen()).toBe('title');
   });
 
+  it('pausing again while "Leave race?" asks (Esc, Start) answers Stay', async () => {
+    const g = await bootGame();
+    g.fake.race.start({ params, startAt: g.fake.clock.now() });
+    g.press('pause');
+    expect(document.querySelector('[data-testid="confirm"]')).not.toBeNull();
+    g.press('pause');
+    await g.settle();
+    expect(document.querySelector('[data-testid="confirm"]')).toBeNull();
+    expect(g.fake.log.count('race.leave')).toBe(0);
+    expect(g.hook.screen()).toBe('play');
+  });
+
   it('the title has Race and Open races buttons; Race creates one with the gameâ€™s params', async () => {
     const g = await bootGame();
     g.press('race');

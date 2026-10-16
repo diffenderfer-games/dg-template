@@ -26,6 +26,7 @@ Map of the kit: [docs/kit/README.md](docs/kit/README.md).
 - The hub client comes from npm, pinned exactly; `npm run hub-doctor` before pushing. Never vendor it.
 - Never edit the synced docs.
 - Pause when hub UI opens: the kit does it; keep the `pause` input ([docs/multiplayer.md](docs/multiplayer.md) §4).
+- It plays in a box over the world (`game.embed`): an Esc you use gets `preventDefault()`, only then (an unused one leaves the box); size from the window, not `screen`; no fullscreen or `top.location` in a frame ([docs/kit/world.md](docs/kit/world.md#playing-over-the-world)).
 - Music and long audio in a Web Worker: [docs/kit/audio.md](docs/kit/audio.md).
 - Online play only through the hub (accounts, friends, invites, chat): [docs/kit/online.md](docs/kit/online.md).
 - Show players' avatars (the hub's) wherever you show their names; never draw your own faces for real players: [docs/kit/avatar.md](docs/kit/avatar.md).

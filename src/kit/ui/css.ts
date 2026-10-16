@@ -6,7 +6,8 @@
  * Focus rings use the hub's `--hub-focus-*` variables (sliderush / phase10),
  * shown only for keyboard and gamepad (`data-hub-input=keys`). Controls are
  * at least 44 px. Screens keep clear of the safe area, the race HUD
- * (`--hub-race-hud-top/bottom`) and the hub menu button.
+ * (`--hub-race-hud-top/bottom`) and the hub menu button (none in the world's
+ * box: `html[data-embed]`). Sizes follow the window (the box), width and height.
  */
 export const KIT_CSS = `
 :root {
@@ -20,10 +21,11 @@ export const KIT_CSS = `
 .kit-ui > * { pointer-events: auto; }
 .kit-screen { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
   gap: 14px; padding: calc(var(--kit-top) + 48px) 16px var(--kit-bottom); box-sizing: border-box; text-align: center; overflow: auto; }
+html[data-embed] .kit-screen:not([data-screen="play"]) { padding-top: calc(var(--kit-top) + 12px); }
 .kit-screen[data-screen="play"] { pointer-events: none; justify-content: flex-start; padding-top: calc(var(--kit-top) + 4px); }
 .kit-screen[data-screen="play"] > * { pointer-events: auto; }
 .kit-dim { background: rgba(5, 7, 10, 0.62); backdrop-filter: blur(3px); }
-.kit-title { font-size: clamp(34px, 9vw, 64px); font-weight: 800; letter-spacing: 0.02em; margin: 0; line-height: 1.05; }
+.kit-title { font-size: clamp(30px, min(9vw, 10vh), 64px); font-weight: 800; letter-spacing: 0.02em; margin: 0; line-height: 1.05; }
 .kit-tagline { color: var(--kit-muted); margin: 0 0 6px; font-size: 16px; }
 .kit-menu { display: flex; flex-direction: column; gap: 10px; width: min(320px, 100%); }
 .kit-btn { min-height: 48px; min-width: 44px; padding: 10px 18px; border-radius: var(--kit-radius); border: 1px solid rgba(255,255,255,0.12);

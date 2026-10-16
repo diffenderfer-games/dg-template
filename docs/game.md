@@ -13,12 +13,14 @@ an empty screen that shows the score; Pause, Quit and the kit's drivers end it.
 ## Modes
 
 Every kit feature is declared and wired (normal, daily, races, online rooms,
-online games the hub runs, a room in the world) so the kit's tests cover them
-all; `new-game --no-*` drops the ones a game won't have.
+online games the hub runs, a room in the world, playing in the box over the
+world at a placeholder 960×640) so the kit's tests cover them all; `new-game --no-*`
+drops the ones a game won't have.
 
 ## Controls
 
-Escape or the gamepad's Start pauses. Nothing else yet.
+Escape or the gamepad's Start pauses; on the pause screen Escape goes back to
+play. In the world's box, Escape on the title leaves the box. Nothing else yet.
 
 ## Test drivers
 

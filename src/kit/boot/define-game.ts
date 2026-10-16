@@ -18,6 +18,7 @@ import { setKitStrings, t } from '../core/strings.ts';
 import { installDaily } from '../daily/index.ts';
 import { controlHints, defineControls, installMenuNav } from '../input/index.ts';
 import { onWindow } from '../core/events.ts';
+import { isEmbedded } from '../core/env.ts';
 import { createKitAudio } from '../audio/kit-audio.ts';
 import { hapticsSupported, makeBuzz } from '../haptics/index.ts';
 import { installLaunches } from '../online/launch.ts';
@@ -199,13 +200,18 @@ export function defineGame<P extends JsonObject, R extends JsonObject>(
         });
   // 5. controls and menu navigation
   const controls = defineControls(hub, game.input, typeof innerWidth === 'number' ? innerWidth : 1280);
-  installMenuNav(hub, {
+  // Back and Esc: true only when it went somewhere, so on the title Esc leaves the world's box.
+  const stopNav = installMenuNav(hub, {
     root: ui.root,
     back: () => {
       if (session.screen === 'pause') session.resume();
       else if (session.screen === 'play') session.pause();
       else if (session.screen === 'result' || session.screen === 'turns') session.toTitle();
+      else return false;
+      return true;
     },
+    // In play the game's inputs read Esc (`pause`): the loop acts on it, the kit marks it handled.
+    ownsEscape: () => session.screen === 'play' && !session.paused && controls.usesKey('Escape'),
   });
   // 6. page lifecycle: keep the game in progress and the profile when the page hides or closes
   const onHide = (): void => {
@@ -233,7 +239,10 @@ export function defineGame<P extends JsonObject, R extends JsonObject>(
     onWindow('hub:rt-ready', () => setOnlineDown(false), events),
     // 8. control hints follow the device (keys, touch, pad): `html[data-controls]` for CSS and screens
     controlHints(hub, (kind) => (document.documentElement.dataset.controls = kind)),
+    stopNav,
   ];
+  // In the world's box (hub.md "Playing over the world"): `html[data-embed]` for CSS (no menu button corner to keep clear).
+  if (isEmbedded()) document.documentElement.dataset.embed = '1';
 
   // 9. sound and buzz: unlock on gestures, follow the settings, suspend when hidden
   const audio = createKitAudio({ hooks: game.audio, settings, clock });

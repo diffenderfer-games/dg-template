@@ -36,7 +36,8 @@ syncMenuButton(hub, { playing: true, paused: pause.paused });
 - Registers `hub.overlay.autoPause` exactly once, at boot.
 - Never lets a hub close undo a pause the player made (the player's pause takes over a hub pause).
 - Pauses when the page is hidden.
-- Never pauses when `canPause()` is false: on menus, in a race (the pause button becomes "Leave race?") and in a live online match.
+- Never pauses when `canPause()` is false: on menus, in a race (the pause button becomes "Leave race?"; pausing again while it asks answers Stay) and in a live online match.
+- In the world's box (hub.md "Playing over the world") the same: hub UI over the box opens the page's overlay stack (a `menu` entry), so `autoPause` pauses and an action game shows its pause card; Esc in play pauses there too and the box stays ([world.md](world.md#playing-over-the-world)).
 - Swallows the click that closed the hub menu for 300 ms (`SETTLE_MS`) so it does not reach the game.
 - Ignores the hub's on-screen keyboard (reason `keyboard`): typing in the game's own text field does not pause.
 - Hides the hub menu button while actively playing and shows it on the pause screen and menus (`syncMenuButton`).

@@ -7,6 +7,11 @@
  * returns: the topmost open modal's controls, else the current screen's
  * (bingo's target function). Back closes the top modal unless it is locked
  * (phase10/uno), else calls the game's back.
+ *
+ * Escape on a keyboard is the same back, and it calls `preventDefault()` only
+ * when something went back (or the game's own inputs read Esc, e.g. `pause`
+ * in play): in the world's box an Esc nobody used leaves the game, so on the
+ * title it must stay unhandled (hub.md "Playing over the world").
  */
 import type { NavElement, NavTarget } from '@diffenderfer-games/hub';
 import type { HubLike } from '../core/hub-like.ts';
@@ -29,21 +34,37 @@ function isShown(el: HTMLElement): boolean {
   return style === null || (style.display !== 'none' && style.visibility !== 'hidden');
 }
 
-/** Make the kit's menus navigable once; back closes the top modal, unless it is locked. */
-export function installMenuNav(
-  hub: Pick<HubLike, 'input'>,
-  o: { root: HTMLElement; back(): void; locked?(): boolean },
-): void {
-  hub.input.autoNavigate(() => navTargets(o.root), {
-    back: () => {
-      if (o.locked?.() === true) return;
-      if (topModal() !== null) {
-        closeTopModal();
-        return;
-      }
-      o.back();
-    },
-  });
+/** What `installMenuNav` needs. */
+export type MenuNavSpec = {
+  root: HTMLElement;
+  /** The screen's back (pause, resume, to the title); false when there is nowhere to go back to. */
+  back(): boolean;
+  /** Back does nothing (a choice the game is waiting on). */
+  locked?(): boolean;
+  /** Esc is the game's now without going back (its play inputs read it); the kit marks it handled. */
+  ownsEscape?(): boolean;
+  /** Where keydown arrives (default `window`). */
+  keys?: EventTarget;
+};
+
+/**
+ * Make the kit's menus navigable once; back (the pad's B, a keyboard's Esc)
+ * closes the top modal unless it is locked. Returns the unsubscribe.
+ */
+export function installMenuNav(hub: Pick<HubLike, 'input' | 'overlay'>, o: MenuNavSpec): () => void {
+  const back = (): boolean => {
+    if (o.locked?.() === true) return false;
+    if (topModal() !== null) return closeTopModal();
+    return o.back();
+  };
+  hub.input.autoNavigate(() => navTargets(o.root), { back: () => void back() });
+  const keys = o.keys ?? (typeof window === 'undefined' ? null : window);
+  const onKey = (e: Event): void => {
+    if (!(e instanceof KeyboardEvent) || e.key !== 'Escape' || e.defaultPrevented || hub.overlay.isOpen) return;
+    if (o.ownsEscape?.() === true || (!e.repeat && back())) e.preventDefault();
+  };
+  keys?.addEventListener('keydown', onKey);
+  return () => keys?.removeEventListener('keydown', onKey);
 }
 
 /** Canvas buttons (Pixi menus) as nav targets: bounds + act (downfall button.ts). */

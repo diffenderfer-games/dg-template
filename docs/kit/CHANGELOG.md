@@ -4,6 +4,51 @@ KIT doc. One entry per kit version; per module inside. A **major** version
 means a hook's signature changed: the entry says how to move a game over.
 `npm run kit:sync` prints the entries newer than a game's `kit.json`.
 
+## 1.8 (2026-10-16)
+
+The world (hub client **2.0.0-next.11**, `@diffenderfer-games/world` too): games play in a
+box over Adventure Mode (`game.embed`), the hub's rooms play the catalog's games by their
+labels, and a game's own room has a door.
+
+- **boot 1.7, input 1.3:** Esc is the kit's back on a keyboard too (a modal, the pause
+  card back to play, the result or an online game back to the title), and it calls
+  `preventDefault()` only when it went somewhere, or in play when an enabled group reads
+  Esc (`ControlsHandle.usesKey`). In the world's box an unhandled Esc closes the box, so
+  on the title it now leaves; before, Esc in play left the box instead of pausing.
+  `installMenuNav`'s `back()` returns whether it went anywhere, and it returns its
+  unsubscribe. The session reads `pause` once per step (it was per frame: a frame with no
+  step missed the press, one with two saw it twice), and pausing again while "Leave race?"
+  asks answers Stay.
+- **core 1.3:** `inFrame()`, `isEmbedded()` (in the world's box: `?hub_embed=1`), and
+  `KIT_VERSION` in `version.ts`, which kit.json and the test hook both read (the hook said 1.4).
+- **layout 1.3:** `goFullscreen()` and `lockPointer()`, which do nothing inside a frame.
+- **ui 1.3:** `html[data-embed]` (the kit sets it in the box) drops the room kept for the
+  hub menu button; the title's font follows the height as well as the width.
+- **testing 1.8:** the FakeHub's `input.tap(name)` holds for 3 frames, like a finger.
+- **hub-suites 1.9:** `tests/hub/kit/embed.test.ts` opens the game in the world's box on a
+  real hub (no menu button, Esc on the title leaves, Esc in play pauses and stays, hub UI
+  over the box pauses); skipped without `game.embed.supported`. `inWorld` and
+  `AdventureHandle` move into `_kit.ts`. **hub-events 1.6:** when Esc is handled; Stay on a
+  second pause in a race.
+- **world 1.5, pause 1.2, docs 1.10, scripts 1.10:** world.md's
+  [Playing over the world](world.md#playing-over-the-world) (what the kit does, the short
+  overlay checklist), [A frame of your own](world.md#a-frame-of-your-own) and
+  [Rooms and labels](world.md#rooms-and-labels); input, pause, layout, core, testing,
+  getting-started and the README say so. The template's package.json has
+  `game.embed: { supported: true, size: [960, 640] }`, and `src/game/config.ts` lists the
+  labels and what they decide (`TODO(game)`).
+
+To move a game over:
+
+1. `npm run kit:sync`, then pin `@diffenderfer-games/hub` and `@diffenderfer-games/world` at
+   `2.0.0-next.11` and `npm install`.
+2. Add `"embed": { "supported": true, "size": [w, h] }` to the `game` block (the size it
+   likes, CSS px), or `"supported": false` if it can't play in a box; `npm run hub-doctor`.
+3. A call to `installMenuNav` of your own: its `back()` returns a boolean. A `keydown`
+   listener of yours that uses Esc calls `preventDefault()`, only when it used it; replace
+   `requestFullscreen` / `requestPointerLock` with `goFullscreen` / `lockPointer`.
+4. `npm run test:hub -- tests/hub/kit/embed.test.ts`.
+
 ## 1.7 (2026-10-16)
 
 After Chain Reaction (a game show: a player may move several times in a row):

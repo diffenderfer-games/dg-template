@@ -8,10 +8,12 @@ worker, the test hook). You write the game: its state, its rules, its controls
 and how it looks.
 
 It is built against the hub client that diffenderfer.games runs,
-`@diffenderfer-games/hub` **2.0.0-next.10** (pinned exactly), with
-online games the hub runs on the kit's own screen and the game's room in the hub's
-world (`@diffenderfer-games/world`, `dg-world`). Coming, and not in it yet:
-game tables in the world.
+`@diffenderfer-games/hub` **2.0.0-next.11** (pinned exactly), with
+online games the hub runs on the kit's own screen, the game's room in the hub's
+world (`@diffenderfer-games/world`, `dg-world`), and the game playing in a box
+over Adventure Mode (`game.embed`: the kit handles its Esc, pause and layout;
+the short checklist for your own code is in [docs/kit/world.md](docs/kit/world.md#playing-over-the-world)).
+Coming, and not in it yet: online tables in the world.
 
 ## Make a game in 10 steps
 
@@ -19,7 +21,7 @@ The long version is [docs/getting-started.md](docs/getting-started.md).
 
 1. In this repo: `npm run create -- <slug> --title "My Game" --renderer pixi` (or `three`, or `none`; `--no-online`, `--no-turns`… for features it won't have). Pick the final name first.
 2. In the new folder (`../<slug>`): `npm run dev`, `npm run check` (it passes as created).
-3. Fill the `game` block in `package.json` (title, description, labels, features).
+3. Fill the `game` block in `package.json` (title, description, labels, features, `embed.size`): `src/game/config.ts` lists the labels and what they decide.
 4. Write `src/game/state.ts` and `src/game/rules.ts`.
 5. Map controls in `src/game/controls.ts`.
 6. Draw it: `src/game/render/` and `src/game/screens/` ([docs/kit/look.md](docs/kit/look.md)).

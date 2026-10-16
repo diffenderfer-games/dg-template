@@ -29,7 +29,7 @@ import type { ResumeSlot } from '../resume/index.ts';
 import { randomSeed, SeededRng } from '../rng/index.ts';
 import { recordResult } from '../scores/index.ts';
 import { h } from '../ui/dom.ts';
-import { confirm } from '../ui/modal.ts';
+import { closeTopModal, confirm } from '../ui/modal.ts';
 import type { Screens } from '../ui/screens.ts';
 import { toast } from '../ui/toast.ts';
 import type { RunningAudio } from '../audio/kit-audio.ts';
@@ -87,6 +87,10 @@ export class Session<P extends JsonObject, R extends JsonObject> {
   private lastSave = 0;
   private finished = false;
   private rows: ContinueRow[] = [];
+  /** "Leave race?" is open. */
+  private askingLeave = false;
+  /** The `pause` input was held last step. */
+  private pauseHeld = false;
 
   constructor(d: SessionDeps<P, R>) {
     this.d = d;
@@ -221,6 +225,8 @@ export class Session<P extends JsonObject, R extends JsonObject> {
     this.hud = hud;
     if (this.run !== null) this.d.game.screens?.hud?.mount(this.ctx, hud);
     this.syncChrome();
+    // A key still held as play shows (the Esc that resumed) must come up before it pauses.
+    this.pauseHeld = this.d.hub.input.value('pause') >= 0.5;
   }
 
   /** Pause screen (the pause module calls it). */
@@ -387,10 +393,20 @@ export class Session<P extends JsonObject, R extends JsonObject> {
     if (flush) this.d.resume.flush();
   }
 
-  /** The player's pause: in a race it asks "Leave race?" instead (arrow-escape guardRace). */
+  /**
+   * The player's pause: in a race it asks "Leave race?" instead (arrow-escape guardRace);
+   * pausing again while it asks (Esc, Start) answers Stay.
+   */
   pause(): void {
     if (this.mode === 'race' && this.parts?.race?.live) {
+      if (this.askingLeave) {
+        this.askingLeave = false;
+        closeTopModal();
+        return;
+      }
+      this.askingLeave = true;
       void confirm({ title: t('leaveRace'), body: t('leaveRaceBody'), yes: t('leave'), no: t('stay') }).then((yes) => {
+        this.askingLeave = false;
         if (yes) this.toTitle();
       });
       return;
@@ -411,7 +427,12 @@ export class Session<P extends JsonObject, R extends JsonObject> {
     }
     const run = this.run;
     if (run === null || this.finished) return;
-    if (this.d.hub.input.down('pause')) {
+    // A press per step, not per frame (input.md: `down` is per frame, so a frame with no step
+    // would miss it and one with two would see it twice: the race's "Leave race?" opened and shut).
+    const held = this.d.hub.input.value('pause') >= 0.5;
+    const pressed = held && !this.pauseHeld;
+    this.pauseHeld = held;
+    if (pressed) {
       this.pause();
       return;
     }

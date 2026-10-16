@@ -7,9 +7,14 @@
  *   phones; tetrablox relayout), and visualViewport changes, debounced.
  * - `layoutRegion` is the rectangle gameplay may use: inside the safe area,
  *   below the race HUD and the top HUD, above the bottom HUD (solitaire region()).
+ * - Every size is the window's own (`innerWidth`/`innerHeight`, never `screen`):
+ *   in the world's box that is the box, and the box resizing fires `onResize`.
+ * - `goFullscreen` / `lockPointer` do nothing inside a frame (the world's box
+ *   owns the window there: hub.md "Playing over the world").
  */
 import type { Clock } from '../core/clock.ts';
 import { realClock } from '../core/clock.ts';
+import { inFrame } from '../core/env.ts';
 
 /** Call `cb(width, height)` when the viewport size settles; returns the unsubscribe. */
 export function onResize(
@@ -124,8 +129,30 @@ export function fitText(el: HTMLElement, o: { min?: number; max?: number } = {})
 /** Portrait viewport? */
 export const isPortrait = (w: number = innerWidth, h: number = innerHeight): boolean => h > w;
 
-/** A phone-sized viewport (short side under 600 CSS px)? */
+/** A phone-sized viewport (short side under 600 CSS px)? In the world's box: a small box. */
 export const isPhone = (w: number = innerWidth, h: number = innerHeight): boolean => Math.min(w, h) < 600;
+
+/** Ask for fullscreen, never inside a frame (the box has its own "fill the window"). True when granted. */
+export async function goFullscreen(el: Element = document.documentElement, win?: Window): Promise<boolean> {
+  if (inFrame(win) || typeof el.requestFullscreen !== 'function') return false;
+  try {
+    await el.requestFullscreen();
+    return true;
+  } catch {
+    return false; // no gesture, or the browser said no
+  }
+}
+
+/** Lock the pointer (mouse-look), never inside a frame (the box doesn't allow it). True when asked. */
+export async function lockPointer(el: Element, win?: Window): Promise<boolean> {
+  if (inFrame(win) || typeof el.requestPointerLock !== 'function') return false;
+  try {
+    await el.requestPointerLock();
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 /** Keep `<meta name="theme-color">` at `color` (helixdrop applyThemeColor). Returns the restore. */
 export function keepThemeColor(color: string, doc: Document = document): () => void {

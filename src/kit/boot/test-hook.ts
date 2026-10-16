@@ -4,6 +4,7 @@
  * Docs: docs/kit/test-hook.md
  */
 import { driversAllowed } from '../core/env.ts';
+import { KIT_VERSION } from '../core/version.ts';
 import { isJson, type JsonObject } from '../core/json.ts';
 import { installTestHook, type GameHookDrivers, type GameTestHook } from '../test-hook/index.ts';
 import type { OnlineFlow } from './online-flow.ts';
@@ -25,7 +26,7 @@ function onlineDrivers(flow: OnlineFlow): GameHookDrivers['online'] {
 }
 
 /** The kit's version (kit.json `kitVersion`). */
-export const KIT_VERSION = '1.4';
+export { KIT_VERSION };
 
 /** Install the hook for a defineGame game. */
 export function installGameHook<P extends JsonObject, R extends JsonObject>(o: {

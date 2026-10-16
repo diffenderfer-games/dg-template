@@ -4,14 +4,14 @@
  * Docs: docs/kit/README.md § "Changing the kit"
  *
  * `npm run kit:hash` (template only) expands these into kit.json. When you
- * change a module: bump its `version` (and `KIT_VERSION`), add a line to
+ * change a module: bump its `version` (and `KIT_VERSION` in src/kit/core/version.ts), add a line to
  * docs/kit/CHANGELOG.md, then run `npm run kit:hash`.
  */
 import { existsSync, readdirSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
 
-/** The kit's version: `major.minor`. A major means a hook signature changed (see the CHANGELOG). */
-export const KIT_VERSION = '1.7';
+/** The kit's version (src/kit/core/version.ts, which the test hook reports too). */
+export { KIT_VERSION } from '../../../src/kit/core/version.ts';
 
 /** A module: its version and the paths (files or folders) it owns. */
 export type KitModuleDef = { version: string; paths: string[] };
@@ -23,21 +23,21 @@ function srcModule(name: string, version = '1.0'): KitModuleDef {
 
 /** Every module. */
 export const KIT_MODULES: Record<string, KitModuleDef> = {
-  core: srcModule('core', '1.2'),
-  testing: srcModule('testing', '1.7'),
+  core: srcModule('core', '1.3'),
+  testing: srcModule('testing', '1.8'),
   rng: srcModule('rng'),
   'daily-puzzle': srcModule('daily-puzzle'),
   save: srcModule('save', '1.1'),
   resume: srcModule('resume', '1.2'),
   daily: srcModule('daily', '1.2'),
-  pause: srcModule('pause', '1.1'),
+  pause: srcModule('pause', '1.2'),
   scores: srcModule('scores', '1.1'),
   'test-hook': srcModule('test-hook', '1.2'),
-  boot: srcModule('boot', '1.6'),
-  input: srcModule('input', '1.2'),
-  layout: srcModule('layout', '1.2'),
+  boot: srcModule('boot', '1.7'),
+  input: srcModule('input', '1.3'),
+  layout: srcModule('layout', '1.3'),
   loop: srcModule('loop', '1.1'),
-  ui: srcModule('ui', '1.2'),
+  ui: srcModule('ui', '1.3'),
   'settings-ui': srcModule('settings-ui'),
   race: srcModule('race', '1.1'),
   online: srcModule('online', '1.2'),
@@ -47,10 +47,10 @@ export const KIT_MODULES: Record<string, KitModuleDef> = {
   saved: srcModule('saved', '1.3'),
   turns: srcModule('turns', '1.5'),
   avatar: srcModule('avatar', '1.5'),
-  world: srcModule('world', '1.4'),
-  'hub-events': { version: '1.5', paths: ['tests/hub-events'] },
-  'hub-suites': { version: '1.8', paths: ['tests/hub/_kit.ts', 'tests/hub/kit'] },
-  scripts: { version: '1.9', paths: ['scripts/kit', 'tests/scripts'] },
+  world: srcModule('world', '1.5'),
+  'hub-events': { version: '1.6', paths: ['tests/hub-events'] },
+  'hub-suites': { version: '1.9', paths: ['tests/hub/_kit.ts', 'tests/hub/kit'] },
+  scripts: { version: '1.10', paths: ['scripts/kit', 'tests/scripts'] },
   ci: { version: '1.0', paths: ['.github/workflows/deploy.yml'] },
   config: {
     version: '1.1',
@@ -64,7 +64,7 @@ export const KIT_MODULES: Record<string, KitModuleDef> = {
     ],
   },
   docs: {
-    version: '1.9',
+    version: '1.10',
     paths: [
       'docs/kit/look.md',
       'docs/kit/look',

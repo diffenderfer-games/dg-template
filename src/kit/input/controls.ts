@@ -26,6 +26,8 @@ export type ControlsHandle = {
   sync(state: { playing: boolean; extra?: Record<string, boolean> }): void;
   /** Re-define the touch layout if the width changed it (resize, rotation). */
   relayout(width: number): void;
+  /** Does an enabled group read this key (`KeyboardEvent.key`, any case)? Then the key is the game's (Esc in the world's box). */
+  usesKey(key: string): boolean;
 };
 
 /** Define the game's controls with the hub. */
@@ -61,5 +63,13 @@ export function defineControls(hub: Pick<HubLike, 'input'>, spec: InputSpec, wid
       for (const [group, on] of Object.entries(state.extra ?? {})) set(group, on);
     },
     relayout: define,
+    usesKey(key) {
+      const k = key.toLowerCase();
+      return Object.entries(spec.groups).some(
+        ([name, g]) =>
+          enabled.get(name) === true &&
+          Object.values(g.inputs).some((def) => def.keys?.some((bound) => bound.toLowerCase() === k) === true),
+      );
+    },
   };
 }

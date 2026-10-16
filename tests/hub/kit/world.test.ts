@@ -13,23 +13,7 @@ import { dirname, join } from 'node:path';
 import { createWorldTypeRegistry, generateWorld, worldMapToTiled } from '@diffenderfer-games/world';
 import { field, numField } from '../../../src/kit/core/json.ts';
 import { generateRoom, parseGameWorld, roomPath, roomProblems, worldKey } from '../../../src/kit/world/room.ts';
-import { api, befriend, e2e, env, ROOT, SLUG, settle, type Player } from '../_kit.ts';
-
-/** Adventure Mode's test handle (`window.__ADVENTURE__`, the hub's runtime), as far as this suite reads it. */
-type AdventureHandle = {
-  live: {
-    current: { map: { key: string }; instance: string | number } | null;
-    crowd: Map<number, { x: number; y: number }>;
-  };
-  session: { player: { x: number; y: number } };
-  tips: { skip(): void };
-};
-
-declare global {
-  interface Window {
-    __ADVENTURE__?: { adventure?: AdventureHandle };
-  }
-}
+import { api, befriend, e2e, env, inWorld, ROOT, SLUG, settle, type Player } from '../_kit.ts';
 
 const declared: unknown = field(field(JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8')), 'game'), 'world');
 const { world } = parseGameWorld(declared);
@@ -104,14 +88,6 @@ e2e(
   },
   { skip },
 );
-
-/** Wait until Adventure Mode is in a world; its key. */
-async function inWorld(p: Player): Promise<string> {
-  await p.page.waitForFunction(() => window.__ADVENTURE__?.adventure?.live.current != null, { timeout: 45_000 });
-  const key = await p.page.evaluate(() => window.__ADVENTURE__?.adventure?.live.current?.map.key ?? '');
-  await p.page.evaluate(() => window.__ADVENTURE__?.adventure?.tips.skip());
-  return key;
-}
 
 /** Does `p` see a bubble from `from` whose text matches? */
 function sees(p: Player, from: Player, text: string): Promise<boolean> {

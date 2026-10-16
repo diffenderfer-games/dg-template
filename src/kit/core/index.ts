@@ -16,3 +16,4 @@ export * from './store.ts';
 export * from './strings.ts';
 export * from './wording.ts';
 export * from './emitter.ts';
+export * from './version.ts';

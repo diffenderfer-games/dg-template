@@ -34,6 +34,17 @@ describe('controls', () => {
     ]);
   });
 
+  it('usesKey: only the enabled groups read a key (any case)', () => {
+    const c = defineControls(fake, spec, 1000);
+    expect(c.usesKey('A')).toBe(false);
+    c.sync({ playing: true });
+    expect(c.usesKey('A')).toBe(true);
+    expect(c.usesKey('b')).toBe(false);
+    c.sync({ playing: false, extra: { zone: true } });
+    expect(c.usesKey('a')).toBe(false);
+    expect(c.usesKey('B')).toBe(true);
+  });
+
   it('a sync while hub UI is open is recorded, then applied once it closes', () => {
     const c = defineControls(fake, spec, 1000);
     const close = fake.openOverlay();

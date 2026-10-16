@@ -53,6 +53,8 @@ To change a kit word, pass `strings` in the game definition (`defineGame` calls 
 | `singleFlight`, `withTimeout`, `delay`, `fireAndForget`, `serialQueue`, `QueueHangError` | Async helpers |
 | `Emitter` | A tiny typed event emitter; a throwing listener never stops the others |
 | `isDev`, `isLocalhost`, `isTestHarness`, `driversAllowed`, `isShotMode` | Where the game runs |
+| `inFrame(win?)`, `isEmbedded(win?, search?)` | In an iframe; in the world's box over Adventure Mode (`?hub_embed=1`, [world.md](world.md#playing-over-the-world)) |
+| `KIT_VERSION` | The kit's version (`version.ts`: kit.json and the test hook read it) |
 | `KitRuleError`, `isStrict`, `kitWarn`, `ruleBroken` | Loud in dev, quiet in production |
 | `KIT_STRINGS`, `t(key, vars)`, `setKitStrings`, `shortDay` | Player words |
 | `wordingProblems(text, maxLength?)` | What is wrong with a label (kind words, violent words, over 60 characters) |

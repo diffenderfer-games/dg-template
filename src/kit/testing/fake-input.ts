@@ -25,6 +25,8 @@ export class FakeInput implements InputLike {
   private readonly events = new Emitter<{ [K in keyof InputEvents]: InputEvents[K] }>();
   private readonly held = new Set<string>();
   private readonly edges = new Set<string>();
+  /** Frames each tap stays held. */
+  private readonly tapping = new Map<string, number>();
   private readonly vectors = new Map<string, Vector>();
   private suspendedPlay: boolean | null = null;
   private currentSource: InputSource = 'keyboard';
@@ -105,15 +107,26 @@ export class FakeInput implements InputLike {
     this.vectors.set(name, { x: v.x, y: v.y, mag: Math.min(1, Math.hypot(v.x, v.y)) });
   }
 
-  /** Press `name` for one frame (`down` is true until `endFrame`). */
-  tap(name: string): void {
+  /**
+   * A short press of `name`, like a finger's: `down` the first frame, held for `frames`
+   * frames (default 3, about 50 ms), so a frame with no fixed step can't swallow it.
+   */
+  tap(name: string, frames = 3): void {
     this.edges.add(name);
     this.held.add(name);
+    this.tapping.set(name, frames);
   }
 
-  /** The frame ended: edges clear, taps release. */
+  /** The frame ended: edges clear, taps release when their frames are up. */
   endFrame(): void {
-    for (const e of this.edges) this.held.delete(e);
+    for (const [name, left] of this.tapping) {
+      if (left > 1) {
+        this.tapping.set(name, left - 1);
+        continue;
+      }
+      this.tapping.delete(name);
+      this.held.delete(name);
+    }
     this.edges.clear();
   }
 

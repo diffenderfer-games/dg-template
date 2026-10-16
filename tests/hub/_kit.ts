@@ -276,3 +276,32 @@ export function asPlayer(x: unknown): Player {
   if (!isPlayer(x)) throw new Error('not a player');
   return x;
 }
+
+/** Adventure Mode's test handle (`window.__ADVENTURE__`, the hub's runtime), as far as the suites read it. */
+export type AdventureHandle = {
+  live: {
+    current: { map: { key: string }; instance: string | number } | null;
+    crowd: Map<number, { x: number; y: number }>;
+  };
+  session: { player: { x: number; y: number } };
+  tips: { skip(): void };
+  /** Playing games from the world (hub.md "Playing over the world"): `play` opens one in the box or on its page. */
+  play: {
+    play(ref: { slug: string }): Promise<{ kind: 'overlay' | 'page' | 'missing' }>;
+    overlay: { readonly isOpen: boolean };
+  };
+};
+
+declare global {
+  interface Window {
+    __ADVENTURE__?: { adventure?: AdventureHandle };
+  }
+}
+
+/** Wait until Adventure Mode is in a world (its first-visit tips skipped); the world's key. */
+export async function inWorld(p: Player): Promise<string> {
+  await p.page.waitForFunction(() => window.__ADVENTURE__?.adventure?.live.current != null, { timeout: 45_000 });
+  const key = await p.page.evaluate(() => window.__ADVENTURE__?.adventure?.live.current?.map.key ?? '');
+  await p.page.evaluate(() => window.__ADVENTURE__?.adventure?.tips.skip());
+  return key;
+}

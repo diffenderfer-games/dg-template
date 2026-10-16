@@ -56,7 +56,10 @@ In `package.json`: `title`, `description` (one plain sentence), `labels` (the
 catalog filter: see [HANDOFF.md](../HANDOFF.md)), and the features you keep:
 `resumable`, `dailyChallenges`, `leaderboards`, `race`, `multiplayer`, `turns`
 (online games the hub runs), `world` (your room in the hub's world:
-[kit/world.md](kit/world.md)), `data` (an own server's files, for backups). Keep
+[kit/world.md](kit/world.md)), `embed` (its size in the box over the world:
+[kit/world.md](kit/world.md#playing-over-the-world)), `data` (an own server's
+files, for backups). The labels also pick the world's rooms that play it
+(`src/game/config.ts` lists them). Keep
 `type: "static"`, `build`, `serveDir: "dist"`. `npm run hub-doctor` checks it.
 `game.changes` starts empty: see [kit/whats-new.md](kit/whats-new.md).
 

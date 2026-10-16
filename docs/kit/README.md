@@ -52,7 +52,7 @@ need only a short test contract from the game:
 | saved | "Your games": the title's Continue rows, days in progress | [saved.md](saved.md) |
 | turns | Online games: the hub runs the game's rules; the kit's screen | [turns.md](turns.md) |
 | avatar | Players' faces, the canvas adapters | [avatar.md](avatar.md) |
-| world | The game's own room in the hub's world (`game.world`, `dg-world`), in Adventure Mode at `/world/game.<slug>`; tables and Quick match coming | [world.md](world.md) |
+| world | The game's own room in the hub's world (`game.world`, `dg-world`), in Adventure Mode at `/world/game.<slug>`; playing in the box over the world (`game.embed`, Esc, the overlay checklist); rooms by labels; online tables and Quick match coming | [world.md](world.md) |
 
 Also: [look.md](look.md) (what every game's UI and motion must be),
 [hooks.md](hooks.md) (every hook), [screenshots.md](screenshots.md),
@@ -61,13 +61,14 @@ Also: [look.md](look.md) (what every game's UI and motion must be),
 ## Hub phases
 
 The kit is written against the pinned hub client (`@diffenderfer-games/hub`
-2.0.0-next.10, with `@diffenderfer-games/world` at the same version). Saved
+2.0.0-next.11, with `@diffenderfer-games/world` at the same version). Saved
 games and avatars (next.6), online games on the server with who is there,
 moves out of turn, the game's own quick-chat, guests and the your-turn buzz
 (next.8, [turns.md](turns.md)), and the world with a game's own room
 (next.9, [world.md](world.md)), and Adventure Mode, where players walk it
-(next.10: `/world`, walk to a friend, typed bubbles between friends), are
-live and on. Game tables in the world and
+(next.10: `/world`, walk to a friend, typed bubbles between friends), and
+playing in a box over the world with rooms filled by labels and doors into
+games' rooms (next.11: `game.embed`), are live and on. Online tables in the world and
 in-game presence (world W2, W3) are **coming**: kit/world checks for their
 API at runtime and stays off, and their tests are written and **skipped,
 naming the phase** they wait on (`src/kit/testing/phases.ts`). When the hub

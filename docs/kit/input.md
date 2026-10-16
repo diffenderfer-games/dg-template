@@ -38,6 +38,8 @@ Call `ctx.controls.relayout(width)` from `ctx.onResize` if your touch layout dep
 - `controls.sync({ playing })` enables `play` while playing and calls the hub only when something changed. While hub UI is open the hub records the change and applies the last one on close. The session calls `sync` on every screen change.
 - `relayout(width)` re-defines the groups only when the layout for that width actually differs.
 - `installMenuNav` makes every `[data-nav]` control in the kit UI navigable (`hub.input.autoNavigate`). Targets are the topmost open modal's controls, else the current screen's; hidden and disabled controls are skipped. Back closes the top modal unless it is locked, otherwise it pauses, resumes or leaves the result screen.
+- **Esc on a keyboard is the same back**, and it calls `preventDefault()` only when something went back, or in play when an enabled group reads Esc (the `pause` input: the session pauses on the next step). In the world's box an unhandled Esc closes the box, so on the title (nothing to go back to), a locked modal or under hub UI the kit leaves it alone ([world.md](world.md#playing-over-the-world)). A `keydown` listener of your own that uses Esc calls `preventDefault()` too, only when it used it.
+- The session reads `pause` once per step (held now, not last step), so a press is never missed in a frame with no step nor seen twice in one with two.
 - `controlHints` sets `html[data-controls]` to `keys`, `touch` or `pad` as the player switches device, so CSS and screens can show the right hint.
 
 ## Helpers a game may use
@@ -99,7 +101,8 @@ is a working example of all of it.
 | `defineControls(hub, spec, width)` | Define the groups; returns a `ControlsHandle`. |
 | `ControlsHandle.sync({ playing, extra? })` | Enable or disable groups, only on change. |
 | `ControlsHandle.relayout(width)` | Re-define the touch layout if the width changed it. |
-| `installMenuNav(hub, { root, back, locked? })` | Make the kit's menus navigable once. |
+| `ControlsHandle.usesKey(key)` | Does an enabled group read this key? (Esc in play is then the game's.) |
+| `installMenuNav(hub, { root, back, locked?, ownsEscape?, keys? })` | Make the kit's menus navigable once, and Esc the same back; `back()` returns whether it went anywhere. Returns the unsubscribe. |
 | `navTargets(root)` | The navigable controls of the top modal or the screens. |
 | `canvasNavElements(buttons)` | Canvas buttons as nav targets. |
 | `controlHints(hub, cb)` | Call `cb('keys' \| 'touch' \| 'pad')` now and on every change; returns the unsubscribe. |
@@ -108,10 +111,11 @@ is a working example of all of it.
 
 ## Tests
 
-- `tests/kit/input/input.test.ts`: enable and disable only on change, a sync while hub UI is open, the touch layout switching at 520 px, nav targets, control hints, HUD insets, `repeatPress`.
-- `tests/hub-events/input.test.ts`: the hub input events against the game (FakeHub).
+- `tests/kit/input/input.test.ts`: enable and disable only on change, a sync while hub UI is open, the touch layout switching at 520 px, `usesKey`, nav targets, control hints, HUD insets, `repeatPress`.
+- `tests/hub-events/input.test.ts`: the hub input events against the game (FakeHub), and when Esc is handled.
+- `tests/hub/kit/embed.test.ts`: Esc in the world's box on a real hub (the title leaves, play pauses).
 
 ## Hub API used:
 
-- `hub.input.define`, `enable`, `disable`, `autoNavigate`, `setInsets`, `down` (the session reads `pause`).
+- `hub.input.define`, `enable`, `disable`, `autoNavigate`, `setInsets`, `value` (the session reads `pause` per step), `hub.overlay.isOpen` (Esc under hub UI is the hub's).
 - `hub.input.source` and `hub.input.on('sourcechange')`.

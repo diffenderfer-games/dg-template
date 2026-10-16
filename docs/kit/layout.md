@@ -27,6 +27,7 @@ const refit = fitText(titleEl, { min: 12 }); // call refit() after the text chan
 - `ctx.region()` already subtracts the safe area, the race HUD (`--hub-race-hud-top` and `--hub-race-hud-bottom`) and the bottom of every `.kit-hud` and `.kit-corner` element, so the pause button and the HUD never cover play.
 - `ctx.onResize(cb)` fires once the size settles (60 ms debounce). On rotation it fires again after 350 ms, because phones report the wrong size for a moment.
 - The kit's CSS keeps screens clear of the same areas (`--kit-top`, `--kit-bottom`), see [ui.md](ui.md).
+- **In the world's box** (an iframe, [world.md](world.md#playing-over-the-world)) every size is the box's: `innerWidth`/`innerHeight` and CSS `vw`/`vh` are the iframe's, and the box resizing (fill the window, back) fires `ctx.onResize`. Never size from `screen` or `outerWidth`, and fit the height as well as the width (a box can be wide and short: the title's font follows both).
 
 ## Helpers
 
@@ -36,6 +37,7 @@ const refit = fitText(titleEl, { min: 12 }); // call refit() after the text chan
 - `isPortrait()` is true when the height is greater than the width. `isPhone()` is true when the short side is under 600 CSS px.
 - `keepThemeColor(color)` pins `<meta name="theme-color">` and returns the restore function.
 - `fitText(el, { min, max })` shrinks the font until the text fits the width; returns a refit function.
+- `goFullscreen(el?)` and `lockPointer(el)` ask for fullscreen and pointer lock, and do nothing (false) inside a frame such as the world's box (`inFrame()`, kit/core). Use them instead of `requestFullscreen` / `requestPointerLock`.
 
 ## The hub menu button
 
@@ -82,10 +84,12 @@ new ResizeObserver(sync).observe(bar);
 | `fitText(el, opts)` | Shrink text to fit; returns `refit()`. |
 | `isPortrait(w?, h?)`, `isPhone(w?, h?)` | Viewport checks (default: the window). |
 | `keepThemeColor(color, doc?)` | Hold the theme colour; returns the restore. |
+| `goFullscreen(el?, win?)`, `lockPointer(el, win?)` | Promise of true when granted; false inside a frame or when refused. |
 
 ## Tests
 
 - `tests/kit/layout/layout-loop.test.ts` (shared with `kit/loop`): resize debounce and the double measure on rotation, `letterbox`, and the play region leaving room for the safe area, the race HUD, HUD bands and the menu button.
+- `tests/kit/core/env.test.ts`: no fullscreen or pointer lock inside a frame.
 - `npm run ui:check` checks the real screens at four sizes, see [ui.md](ui.md).
 
 ## Hub API used:
