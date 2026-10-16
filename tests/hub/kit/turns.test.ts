@@ -3,6 +3,8 @@
 // game's own, game.turns.quickChat) reaches Ann; Bob closes his page and Ann sees "Waiting for Bob…", then
 // "Let the computer play for Bob" once handOverAt comes, and the computer plays his seat to the end.
 // Also: a game opened from the title's Continue row (Your games). Skipped for a game without game.turns.
+// Asks the game, never assumes: a player may move several times in a row (a pick, then a guess), so
+// each player moves until the turn passes; a long game (four rounds of a game show) may take a while.
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -49,6 +51,17 @@ const see = (p: Player, what: string, ok: (s: Shown) => boolean, timeout = 20_00
 const move = (p: Player): Promise<boolean> =>
   until(() => p.page.evaluate(() => window.__game?.turnsMove?.() === true), `${p.name} makes a move`);
 
+/** Move until the turn passes (or the game ends): some games let a player move several times in a row. */
+async function moveWhileMine(p: Player, most = 40): Promise<void> {
+  for (let i = 0; i < most; i++) {
+    const s = await shown(p);
+    if (s.kind !== 'mine' || s.phase === 'ended') return;
+    await move(p);
+    await see(p, 'the move lands', (n) => n.seq > s.seq || n.phase === 'ended');
+  }
+  throw new Error(`${p.name} still has the turn after ${most} moves`);
+}
+
 e2e(
   'turns: a link game in two browsers: live moves, quick-chat, "Waiting for…", the hand-over, the end',
   e,
@@ -78,8 +91,8 @@ e2e(
     await see(ann, 'her turn', (s) => s.kind === 'mine');
     await see(bob, `"${ann.name} is playing"`, (s) => s.status === `${ann.name} is playing`);
 
-    await move(ann);
-    await see(bob, "Ann's move, live", (s) => s.seq === 1 && s.kind === 'mine');
+    await moveWhileMine(ann);
+    await see(bob, "Ann's moves, live", (s) => s.seq >= 1 && s.kind === 'mine');
 
     if (phrase !== null) {
       await bob.tid(`quick-g:${SLUG}:0`);
@@ -99,7 +112,7 @@ e2e(
     await ann.tid('turns-hand-over');
     await see(ann, 'the computer moved for Bob', (s) => s.seq >= 2 && (s.kind === 'mine' || s.phase === 'ended'));
 
-    for (let i = 0; i < 30; i++) {
+    for (let i = 0; i < 400; i++) {
       const s = await shown(ann);
       if (s.phase === 'ended') break;
       if (s.kind === 'mine') await move(ann);
@@ -109,7 +122,7 @@ e2e(
     assert.ok(end.kind === 'won' || end.kind === 'lost', JSON.stringify(end));
     await ann.find('[data-testid="turns-rematch"]');
   },
-  { skip, timeout: 120_000 },
+  { skip, timeout: 600_000 },
 );
 
 e2e(

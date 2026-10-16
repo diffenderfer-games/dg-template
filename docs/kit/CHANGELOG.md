@@ -4,6 +4,23 @@ KIT doc. One entry per kit version; per module inside. A **major** version
 means a hook's signature changed: the entry says how to move a game over.
 `npm run kit:sync` prints the entries newer than a game's `kit.json`.
 
+## 1.7 (2026-10-16)
+
+After Chain Reaction (a game show: a player may move several times in a row):
+
+- **hub-suites 1.8:** the online games suite asks the game instead of assuming
+  that every move passes the turn: each player moves until the turn passes
+  (`moveWhileMine`), and a long game has time to finish (up to 400 moves,
+  10 minutes). It still expects the creator's seat to move first.
+- **scripts 1.9:** `build:rules` fails on Node and browser globals
+  (`structuredClone`, `queueMicrotask`, `TextEncoder`, `TextDecoder`, `Buffer`):
+  the hub runs the rules in plain JavaScript (`vm.createContext({})`), where they
+  throw on the server (a 500 on the move).
+- **turns 1.5, testing 1.7, docs 1.9:** turns.md and testing.md say so.
+
+To move a game over: `npm run kit:sync`. A rules module that used `structuredClone`
+copies its state by hand.
+
 ## 1.6 (2026-10-16)
 
 - **avatar 1.5, boot 1.6:** no avatar on the title by default: players edit theirs

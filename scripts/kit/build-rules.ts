@@ -4,8 +4,10 @@
  * Docs: docs/kit/turns.md § "The rules module"
  *
  * saved-games.md §4.1: the hub loads `game.turns.rules` as an ESM bundle with
- * no imports, in a sandbox without Math.random, timers or fetch. The build
- * fails if the bundle still imports anything or touches those. `npm run
+ * no imports, in a sandbox of plain JavaScript (`vm.createContext({})`):
+ * no Math.random, timers, fetch, or Node and browser globals such as
+ * structuredClone. The build fails if the bundle still imports anything or
+ * touches those. `npm run
  * build` runs it after vite; a game without the rules module skips it.
  */
 import { build } from 'esbuild';
@@ -35,6 +37,10 @@ const problems = [
   [/^\s*import\s/m, 'an import (the bundle must be self-contained)'],
   [/Math\.random/, 'Math.random (the hub passes its own RNG)'],
   [/\b(setTimeout|setInterval|fetch|Date\.now)\b/, 'timers, fetch or Date (not in the sandbox)'],
+  [
+    /\b(structuredClone|queueMicrotask|TextEncoder|TextDecoder|Buffer)\b/,
+    'a Node or browser global (the sandbox is plain JavaScript; copy objects by hand)',
+  ],
 ] as const;
 const found = problems.filter(([re]) => re.test(text)).map(([, why]) => why);
 if (found.length > 0) {

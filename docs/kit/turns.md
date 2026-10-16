@@ -83,8 +83,10 @@ its test, the hook and the `game.turns` block.
 
 `npm run build:rules` (`scripts/kit/build-rules.ts`, part of `npm run build`)
 bundles it with esbuild into `dist-rules/rules.mjs`. The build fails if the
-bundle still has an import, `Math.random`, a timer, `fetch` or `Date.now`; a
-game without `src/game/turns/rules.ts` skips it. The hub loads that file's
+bundle still has an import, `Math.random`, a timer, `fetch`, `Date.now` or a
+Node or browser global (`structuredClone`, `Buffer`, `TextEncoder`…): the
+hub's sandbox is plain JavaScript (`vm.createContext({})`), so copy objects
+by hand. A game without `src/game/turns/rules.ts` skips it. The hub loads that file's
 default export from `game.turns.rules` and runs it in a sandbox (one worker
 per CPU, `maxApplyMs` counting only your rules' own run; a move is all or
 nothing).

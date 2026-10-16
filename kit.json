@@ -1,5 +1,5 @@
 {
-  "kitVersion": "1.6",
+  "kitVersion": "1.7",
   "modules": {
     "audio": {
       "version": "1.1",
@@ -116,10 +116,10 @@
       }
     },
     "docs": {
-      "version": "1.8",
+      "version": "1.9",
       "files": {
         "docs/getting-started.md": "fcb6685195b8fecf4872234bf430c896d9e201e097554653a7279642b899c0ad",
-        "docs/kit/CHANGELOG.md": "fb41faac1dce81633e81f6cddcef42f9846ec4017f46b8dbdca8ba55d96054b6",
+        "docs/kit/CHANGELOG.md": "6d036e46711105d27157f64e40f39e2ea4fd904ad2f5bd4bc77e40523fb23708",
         "docs/kit/README.md": "5d88de90186a8fba2f6db36a50ffc1c29d5c2081a4c4ce3e5a08ef0982ccc704",
         "docs/kit/hooks.md": "d48a9fbc9ecf128e57b54197d58972728c40616080955e0a2d0e2f9a8a8be347",
         "docs/kit/look.md": "99d6c55f3233f2401ef8723e1a398993bf96dece1dc2b074b8f639f81d311aed",
@@ -162,7 +162,7 @@
       }
     },
     "hub-suites": {
-      "version": "1.7",
+      "version": "1.8",
       "files": {
         "tests/hub/_kit.ts": "a6d84f0f96177e441a283aed83718d044a361a70cec77e0e4e78f34b1ceaed8c",
         "tests/hub/kit/avatar.test.ts": "d0a2a20c521c512741d285376d1f16a7a3ee651a9ef07e2853669d87007605a0",
@@ -173,7 +173,7 @@
         "tests/hub/kit/progress.test.ts": "3d034d10b726bb64fd0ad0106cb78a8abaf487b58cbaef6531c16da5fc865bcf",
         "tests/hub/kit/race.test.ts": "e6cb6e61d3513ba8f9b05ddc9a04d0332c3223baddc848003f4970d9748cc797",
         "tests/hub/kit/saved.test.ts": "d7fb57822a17f1759ee4957f353267fec0606934947c4b3abbf527d7f8e731d8",
-        "tests/hub/kit/turns.test.ts": "7239fdd6093989f033616842d40156de32d94f1ba0d21afea5876d66b3d1ed0e",
+        "tests/hub/kit/turns.test.ts": "b1631c2d7628d9568f76c8c05cfd7cd670670543b9e78c9d2764eb2b8dfedcb4",
         "tests/hub/kit/world.test.ts": "3dfb119029c1be8c6a94cd168c1c4004f313162cbaa5848996e2f8b010ee6733"
       }
     },
@@ -282,9 +282,9 @@
       }
     },
     "scripts": {
-      "version": "1.8",
+      "version": "1.9",
       "files": {
-        "scripts/kit/build-rules.ts": "ca313e5d4298525696a90f12d339aa75b20b4fdae1e1f9b043ff5cb4671813ea",
+        "scripts/kit/build-rules.ts": "532e7f69691e24ec758d281f6e3597c5dfa0738a8bf9182ac17bb424e02d67e1",
         "scripts/kit/check.ts": "6ce6101fb32634766206a648f33959288c1da6fd1ecc8b646129ca806066feba",
         "scripts/kit/clean-procs.ts": "2d2aeb74b1c9201b0ea7b3de2ff426d95fd844a76d98743a51f073ad82ec7e54",
         "scripts/kit/cover.ts": "805c06119cb96c2f427248a6ab390edcdb5379ffa7c776f4cb1e2c1641443f41",
@@ -299,7 +299,7 @@
         "scripts/kit/lib/json-file.ts": "dbf7615f262a4cfaed24444d157ce3a1eb43c38139abf22910b5de63fc39fabc",
         "scripts/kit/lib/kit-manifest.ts": "3dd9b442e44bf0f265bdbd3f78332ebce23cf7a058ef6cfc00bea39d1121916d",
         "scripts/kit/lib/kit-skips.ts": "64c564f5bcd174f422c955b23ba42b51c6c7ea8b0e525f371890f24486aa7b67",
-        "scripts/kit/lib/modules.ts": "5760e0867cbed7882265f3c3409cd2473a25afff665a064c0f95f040b6212193",
+        "scripts/kit/lib/modules.ts": "2aa7778ebdce6b6a375df10783bfd9d37a8a931d14c1b83d19f6fdfd3bf3a5ed",
         "scripts/kit/lib/paths.ts": "eff533c813a780dae8389146613b04f627ffa275d46045c98b30bad5149ab9be",
         "scripts/kit/lib/ports.ts": "acac054c2d53fbc5f28858a1a96948799f6664a713f129dd94e9ba1ebd335273",
         "scripts/kit/lib/procs.ts": "092866a7f4f02faf47b7b7c6280ff7152b3ba66fe3c505ec52b36089b0609b10",
@@ -351,9 +351,9 @@
       }
     },
     "testing": {
-      "version": "1.6",
+      "version": "1.7",
       "files": {
-        "docs/kit/testing.md": "788a7f14b0d64b3878241a789d33b284c2fda3d8459f19a9d43a31e146b45dea",
+        "docs/kit/testing.md": "346a4fbb4a4462db7e83fa3d803e1bc2f989b6321e959acd0807c0db8e820b5c",
         "src/kit/testing/calls.ts": "21a8ee3e723c6478ebe71b74174d6149a5232eaff1a1f99155884032215c263f",
         "src/kit/testing/fake-audio.ts": "e3e933d0a0b54e7e41a3615e4d30ee0581b3e0d4bd5fc857d07df52c8919c3ad",
         "src/kit/testing/fake-avatar.ts": "b4622a92cd9dbc26d7be8c5c47ed172654417258f16b40fd47d8eba4059f7185",
@@ -379,9 +379,9 @@
       }
     },
     "turns": {
-      "version": "1.4",
+      "version": "1.5",
       "files": {
-        "docs/kit/turns.md": "92d37e389b416b65d3a129312d1dec0e1d45e9245ed93a3b3dcd4f7e0b4357c4",
+        "docs/kit/turns.md": "6b6bde0340ee8a7117a4f714459541bd7c3f3e37b6cc542d8e952955bc2b4c34",
         "src/kit/turns/index.ts": "c522cd9f06dfe7ccf2cedb51eb48800aa0b5264c7076f352a43f8d058918c72c",
         "src/kit/turns/rules.ts": "0267ce77cebfda80800ff7f55af502784d256e0770118758f401d297eeba5dcc",
         "src/kit/turns/screen.ts": "4eae081bc759bd4088f288048242d2b218fcd5ed950708c289779ec9f2fbd999",

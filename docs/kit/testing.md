@@ -69,7 +69,7 @@ and need only this list, the **test contract**:
 | `[data-testid="title-best"]` and `[data-testid="result-best"]` with the best score as a number in them (`Best 7`, `7 ★`) | Saves reach the title and another device |
 | A profile whose `best` follows the score of a normal game (`onResult`), and `profile.merge` / `validate` that accept what the game pushes | Account switches, conflicts |
 | `result(run).boards` naming boards in `scores.boards` (or none) | Boards get the numbers the game named |
-| `turns.testMove(board)`: a legal move for this player, or null (`__game.turnsMove()`), when the game declares `game.turns` | The hub suite plays an online game the hub runs |
+| `turns.testMove(board)`: a legal move for this player, or null (`__game.turnsMove()`), when the game declares `game.turns` | The hub suite plays an online game the hub runs (it moves until the turn passes, so a player may move several times in a row; the creator's seat moves first) |
 | `run.validate` that accepts the game's own saved games | Continue, days in progress |
 
 Words never matter: the suites match numbers (`/\b7\b/`) and test ids, not `'Best 7'`.
