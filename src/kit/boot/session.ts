@@ -163,13 +163,26 @@ export class Session<P extends JsonObject, R extends JsonObject> {
     if (this.screen === 'title') await this.showTitle();
   }
 
+  /** "Your games" changed: redraw the title only if its Continue rows did (a save fires it often). */
+  async refreshContinue(): Promise<void> {
+    if (this.screen !== 'title') return;
+    const saved = this.d.resume.known ? await this.d.resume.load() : null;
+    const rows = await this.d.saved.continueRows(() =>
+      Promise.resolve(saved === null ? null : this.d.game.run.progress(saved).label),
+    );
+    if (this.screen === 'title' && this.mode === null && JSON.stringify(rows) !== JSON.stringify(this.rows))
+      await this.showTitle();
+  }
+
   /** The title screen, with a Continue row when a saved game exists. */
   async showTitle(): Promise<void> {
     const saved = this.d.resume.known ? await this.d.resume.load() : null;
     const { game } = this.d;
-    const rows = (this.rows = await this.d.saved.continueRows(() =>
+    const rows = await this.d.saved.continueRows(() =>
       Promise.resolve(saved === null ? null : game.run.progress(saved).label),
-    ));
+    );
+    if (this.mode !== null) return; // a game started while the rows loaded (a daily from the menu, a launch)
+    this.rows = rows;
     const el = this.d.screens.show('title', () =>
       titleScreen(
         {
@@ -276,9 +289,12 @@ export class Session<P extends JsonObject, R extends JsonObject> {
     this.begin('normal', saved);
   }
 
-  /** A daily starts (the menu, a deep link or the title's button). A normal game is saved first. */
+  /**
+   * A daily starts (the menu, a deep link, the title's button or Your games).
+   * A normal game was already saved when the menu opened (the pause saves);
+   * it can't be saved now, as the hub would save it to the day.
+   */
   startDaily(s: DailyStart): void {
-    if (this.mode === 'normal' && this.run !== null && !this.finished) this.d.resume.save(this.run);
     if (this.mode === 'race' || this.mode === 'online') this.leaveSpecial();
     this.day = s;
     const saved = s.saved;
@@ -304,9 +320,10 @@ export class Session<P extends JsonObject, R extends JsonObject> {
     this.showLoading();
   }
 
-  /** Same kind of game again: a new normal game, or the same day. */
+  /** Same kind of game again: a new normal game, or the same day from its seed. */
   restart(): void {
     if (this.mode === 'daily' && this.day !== null) {
+      this.d.resume.clear(); // the day's saved state starts over too
       this.begin('daily', this.build('daily', this.day.seed, { day: this.day.day }));
       return;
     }
@@ -315,7 +332,7 @@ export class Session<P extends JsonObject, R extends JsonObject> {
 
   // ---- leaving ---------------------------------------------------------------
 
-  /** End a daily (unrecorded), a race or a room when the player goes elsewhere. */
+  /** Pause a daily (it stays in Your games), leave a race or a room, when the player goes elsewhere. */
   private leaveSpecial(): void {
     if (this.mode === 'daily') {
       this.parts?.daily?.leave();
@@ -340,8 +357,8 @@ export class Session<P extends JsonObject, R extends JsonObject> {
 
   /**
    * Keep the game in progress for Continue (and push it now on `flush`). A
-   * daily goes to the day's own save once the hub has days in progress
-   * (kit/resume routes it; a no-op before saved-games phase 1).
+   * daily goes to the day's own save (kit/resume routes it), so the day is
+   * picked up where the player left it.
    */
   saveForLater(flush = false): void {
     if ((this.mode !== 'normal' && this.mode !== 'daily') || this.run === null || this.finished) return;
@@ -414,7 +431,9 @@ export class Session<P extends JsonObject, R extends JsonObject> {
     if (mode === 'normal') {
       this.d.resume.clear();
       game.onResult?.(this.ctx, run, outcome);
-    } else if (mode === 'daily' && outcome === 'won') {
+    } else if (mode === 'daily' && outcome !== 'won') {
+      this.d.resume.clear(); // a lost day starts over from its seed next time; it stays in progress
+    } else if (mode === 'daily') {
       const firstBoard = Object.values(numbers.boards ?? {})[0];
       const meta = {
         ...(firstBoard === undefined ? {} : { score: firstBoard }),

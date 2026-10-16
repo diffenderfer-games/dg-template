@@ -89,20 +89,31 @@ describe('FakeHub: behaves like the hub client (fidelity)', () => {
     expect(await fake.daily.complete({ score: 3 })).toBeNull();
   });
 
-  it('planned APIs are absent unless asked for (like the published client)', () => {
+  it('the world (planned) is absent unless asked for, like the published client; the live APIs are always there', () => {
     const plain = createFakeHub({ events: new EventTarget() });
-    expect(plain.saved).toBeUndefined();
-    expect(plain.daily.save).toBeUndefined();
     expect(plain.mp.quickMatch).toBeUndefined();
-    const planned = createFakeHub({
-      events: new EventTarget(),
-      planned: { savedGames: true, world: true, avatars: true, turns: true },
-    });
-    expect(planned.saved).toBeDefined();
-    expect(planned.daily.save).toBeTypeOf('function');
+    expect(plain.saved).toBeDefined();
+    expect(plain.turns).toBeDefined();
+    expect(plain.avatar).toBeDefined();
+    expect(plain.userId()).toBe(1);
+    const planned = createFakeHub({ events: new EventTarget(), planned: { world: true } });
     expect(planned.mp.setRoster).toBeTypeOf('function');
-    expect(planned.avatar).toBeDefined();
-    expect(planned.turns).toBeDefined();
+  });
+
+  it('Your games lists the saved game, days in progress and online games, discards them, and says when it changed', async () => {
+    const fake = createFakeHub({ events: new EventTarget() });
+    const changes: number[] = [];
+    fake.saved.on('change', (games) => changes.push(games.length));
+    fake.resume.save({ state: { level: 2 }, progress: { label: 'Level 2' } });
+    const day = fake.daily.inProgressDay('2026-10-14');
+    const game = await fake.turns.open('tg-9');
+    game.close();
+    const rows = await fake.saved.list();
+    expect(rows.map((r) => r.kind).sort()).toEqual(['daily', 'run', 'turns']);
+    expect(rows[0]?.kind).toBe('turns'); // an online game waiting on my move comes first
+    await fake.saved.discard(day);
+    expect((await fake.saved.list({ kinds: ['daily'] })).length).toBe(0);
+    expect(changes.at(-1)).toBe(2);
   });
 
   it('fake clock runs due timers in order and only when advanced', () => {

@@ -94,9 +94,10 @@ describe('daily challenges (hub.md "Daily challenges")', () => {
   planned('savedGames01')(
     'row 28: a day in progress (challenge.saved) restores, and leaving pauses the day',
     async () => {
-      const g = await bootGame({ fake: { planned: { savedGames: true } } });
-      g.fake.daily.savedFor.set('2026-10-15', {
-        saved: {
+      const g = await bootGame();
+      g.fake.daily.inProgressDay(
+        '2026-10-15',
+        {
           mode: 'daily',
           seed: 1,
           rng: 1,
@@ -108,14 +109,39 @@ describe('daily challenges (hub.md "Daily challenges")', () => {
           score: 2,
           over: null,
         },
-      });
+        1,
+      );
       await g.fake.daily.start('2026-10-15');
       expect(g.hook.snap()).toMatchObject({ score: 2 });
       expect(g.calls.count('newRun')).toBe(0);
       g.hook.pause?.();
       expect(g.fake.log.count('daily.save')).toBeGreaterThan(0);
+      g.hook.toTitle?.();
+      await g.settle();
+      expect(g.fake.log.count('daily.cancel')).toBeGreaterThan(0);
+      expect((await g.fake.daily.status()).inProgress).toEqual(['2026-10-15']);
+      expect(g.ui.querySelector('[data-testid="continue"]')?.textContent).toMatch(/Daily challenge · Oct 15/);
     },
   );
+
+  planned('savedGames01')('a lost day starts over from its seed, and stays in progress', async () => {
+    const g = await bootGame();
+    await g.fake.daily.start('2026-10-15');
+    await g.frames(2);
+    g.hook.loseNow?.();
+    expect(g.fake.log.count('resume.clear.daily')).toBe(1);
+    expect(g.fake.log.count('daily.complete')).toBe(0);
+    expect((await g.fake.daily.status()).inProgress).toEqual(['2026-10-15']);
+  });
+
+  planned('savedGames01')('a normal game is never saved into a day the hub just started', async () => {
+    const g = await bootGame();
+    g.hook.newGame?.();
+    await g.frames(2);
+    await g.fake.daily.start('2026-10-15');
+    expect(g.hook.mode()).toBe('daily');
+    expect(g.fake.log.named('resume.save.daily')).toEqual([]);
+  });
 
   it('the Daily button says "Done today" once today is done (hub.daily.status)', async () => {
     const g = await bootGame();

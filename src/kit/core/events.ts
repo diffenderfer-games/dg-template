@@ -17,7 +17,13 @@ export type HubWindowEvents = {
   'hub:auth': { user: AuthUser | null };
   /** The menu's "Reset game": wipe local state before the hub reloads the page. */
   'hub:reset': { slug: string | null };
-  'hub:daily-started': { day: string; seed: number };
+  'hub:daily-started': { day: string; seed: number; resumed: boolean };
+  /** A day in progress was picked up again (hub.md "Days in progress"). */
+  'hub:daily-resumed': { day: string; seed: number; resumed: boolean };
+  /** The day was left unfinished: it stays in progress. */
+  'hub:daily-paused': { day: string; paused: boolean };
+  /** The day was given up. */
+  'hub:daily-discarded': { day: string; discarded: boolean };
   'hub:daily-complete': { day: string };
   'hub:daily-queued': { day: string };
   'hub:daily-error': { day: string; error: string };
@@ -48,7 +54,18 @@ function parseUser(x: unknown): AuthUser | null {
 const PARSERS: { [K in HubWindowEvent]: (detail: unknown) => HubWindowEvents[K] } = {
   'hub:auth': (d) => ({ user: parseUser(field(d, 'user')) }),
   'hub:reset': (d) => ({ slug: strField(d, 'slug') || null }),
-  'hub:daily-started': (d) => ({ day: strField(d, 'day'), seed: numField(d, 'seed') }),
+  'hub:daily-started': (d) => ({
+    day: strField(d, 'day'),
+    seed: numField(d, 'seed'),
+    resumed: boolField(d, 'resumed'),
+  }),
+  'hub:daily-resumed': (d) => ({
+    day: strField(d, 'day'),
+    seed: numField(d, 'seed'),
+    resumed: boolField(d, 'resumed'),
+  }),
+  'hub:daily-paused': (d) => ({ day: strField(d, 'day'), paused: boolField(d, 'paused') }),
+  'hub:daily-discarded': (d) => ({ day: strField(d, 'day'), discarded: boolField(d, 'discarded') }),
   'hub:daily-complete': (d) => ({ day: strField(d, 'day') }),
   'hub:daily-queued': (d) => ({ day: strField(d, 'day') }),
   'hub:daily-error': (d) => ({ day: strField(d, 'day'), error: strField(d, 'error') }),

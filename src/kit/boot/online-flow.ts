@@ -115,7 +115,7 @@ export class OnlineFlow {
             me: this.match.me,
             minPlayers: this.game.minPlayers,
             chat,
-            face: (seat) => face(this.hub, { userId: seat.userId, name: seat.name, look: seat.avatar }, 32),
+            face: (seat) => face(this.hub, { userId: seat.userId, name: seat.name, look: seat.look }, 32),
           },
           {
             start: () => this.match.start(),

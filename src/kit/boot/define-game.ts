@@ -92,10 +92,10 @@ export function defineGame<P extends JsonObject, R extends JsonObject>(
     hub,
     {
       continueRun: () => void session.continueSaved(),
-      resumeDaily: (id) => void hub.daily.resume?.(id),
-      openTurns: () => undefined, // kit/turns: the game's turn screen, once saved-games phase 3 ships
+      resumeDaily: (id) => void hub.daily.resume(id),
+      // No openTurns: the kit has no screen for online games over days yet, so the hub opens them (kit/turns).
     },
-    () => session.screen === 'title' && void session.showTitle(),
+    () => void session.refreshContinue(),
   );
 
   const session: Session<P, R> = new Session<P, R>({

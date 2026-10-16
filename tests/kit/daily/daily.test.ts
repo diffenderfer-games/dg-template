@@ -53,14 +53,16 @@ describe('daily adapter', () => {
     expect(install().complete({})).toBe(false);
   });
 
-  it('leave cancels the day (so hub.resume.save works again)', async () => {
+  it('leave pauses the day, so hub.resume.save goes to the saved game again (not to the day)', async () => {
     const d = install();
     d.ready();
     await fake.daily.start();
-    expect(fake.resume.blockedBy).toBe('daily');
+    fake.resume.save({ state: { level: 1 }, progress: { label: 'Level 1' } });
+    expect(fake.log.count('resume.save.daily')).toBe(1);
     d.leave();
     expect(fake.log.count('daily.cancel')).toBe(1);
-    expect(fake.resume.blockedBy).toBeNull();
+    fake.resume.save({ state: { level: 1 }, progress: { label: 'Level 1' } });
+    expect(fake.log.count('resume.save')).toBe(1);
     expect(d.current).toBeNull();
   });
 
@@ -115,26 +117,33 @@ describe('daily adapter', () => {
     expect(played[0]?.seed).toBe(played[1]?.seed);
   });
 
-  it('discard uses the planned hub.daily.discard when present, else cancel', async () => {
+  it('leave pauses the day (it stays in progress); discard gives it up', async () => {
     const d = install();
     d.ready();
-    await fake.daily.start();
-    d.discard();
+    await fake.daily.start('2026-10-15');
+    d.leave();
     expect(fake.log.count('daily.cancel')).toBe(1);
-    fake = createFakeHub({ events: new EventTarget(), planned: { savedGames: true } });
-    const d2 = install();
-    d2.ready();
-    await fake.daily.start();
-    d2.discard();
+    expect((await fake.daily.status()).inProgress).toEqual(['2026-10-15']);
+    await fake.daily.start('2026-10-15');
+    d.discard();
+    await Promise.resolve();
     expect(fake.log.count('daily.discard')).toBe(1);
+    expect((await fake.daily.status()).inProgress).toEqual([]);
   });
 
-  it('passes a planned challenge.saved through to the session', async () => {
-    fake = createFakeHub({ events: new EventTarget(), planned: { savedGames: true } });
-    fake.daily.savedFor.set('2026-10-15', { saved: { level: 3 } });
+  it('passes challenge.saved through to the session (a day in progress)', async () => {
+    fake.daily.inProgressDay('2026-10-15', { level: 3 });
     const d = install();
     d.ready();
     await fake.daily.start('2026-10-15');
     expect(played[0]?.saved).toEqual({ level: 3 });
+  });
+
+  it('resume(id) picks a day in progress up by its saved game', async () => {
+    const id = fake.daily.inProgressDay('2026-10-02', { level: 5 });
+    const d = install();
+    d.ready();
+    await fake.daily.resume(id);
+    expect(played[0]).toMatchObject({ day: '2026-10-02', saved: { level: 5 }, recorded: true });
   });
 });

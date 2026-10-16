@@ -5,8 +5,9 @@
  *
  * Behaviour copied from hub.md: offline, `getSave` rejects with code
  * `save_unknown` for a slot this device never saw (never `save: null`);
- * writes queue offline; `resume.save` returns false in a race, a daily or a
- * room; a run saved with another version reads as null.
+ * writes queue offline; `resume.save` returns false in a race, a room or with
+ * an online game open, and during a daily saves to the day (`clear` then
+ * starts the day over); a run saved with another version reads as null.
  */
 import type {
   GamePayload,
@@ -134,6 +135,19 @@ export class FakeProgress {
   }
 }
 
+/** What the fake resume needs from its hub. */
+export type FakeResumeHost = {
+  blocker(): ResumeBlocker | null;
+  now(): number;
+  /** A daily is active: saves go to the day. */
+  inDaily(): boolean;
+  saveDaily(run: ResumeSaveInput<GamePayload>): boolean;
+  /** `clear()` during a daily: the day starts over. */
+  restartDaily(): void;
+  /** "Your games" changed. */
+  changed(): void;
+};
+
 /** The fake `hub.resume`. */
 export class FakeResume implements ResumeLike {
   requested: boolean;
@@ -141,9 +155,9 @@ export class FakeResume implements ResumeLike {
   /** Delay before `load` answers (the late-load race). */
   loadDelay: Promise<void> | null = null;
   private readonly log: CallLog;
-  private readonly host: { blocker(): ResumeBlocker | null; now(): number };
+  private readonly host: FakeResumeHost;
 
-  constructor(log: CallLog, host: { blocker(): ResumeBlocker | null; now(): number }, requested: boolean) {
+  constructor(log: CallLog, host: FakeResumeHost, requested: boolean) {
     this.log = log;
     this.host = host;
     this.requested = requested;
@@ -158,8 +172,13 @@ export class FakeResume implements ResumeLike {
       this.log.record('resume.save.blocked', this.blockedBy);
       return false;
     }
+    if (this.host.inDaily()) {
+      this.log.record('resume.save.daily', run);
+      return this.host.saveDaily(run);
+    }
     this.log.record('resume.save', run);
     this.stored = { ...run, savedAt: this.host.now() };
+    this.host.changed();
     return true;
   }
 
@@ -169,8 +188,14 @@ export class FakeResume implements ResumeLike {
   }
 
   clear(): Promise<void> {
+    if (this.host.inDaily()) {
+      this.log.record('resume.clear.daily');
+      this.host.restartDaily();
+      return Promise.resolve();
+    }
     this.log.record('resume.clear');
     this.stored = null;
+    this.host.changed();
     return Promise.resolve();
   }
 

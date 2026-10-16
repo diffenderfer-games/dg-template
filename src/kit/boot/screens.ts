@@ -33,7 +33,7 @@ export type ScreenActions = {
 export type TitleOptions = {
   title: string;
   tagline?: string;
-  /** Continue rows: the saved game, or every saved instance once the hub has hub.saved. */
+  /** Continue rows: every saved game of this game (hub.saved: the saved game, days in progress). */
   continueRows: readonly { id: string; label: string }[];
   /** Quick match (world W2): shown when the hub has it. */
   quickMatch?: boolean;

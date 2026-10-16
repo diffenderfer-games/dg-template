@@ -50,9 +50,9 @@ export async function routeOnce<P extends JsonObject, R extends JsonObject>(o: {
       return;
     }
   }
-  if (o.saved.routeOpened()) return; // an instance opened from "Your games" (hub.saved, saved-games phase 1)
-  o.daily?.ready();
+  o.daily?.ready(); // the game has mounted: a day the hub already started plays now
   if (o.session.mode !== null) return; // a queued daily started
+  if (o.saved.routeOpened()) return; // a saved game opened from "Your games" (hub.saved)
   if (o.daily !== null && new URLSearchParams(o.search).has('daily')) return; // still being answered
   if (o.resume.requested) {
     const saved = await withTimeout(o.clock, lookup, 8000, null);

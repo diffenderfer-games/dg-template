@@ -7,21 +7,23 @@
  * - `define` is registered at boot, before any await; a day that starts
  *   before the game has mounted waits, then plays once;
  * - every way out that isn't a win calls `leave()` (the daily-puzzle kit's
- *   `cancelDaily`), or `hub.resume.save` stays blocked for the page;
+ *   `cancelDaily`): that pauses the day, which stays in Your games; until
+ *   then the hub treats the page as in a daily (`hub.resume.save` saves to it);
  * - `complete` only while a daily is active, and only once;
  * - a `?daily=` deep link that gets no answer within 8 s goes to the title;
  * - offline (`hub:daily-error`) the day can still be played, unrecorded, from
  *   the hub's own seed (`seedForDay`), so it is the same puzzle;
  * - the isolation guard (no profile, boards or Continue writes) is kit/core's
  *   activity, set by the session while a daily plays.
- * Planned (saved-games phase 1): `challenge.saved` restores a day in progress,
- * `leave()` becomes a pause and `discard()` gives the day up.
+ * Days in progress (hub.md "Days in progress"): `challenge.saved` restores a
+ * day where the player left it, `leave()` pauses it and `discard()` gives
+ * it up.
  */
 import type { DailyChallenge } from '@diffenderfer-games/hub';
 import type { Clock } from '../core/clock.ts';
 import { onWindow } from '../core/events.ts';
 import type { HubLike } from '../core/hub-like.ts';
-import { field, isJson, type Json, type JsonObject } from '../core/json.ts';
+import { isJson, type Json, type JsonObject } from '../core/json.ts';
 import { cancelDaily, inDaily } from '../daily-puzzle/hub.ts';
 import { seedForDay } from '../rng/index.ts';
 
@@ -31,7 +33,7 @@ export type DailyStart = {
   seed: number;
   /** False when the hub couldn't start it (offline): played for fun, nothing recorded. */
   recorded: boolean;
-  /** Planned (saved-games phase 1): the state saved for this day, to restore. */
+  /** The state saved for this day (a day in progress), to restore; null when it starts fresh. */
   saved: Json | null;
 };
 
@@ -61,9 +63,9 @@ export type DailyHandle = {
   ready(): void;
   /** Won: record it with `meta` (once). False when nothing was active. */
   complete(meta: JsonObject): boolean;
-  /** Any other way out (quit, new game, title, launch, race): end it unrecorded. */
+  /** Any other way out (quit, new game, title, launch, race): pause it, unrecorded (it stays in progress). */
   leave(): void;
-  /** Planned: give this day up (falls back to `leave`). */
+  /** Give this day up: its progress is dropped (it can be started fresh while in the window). */
   discard(): void;
 };
 
@@ -86,8 +88,7 @@ export function installDaily(hub: Pick<HubLike, 'daily'>, o: DailyOptions): Dail
 
   hub.daily.define({
     play(ch: DailyChallenge) {
-      const saved = field(ch, 'saved');
-      play({ day: ch.day, seed: ch.seed, recorded: true, saved: isJson(saved) ? saved : null });
+      play({ day: ch.day, seed: ch.seed, recorded: true, saved: isJson(ch.saved) ? ch.saved : null });
     },
   });
 
@@ -136,8 +137,7 @@ export function installDaily(hub: Pick<HubLike, 'daily'>, o: DailyOptions): Dail
     },
     discard() {
       current = null;
-      if (hub.daily.discard) hub.daily.discard();
-      else cancelDaily(hub.daily);
+      void hub.daily.discard();
     },
   };
 }

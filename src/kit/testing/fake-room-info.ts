@@ -7,12 +7,20 @@ import type { PlayerLite, RoomInfo, RoomSeat } from '@diffenderfer-games/hub';
 
 /** A player as invites and launches carry them. */
 export function fakePlayer(id: number, username = `Player${id}`): PlayerLite {
-  return { id, username, avatar: `a${id}`, guest: false };
+  return { id, username, avatar: `a${id}`, look: `AV1user-${id}`, guest: false };
 }
 
 /** A seat in a room. */
 export function fakeSeat(userId: number, extra: Partial<RoomSeat> = {}): RoomSeat {
-  return { userId, name: `Player${userId}`, avatar: `a${userId}`, ready: false, connected: true, ...extra };
+  return {
+    userId,
+    name: `Player${userId}`,
+    avatar: `a${userId}`,
+    look: `AV1user-${userId}`,
+    ready: false,
+    connected: true,
+    ...extra,
+  };
 }
 
 /** A room as the `room` event carries it. */

@@ -5,8 +5,9 @@
  *
  * Players see "Continue" and "Your saved game", never "run". Rules:
  * - one cached, single-flight lookup (`load`), validated; a version mismatch reads null;
- * - `save` never in a race or online; in a daily it goes to the daily's own save
- *   once the hub has one (saved-games phase 1), and is a no-op before that;
+ * - `save` never in a race or online; in a daily it goes to the day's own save
+ *   (`hub.daily.save`), and `clear` starts the day over; a normal game is never
+ *   saved while the hub has a daily active (it would land in the day);
  * - `beforeNewGame` waits (at most 8 s) for the lookup before a new game replaces it;
  * - a saved game found only after a new game started is offered, not lost (`offerLate`);
  * - an old `getSave` slot migrates once (`legacySlot`), then is deleted.
@@ -41,9 +42,9 @@ export type ResumeSlot<R extends JsonObject> = {
   /** Has the lookup finished (found, empty or failed)? */
   readonly known: boolean;
   load(): Promise<R | null>;
-  /** Save the game in progress; false when blocked (race, online; a daily before the hub has daily saves). */
+  /** Save the game in progress (in a daily: to the day); false when blocked (race, online). */
   save(r: R): boolean;
-  /** The game ended (won, lost, quit, a new game): drop it. */
+  /** The game ended (won, lost, quit, a new game): drop it. In a daily: the day starts over from its seed. */
   clear(): void;
   flush(): void;
   /** Before a new game replaces the saved one: wait for the lookup; 'fresh' when nothing is saved. */
@@ -115,15 +116,14 @@ export function createResume<R extends JsonObject>(
     save(r) {
       const mode = deps.activity.mode;
       if (mode === 'race' || mode === 'online') return false;
-      if (mode === 'daily') {
-        return hub.daily.save ? hub.daily.save(input(r)) : false;
-      }
+      if (mode === 'daily') return hub.daily.save(input(r));
+      if (hub.daily.active !== null) return false; // the hub would save it to the day
       cached = r;
       known = true;
       return hub.resume.save(input(r));
     },
     clear() {
-      cached = null;
+      if (deps.activity.mode !== 'daily') cached = null;
       fireAndForget(hub.resume.clear());
     },
     flush() {

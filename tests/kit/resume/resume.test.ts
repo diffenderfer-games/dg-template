@@ -32,7 +32,7 @@ describe('resume: Continue', () => {
     expect(await make({ version: 4 }).load()).toBeNull();
   });
 
-  it('save is a no-op in a race or online, and in a daily until the hub has daily saves', () => {
+  it('save is a no-op in a race or online, and in a daily with no day active', () => {
     const r = make();
     for (const mode of ['race', 'online', 'daily'] as const) {
       activity.set(mode);
@@ -41,13 +41,25 @@ describe('resume: Continue', () => {
     expect(fake.log.count('resume.save')).toBe(0);
   });
 
-  it('in a daily, saves go to the daily instance once the hub ships it (saved-games phase 1 shim)', async () => {
-    fake = createFakeHub({ events: new EventTarget(), planned: { savedGames: true } });
+  it('in a daily, saves go to the day; clear starts the day over and keeps the saved game', async () => {
+    fake.resume.stored = { state: { level: 9 }, progress: { label: 'Level 9' }, version: 3, savedAt: 0 };
     fake.daily.define({ play: () => undefined });
     await fake.daily.start();
     activity.set('daily');
-    expect(make().save({ level: 2 })).toBe(true);
+    const r = make();
+    expect(r.save({ level: 2 })).toBe(true);
     expect(fake.log.count('daily.save')).toBe(1);
+    r.clear();
+    expect(fake.log.count('resume.clear.daily')).toBe(1);
+    expect(fake.resume.stored?.state).toEqual({ level: 9 });
+  });
+
+  it('a normal game is not saved while the hub has a day active (it would land in the day)', async () => {
+    fake.daily.define({ play: () => undefined });
+    await fake.daily.start();
+    activity.set('normal');
+    expect(make().save({ level: 2 })).toBe(false);
+    expect(fake.log.count('daily.save')).toBe(0);
   });
 
   it('a stored state that fails validation reads as nothing', async () => {

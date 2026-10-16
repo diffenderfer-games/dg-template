@@ -26,9 +26,9 @@ describe('Continue (hub.md "Resume saved games")', () => {
     expect(g.calls.count('newRun')).toBe(0);
   });
 
-  it('a saved game shows a Continue row on the title, with its label', async () => {
+  it('a saved game shows a Continue row on the title, with the label it was saved with (Your games)', async () => {
     const g = await bootGame({
-      before: (f) => void f.resume.save({ state: savedRun, progress: { label: 'x' }, version: 1 }),
+      before: (f) => void f.resume.save({ state: savedRun, progress: { label: '6 coins · 48 s left' }, version: 1 }),
     });
     await g.frames(5);
     const row = g.ui.querySelector('[data-testid="continue"]');

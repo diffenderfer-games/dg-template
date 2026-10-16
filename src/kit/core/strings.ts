@@ -40,6 +40,8 @@ export const KIT_STRINGS = {
   ok: 'OK',
   close: 'Close',
   edit: 'Edit',
+  editAvatar: 'Edit avatar',
+  yourAvatar: 'Your avatar',
   won: 'You won!',
   lost: 'Nice try!',
   playAgain: 'Play again',

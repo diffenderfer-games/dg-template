@@ -12,7 +12,7 @@
  * which); `tests/kit/testing/contract.test.ts` keeps the types honest and the
  * browser suite `tests/hub/kit/fake-parity.test.ts` compares behaviour.
  */
-import type { HubStatus, ResumeBlocker } from '@diffenderfer-games/hub';
+import type { HubStatus, ResumeBlocker, SavedEntry } from '@diffenderfer-games/hub';
 import { dayKey } from '../core/clock.ts';
 import { emitWindow } from '../core/events.ts';
 import type { HubLike } from '../core/hub-like.ts';
@@ -21,14 +21,16 @@ import { fakeClock, type FakeClock } from './fake-clock.ts';
 import { FakeDaily } from './fake-daily.ts';
 import { FakeInput } from './fake-input.ts';
 import { FakeOverlay } from './fake-overlay.ts';
-import { FakeAvatar, FakeSaved, FakeTurns } from './fake-planned.ts';
+import { FakeAvatar } from './fake-avatar.ts';
 import { FakeProgress, FakeResume, type FakeUser } from './fake-progress.ts';
 import { FakeRace } from './fake-race.ts';
 import { FakeRooms } from './fake-room.ts';
+import { FakeSaved, savedEntry } from './fake-saved.ts';
 import { FakeMenu, FakeMp, FakeNotify, FakePresence, FakeSocial } from './fake-social.ts';
+import { FakeTurns } from './fake-turns.ts';
 
-/** Which planned hub APIs the fake has (each off by default, like the published client). */
-export type PlannedFlags = { savedGames?: boolean; turns?: boolean; avatars?: boolean; world?: boolean };
+/** Which planned hub APIs the fake has (each off by default, like the published client): the world (next.9). */
+export type PlannedFlags = { world?: boolean };
 
 /** How to build a FakeHub. */
 export type FakeHubOptions = {
@@ -62,9 +64,9 @@ export class FakeHub implements HubLike {
   readonly social: FakeSocial;
   readonly presence: FakePresence;
   readonly notify: FakeNotify;
-  readonly saved?: FakeSaved;
-  readonly turns?: FakeTurns;
-  readonly avatar?: FakeAvatar;
+  readonly saved: FakeSaved;
+  readonly turns: FakeTurns;
+  readonly avatar: FakeAvatar;
   private readonly statusListeners = new Set<(s: HubStatus) => void>();
 
   constructor(o: FakeHubOptions = {}) {
@@ -88,16 +90,14 @@ export class FakeHub implements HubLike {
     this.progress.offline = o.offline === true;
     const hubOffline = (): boolean => this.progress.offline;
     const host = { slug: this.slug, events: this.events, now: () => this.clock.now(), today: () => this.today() };
-    this.daily = new FakeDaily(
-      this.log,
-      {
-        ...host,
-        get offline() {
-          return hubOffline();
-        },
+    const changed = (): void => this.saved.changed();
+    this.daily = new FakeDaily(this.log, {
+      ...host,
+      changed,
+      get offline() {
+        return hubOffline();
       },
-      planned.savedGames === true,
-    );
+    });
     this.race = new FakeRace(this.log, host);
     this.rooms = new FakeRooms(this.log, {
       slug: this.slug,
@@ -108,7 +108,14 @@ export class FakeHub implements HubLike {
     });
     this.resume = new FakeResume(
       this.log,
-      { blocker: () => this.blocker(), now: () => this.clock.now() },
+      {
+        blocker: () => this.blocker(),
+        now: () => this.clock.now(),
+        inDaily: () => this.daily.active !== null,
+        saveDaily: (run) => this.daily.save(run),
+        restartDaily: () => this.daily.restartActive(),
+        changed,
+      },
       o.resumeRequested === true,
     );
     this.mp = new FakeMp(
@@ -119,9 +126,18 @@ export class FakeHub implements HubLike {
     this.social = new FakeSocial(this.log);
     this.presence = new FakePresence(this.log);
     this.notify = new FakeNotify(this.log);
-    if (planned.savedGames === true) this.saved = new FakeSaved(this.log);
-    if (planned.turns === true) this.turns = new FakeTurns(this.log);
-    if (planned.avatars === true) this.avatar = new FakeAvatar(this.log, userId);
+    this.turns = new FakeTurns(this.log);
+    this.avatar = new FakeAvatar(this.log, () => this.userId());
+    this.saved = new FakeSaved(this.log, {
+      slug: this.slug,
+      entries: () => this.savedEntries(),
+      discard: (g) => {
+        if (g.kind === 'daily') return this.daily.discardInstance(g.id);
+        if (g.kind !== 'run' || this.resume.stored === null) return false;
+        this.resume.stored = null;
+        return true;
+      },
+    });
   }
 
   get isOffline(): boolean {
@@ -131,6 +147,7 @@ export class FakeHub implements HubLike {
   // ---- HubLike: progress -----------------------------------------------------
 
   me = (): ReturnType<FakeProgress['me']> => this.progress.me();
+  userId = (): number | null => this.progress.user?.id ?? null;
   getSave = (slot: string): ReturnType<FakeProgress['getSave']> => this.progress.getSave(slot);
   putSave: FakeProgress['putSave'] = (slot, data, label) => this.progress.putSave(slot, data, label);
   deleteSave = (slot: string): ReturnType<FakeProgress['deleteSave']> => this.progress.deleteSave(slot);
@@ -194,13 +211,38 @@ export class FakeHub implements HubLike {
     return dayKey(this.clock.now());
   }
 
-  /** Why `resume.save` is blocked right now (race, room, daily), like the client. */
+  /** Why `resume.save` is blocked right now (race, room, an online game open), like the client. */
   blocker(): ResumeBlocker | null {
     if (this.race.live) return 'race';
     if (this.rooms.current !== null && !this.rooms.current.left && this.rooms.current.info.phase !== 'ended')
       return 'room';
-    if (this.daily.active !== null) return 'daily';
+    if (this.turns.anyOpen) return 'turns';
     return null;
+  }
+
+  /** "Your games" rows the fakes hold: the saved game, days in progress, online games. */
+  private savedEntries(): SavedEntry[] {
+    const run = this.resume.stored;
+    const rows = this.daily.entries();
+    if (run !== null) {
+      rows.push(
+        savedEntry(
+          {
+            id: `sg_run_${this.slug}`,
+            kind: 'run',
+            title: run.title ?? null,
+            progress: { label: run.progress.label, fraction: run.progress.fraction ?? null },
+            version: run.version ?? 0,
+            updatedAt: run.savedAt,
+          },
+          this.slug,
+        ),
+      );
+    }
+    for (const g of this.turns.games.values()) {
+      if (g.summary.phase !== 'ended') rows.push(savedEntry({ id: g.id, kind: 'turns', turns: g.summary }, this.slug));
+    }
+    return rows;
   }
 
   private emitStatus(): void {
