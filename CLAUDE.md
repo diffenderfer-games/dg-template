@@ -39,15 +39,15 @@ Map of the kit: [docs/kit/README.md](docs/kit/README.md).
 Fill the `TODO(game)` stubs (`npm run todo` lists them). Each hook and when
 the kit calls it: [docs/kit/hooks.md](docs/kit/hooks.md).
 
-| File | Hook |
-|---|---|
-| `src/game/state.ts` | The profile and the game in progress (plain JSON) |
-| `src/game/rules.ts` | `newRun`, `step`, `outcome`, `progress` (pure) |
-| `src/game/controls.ts` | Keys, gamepad, touch |
-| `src/game/render/`, `screens/` | Drawing, the title / HUD / result |
-| `src/game/daily.ts`, `race.ts`, `online.ts` | Optional modes |
-| `src/game/turns/rules.ts`, `board.ts` | Online games: the rules the hub runs, the board |
-| `src/game/test-hook.ts` | Extra `window.__game` drivers |
+| File                                        | Hook                                              |
+| ------------------------------------------- | ------------------------------------------------- |
+| `src/game/state.ts`                         | The profile and the game in progress (plain JSON) |
+| `src/game/rules.ts`                         | `newRun`, `step`, `outcome`, `progress` (pure)    |
+| `src/game/controls.ts`                      | Keys, gamepad, touch                              |
+| `src/game/render/`, `screens/`              | Drawing, the title / HUD / result                 |
+| `src/game/daily.ts`, `race.ts`, `online.ts` | Optional modes                                    |
+| `src/game/turns/rules.ts`, `board.ts`       | Online games: the rules the hub runs, the board   |
+| `src/game/test-hook.ts`                     | Extra `window.__game` drivers                     |
 
 ## How to check it
 
@@ -67,7 +67,7 @@ Stop what you start (`npm run clean:procs`).
 
 ## Definition of done
 
-- Every screen and animation meets [docs/kit/look.md](docs/kit/look.md) (Weston's UI style and motion in the game's own colours; the kit's default look is only a scaffold).
+- Every screen and animation meets [docs/kit/look.md](docs/kit/look.md) (one UI style and its motion, in the game's own colours; the kit's default look is only a scaffold).
 - `npm run check` passes (so `kit:check` is clean and `hub-doctor` is happy).
 - The hub suites pass (`npm run test:hub`), including online ones if the game is online.
 - The contact sheet looks right at phone and desktop sizes.

@@ -57,6 +57,7 @@ export const KIT_MODULES: Record<string, KitModuleDef> = {
     version: '1.3',
     paths: [
       'docs/kit/look.md',
+      'docs/kit/look',
       'docs/getting-started.md',
       'docs/repo-setup.md',
       'docs/kit/README.md',
