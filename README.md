@@ -2,9 +2,14 @@
 
 A complete starter for a **diffenderfer.games** game: TypeScript (strict), Vite,
 a PixiJS, three.js or plain-HTML renderer, and a **kit** that already does every
-hub duty (pause on hub UI, saves, Continue, the daily, races, online rooms,
-scores, menus, music in a worker, the test hook). You write the game: its state,
-its rules, its controls and how it looks.
+hub duty (pause on hub UI, saves, Continue and Your games, the daily with days
+in progress, races, online rooms, players' avatars, scores, menus, music in a
+worker, the test hook). You write the game: its state, its rules, its controls
+and how it looks.
+
+It is built against the hub client that diffenderfer.games runs,
+`@diffenderfer-games/hub` **2.0.0-next.7** (pinned exactly). Coming, and not
+in it yet: online games' presence and buzz (next.8) and the world (next.9).
 
 ## Make a game in 10 steps
 
@@ -43,7 +48,7 @@ npm run dev          # play it
 npm run check        # typecheck, unit tests, lint, format, kit files, hub-doctor, build
 npm run test:hub     # the kit's hub suites against a real hub test host
 npm run shots        # screenshots of dist/ (phone + desktop) → shots/sheet.png
-npm run shots:hub    # the hub scenarios (menu, daily, race, invite, lobby)
+npm run shots:hub    # the hub scenarios (menu, daily, race, invite, lobby, avatar, your games)
 npm run local        # this game on a local hub, on a free port
 npm run sim          # play the rules 500 times headless and print the numbers
 ```

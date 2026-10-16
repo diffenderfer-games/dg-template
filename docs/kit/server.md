@@ -38,6 +38,44 @@ On disconnect call `seats.hold(seat, 180_000)`; every tick let the computer play
 - `verifyPlayer(verify, ticket)` returns the verified player or null for a missing, empty or throwing ticket; fetch a fresh ticket at every connect.
 - `BAD_TICKET_CLOSE` (4401) is the close code for a bad ticket; the client shows "sign in again".
 
+## Backups (`game.data`)
+
+The hub backs up everything it keeps (accounts, saves, scores, saved games)
+by itself. Files **your server** writes on the box do not come along unless
+you say where they are, in `game.data`: then the admin backup takes them and a
+restore puts them back ([docs/hub.md Server data and backups](../hub.md#server-data-and-backups-gamedata)).
+
+```json
+"game": {
+  "type": "process",
+  "start": "node server/index.mjs",
+  "data": [
+    { "path": "server/data.db", "kind": "sqlite" },
+    "server/uploads"
+  ]
+}
+```
+
+- Paths are relative to the game's folder and stay inside it (letters,
+  digits, `.`, `_`, `-`, `/`; no `..`), at most 20.
+- Each SQLite database is its own `{ "kind": "sqlite" }` entry, never part of a
+  folder: the backup takes a consistent hot copy while the server runs.
+- Anything else is a file or a folder (`"kind": "files"`, or a bare string),
+  copied as is: write files atomically (a temp file, then rename).
+- A path that doesn't exist yet is fine. A restore happens before your server
+  starts, so it just reads its files at start as usual.
+- An own-server game that writes nothing to disk declares nothing; the admin's
+  Backups tab lists process games without `game.data` as not backed up. Static
+  games (the template's default) need nothing.
+
+> **Known gap in the pinned client (2.0.0-next.7):** the live hub reads
+> `game.data`, but the strict manifest schema `hub-doctor` checks against
+> doesn't list the key yet, so it fails with `game: Unrecognized key: "data"`
+> (and so does `npm run check`). Until a client that knows it is pinned, keep
+> the declaration in `docs/game.md` and add it to `package.json` together with
+> that upgrade; until then the admin backup does not take those files, so tell
+> the hub's admin where they are.
+
 ## `npm run sync-hub-server`
 
 `scripts/kit/sync-hub-server.ts` finds the hub checkout (`DG_HOST`, default the sibling `../diffenderfer-games`; the repo root, else `next/`), runs the hub's own `tools/sync-hub-server.ts` there with `--game <this repo>`, and that writes `server/hub-server.mjs` here. Extra arguments are passed through. It is a SYNCED file: never edit it. The SDK has no dependencies and is also served at `/_hub/hub-server.mjs`. Without the hub env (`GAME_SLUG`, `HUB_URL`, `HUB_APP_KEY`), `createHubServer().enabled` is false and every call degrades without throwing.

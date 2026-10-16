@@ -21,11 +21,14 @@ Map of the kit: [docs/kit/README.md](docs/kit/README.md).
 ## The hard rules
 
 - `base: './'` stays in `vite.config.ts` ([HANDOFF.md](HANDOFF.md) § Path-handling).
+- Keep a 64px square clear in the hub menu button's corner (`game.menuPosition`), and give a top bar's height to `hub.input.setInsets({ top })` so the hub's toasts sit below it: [docs/kit/layout.md](docs/kit/layout.md#the-hub-menu-button).
 - The hub client comes from npm, pinned exactly; `npm run hub-doctor` before pushing. Never vendor it.
 - Never edit the synced docs.
 - Pause when hub UI opens: the kit does it; keep the `pause` input ([docs/multiplayer.md](docs/multiplayer.md) §4).
 - Music and long audio in a Web Worker: [docs/kit/audio.md](docs/kit/audio.md).
 - Online play only through the hub (accounts, friends, invites, chat): [docs/kit/online.md](docs/kit/online.md).
+- Show players' avatars (the hub's) wherever you show their names; never draw your own faces for real players: [docs/kit/avatar.md](docs/kit/avatar.md).
+- An own server that writes files on the box declares them in `game.data` so backups take them (mind the next.7 `hub-doctor` gap there): [docs/kit/server.md](docs/kit/server.md#backups-gamedata).
 - No violent words in player-facing text ("zap", not "shoot").
 - Never say "run" or "turn game" to players.
 - Rules are pure and seeded: no `Math.random`, no `Date` in `src/game/rules.ts` ([docs/kit/rng.md](docs/kit/rng.md)).

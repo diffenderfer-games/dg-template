@@ -64,7 +64,7 @@ To change a kit word, pass `strings` in the game definition (`defineGame` calls 
 
 ### Planned hub APIs
 
-`planned.ts` holds type shims for hub APIs that are not published yet (`hub.saved`, `hub.turns`, `hub.avatar`, world tables). `HubLike` lists them as optional, and the kit checks for them (`hub.saved !== undefined`) before use. Their tests wait on a phase in [testing](testing.md#planned-hub-tests).
+`planned.ts` holds type shims for hub APIs that are not published yet: only the world now (`launch.table`, `hub.mp.quickMatch`, `setRoster`; coming in next.9). `HubLike` lists them as optional, and the kit checks for them (`hub.mp.quickMatch !== undefined`) before use. Their tests wait on a phase in [testing](testing.md#planned-hub-tests).
 
 ## Tests
 
@@ -73,5 +73,5 @@ To change a kit word, pass `strings` in the game definition (`defineGame` calls 
 
 ## Hub API used:
 
-- Types only, via `import type` from `@diffenderfer-games/hub`: `Hub`, `UiStack`, `InputSystem`, `DailySystem`, `HubResume`, `HubRaceApi`, `HubMpApi`, `HubRoomsApi`, `HubSocialApi`, `HubPresenceApi`, `HubNotifyApi`.
-- Window events read: `hub:auth`, `hub:reset`, `hub:daily-started`, `hub:daily-complete`, `hub:daily-queued`, `hub:daily-error`, `hub:race-hud`, `hub:menu-visibility`, `hub:online`, `hub:offline`, `hub:sync`, `hub:offline-failed`, `hub:rt-ready`, `hub:rt-failed`, `hub:overlay-open`, `hub:overlay-close`.
+- Types only, via `import type` from `@diffenderfer-games/hub`: `Hub`, `UiStack`, `InputSystem`, `DailySystem`, `HubResume`, `HubRaceApi`, `HubMpApi`, `HubRoomsApi`, `HubSocialApi`, `HubPresenceApi`, `HubNotifyApi`, `HubSaved`, `HubTurns`, `TurnGame`, `HubAvatar`, `AvatarModule`.
+- Window events read: `hub:auth`, `hub:reset`, `hub:daily-started`, `hub:daily-resumed`, `hub:daily-paused`, `hub:daily-discarded`, `hub:daily-complete`, `hub:daily-queued`, `hub:daily-error`, `hub:race-hud`, `hub:menu-visibility`, `hub:online`, `hub:offline`, `hub:sync`, `hub:offline-failed`, `hub:rt-ready`, `hub:rt-failed`, `hub:overlay-open`, `hub:overlay-close`.

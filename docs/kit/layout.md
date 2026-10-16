@@ -37,6 +37,32 @@ const refit = fitText(titleEl, { min: 12 }); // call refit() after the text chan
 - `keepThemeColor(color)` pins `<meta name="theme-color">` and returns the restore function.
 - `fitText(el, { min, max })` shrinks the font until the text fits the width; returns a refit function.
 
+## The hub menu button
+
+The hub's menu button sits in the corner `game.menuPosition` names (the
+player can move it: arrows, or hold and drag). Keep a **64px square** in that
+corner, measured inside the safe area, free of your own UI: no score, button
+or bar under it. The kit keeps its own UI out of it: screens start below
+`--kit-top`, and the play screen's pause button sits top-left, so keep
+`menuPosition` on the right (the template's `top-right`) or move the pause
+button. `ctx.region()` keeps gameplay below the HUD row and the pause corner,
+not below the menu's square, so leave the square empty in your own HUD and art.
+If the corner is fine but a bar of yours runs past it, push
+the button with `game.menuOffset` instead.
+
+A top bar of your own: give its height to `hub.input.setInsets({ top })`
+(kit/input `setHudInsets(hub, { top: [bar] })` measures it), and update it
+when the bar resizes. The hub then places its toasts (invites, messages,
+"your turn") below the bar instead of over it, and keeps auto-placed touch
+controls off it. A bar drawn on a canvas needs the inset: the hub can't see it.
+
+```ts
+const bar = document.querySelector('.my-top-bar')!;
+const sync = (): void => hub.input.setInsets({ top: Math.ceil(bar.getBoundingClientRect().bottom) });
+sync();
+new ResizeObserver(sync).observe(bar);
+```
+
 ## Rules it enforces
 
 - Leave room for the race HUD and a 390 px phone: [docs/multiplayer.md §14.5](../multiplayer.md#145-testing) (see "Making room for the race HUD").

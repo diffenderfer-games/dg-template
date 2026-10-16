@@ -43,9 +43,11 @@ Static (the built game alone): `title`, `menu` (keyboard focus ring), `howto`,
 `settings`, `play`, `pause`, `gameover`, `toast`, `offline`, `cover`.
 
 Hub (a real hub, signed-in players): `intro`, `hub-menu`, `daily-start`,
-`daily-done`, `continue`, `invite`, `lobby`, `race-hud`, `race-result`.
-Skipped until their hub phase ships, saying so on the sheet: `avatar`,
-`table-launch`, `your-games`.
+`daily-done`, `continue`, `invite`, `lobby`, `race-hud`, `race-result`,
+`avatar` (your bust on the title), `avatar-designer` (Edit avatar opens the
+hub's designer), `your-games` (the title's Continue rows: the saved game and
+yesterday's daily in progress). Skipped until the world ships (next.9),
+saying so on the sheet: `table-launch`.
 
 ## Writing a scenario
 

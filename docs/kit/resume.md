@@ -30,11 +30,12 @@ const run: ResumeSpec<Run> = {
 - If a saved game is found only after a new game started, offers it (`offerLate`, once) instead of losing it. The player sees "Found your saved game".
 - Migrates an old `getSave` slot once (`legacySlot`), then deletes it.
 - Warns in the console when a progress label breaks the wording rules (`wordingProblems`).
-- Never saves in a race or an online match. In a daily it saves to the daily's own slot once the hub has one (`hub.daily.save`); before that it does nothing.
+- Never saves in a race or an online match. In a daily it saves to the day (`hub.daily.save`), and `clear()` starts the day over from its seed. A normal game is never saved while the hub has a day active (the hub would save it to the day).
+- The saved game is one of the title's Continue rows, with the label `progress` gave ([saved.md](saved.md)).
 
 ## Rules it enforces
 
-- One slot per player per game, latest save wins, never for rooms, races or dailies: [docs/hub.md Resume saved games](../hub.md#resume-saved-games-hubresume).
+- One slot per player per game, latest save wins, never for rooms, races or dailies: [docs/hub.md Saved runs](../hub.md#saved-runs-hubresume) (a daily saves to its day: [Days in progress](../hub.md#days-in-progress-saved-games)).
 - What goes in `state`: [docs/hub.md What to put in `state`](../hub.md#what-to-put-in-state).
 - Progress labels in kid words, at most 60 characters: [docs/hub.md Writing good progress labels](../hub.md#writing-good-progress-labels).
 - Version the saved state: [docs/hub.md Versioning saved state](../hub.md#versioning-saved-state).
@@ -63,5 +64,5 @@ const run: ResumeSpec<Run> = {
 ## Hub API used:
 
 - `hub.resume.load({ version })`, `hub.resume.save`, `hub.resume.clear`, `hub.resume.flush`, `hub.resume.requested`
-- `hub.daily.save` (planned, optional)
+- `hub.daily.save`, `hub.daily.active`
 - `hub.getSave(slot)`, `hub.deleteSave(slot)` (legacy slot migration only)

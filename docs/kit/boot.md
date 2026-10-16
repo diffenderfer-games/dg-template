@@ -93,7 +93,7 @@ Every hook gets a `GameContext` (built once in `context.ts`):
 
 - Handlers registered at boot, within the hub's 8 s: [docs/multiplayer.md §6](../multiplayer.md#6-the-launch-contract).
 - Pause on hub UI; online matches and races never pause: [docs/multiplayer.md §4](../multiplayer.md#4-pausing-when-the-hub-opens-every-game).
-- Resume straight in with `?hub_resume=1`: [docs/hub.md Resume](../hub.md#resume-saved-games-hubresume).
+- Resume straight in with `?hub_resume=1`: [docs/hub.md Saved runs](../hub.md#saved-runs-hubresume).
 - Same seed, same game for races and dailies: [docs/multiplayer.md §14.3](../multiplayer.md#143-fairness-same-seed-same-puzzle).
 - Daily wiring: [docs/hub.md Daily challenges](../hub.md#daily-challenges).
 
@@ -117,7 +117,7 @@ Every hook gets a `GameContext` (built once in `context.ts`):
 There is no `tests/kit/boot/`. Boot is covered through the stub game:
 
 - `tests/hub-events/*.test.ts` (FakeHub, one file per hub event group: `daily`, `input`, `online`, `overlay`, `planned`, `progress`, `race`, `resume`).
-- `tests/hub/kit/*.test.ts` (real hub, browser): `pause`, `progress`, `race`, `online`, `planned`, `fake-parity`.
+- `tests/hub/kit/*.test.ts` (real hub, browser): `pause`, `progress`, `race`, `online`, `saved`, `avatar`, `planned` (skipped), `fake-parity`.
 - `tests/game/*.test.ts` for the stub game's own rules.
 
 ## Hub API used:

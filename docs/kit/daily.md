@@ -35,7 +35,8 @@ export const daily: DailyHooks<Run> = {
 
 ## Rules it enforces
 
-- Two calls to wire a daily, and the daily lasts until `complete()` or `cancel()`: [docs/hub.md Wiring a game (two calls)](../hub.md#wiring-a-game-two-calls).
+- Two calls to wire a daily, and the daily lasts until `complete()` or `cancel()`: [docs/hub.md Wiring a game](../hub.md#wiring-a-game-two-calls-plus-one-line-to-restore).
+- A started day is a saved game: leaving pauses it, and it comes back where the player left it: [docs/hub.md Days in progress](../hub.md#days-in-progress-saved-games).
 - The whole daily system: [docs/hub.md Daily challenges](../hub.md#daily-challenges).
 - Daily results never reach the profile or normal boards: [docs/hub.md Daily challenges](../hub.md#daily-challenges) (the isolation guard is `Activity`).
 - Offline completion is queued and replayed: [docs/hub.md Offline and replay](../hub.md#offline-and-replay).
@@ -46,14 +47,14 @@ export const daily: DailyHooks<Run> = {
 | --- | --- |
 | `installDaily(hub, options)` | Registers the daily; returns a `DailyHandle` |
 | `DailyOptions` | `slug`, `clock`, `events`, `onPlay`, `notify`, `onDeepLinkTimeout`, `offline?`, `search?`, `deepLinkMs?` (default 8000) |
-| `DailyStart` | `day`, `seed`, `recorded`, `saved` (planned: the saved state of that day) |
+| `DailyStart` | `day`, `seed`, `recorded`, `saved` (the state saved for that day, a day in progress; null when it starts fresh) |
 | `DailyHandle#current` | The day being played (recorded or not), or null |
 | `DailyHandle#ready()` | The game mounted: play a queued day now |
 | `DailyHandle#complete(meta)` | Record the win once; false when nothing was active, or the day was unrecorded |
-| `DailyHandle#leave()` | End it unrecorded (`cancelDaily`) |
-| `DailyHandle#discard()` | Planned: give the day up (falls back to `leave`) |
+| `DailyHandle#leave()` | Pause it, unrecorded (`cancelDaily`): it stays in progress |
+| `DailyHandle#discard()` | Give the day up (`hub.daily.discard`): its progress is dropped |
 
-Planned (saved-games phase 1): `challenge.saved` restores a day in progress, and `leave()` becomes a pause. Those tests wait on `savedGames01` ([testing](testing.md#planned-hub-tests)).
+Days in progress (live since hub client next.6): the session saves a daily to the day (kit/resume → `hub.daily.save`) every 5 s, on pause and on the way out; `leave()` pauses it; `challenge.saved` brings it back (also from the title's `Daily challenge · Oct 14` row, kit/saved); a lost day is cleared, so it starts over from its seed.
 
 ## Tests
 
@@ -63,6 +64,5 @@ Planned (saved-games phase 1): `challenge.saved` restores a day in progress, and
 
 ## Hub API used:
 
-- `hub.daily.define`, `hub.daily.complete`, `hub.daily.cancel` (through `cancelDaily`), `hub.daily.active` (through `inDaily`)
-- `hub.daily.discard` (planned, optional)
+- `hub.daily.define`, `hub.daily.complete`, `hub.daily.cancel` (through `cancelDaily`), `hub.daily.active` (through `inDaily`), `hub.daily.discard`
 - Window events: `hub:daily-error`, `hub:daily-queued`

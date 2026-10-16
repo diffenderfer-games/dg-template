@@ -22,7 +22,7 @@ everyone, change the template first.
 | Module | Does | Doc |
 |---|---|---|
 | core | JSON types, the activity model, strings, logging, the hub's narrow types | [core.md](core.md) |
-| testing | FakeHub, fake clock/storage, the planned-phase list, the sim | [testing.md](testing.md) |
+| testing | FakeHub, fake clock/storage, the hub-phase list, the sim | [testing.md](testing.md) |
 | rng | The seeded RNG every rule uses | [rng.md](rng.md) |
 | daily-puzzle | A short, solver-checked daily | [daily-puzzle.md](daily-puzzle.md) |
 | save | The profile: versioned, merged, offline-safe | [save.md](save.md) |
@@ -42,20 +42,36 @@ everyone, change the template first.
 | audio | Music in a worker, SFX | [audio.md](audio.md) |
 | haptics | Vibration | [haptics.md](haptics.md) |
 | server | Own-server games | [server.md](server.md) |
-| saved | "Your games" (planned hub phase) | [saved.md](saved.md) |
-| turns | Turn games with server rules (planned) | [turns.md](turns.md) |
-| avatar | Faces (planned) | [avatar.md](avatar.md) |
-| world | World tables (planned) | [world.md](world.md) |
+| saved | "Your games": the title's Continue rows, days in progress | [saved.md](saved.md) |
+| turns | Online games over days: the hub runs the game's rules | [turns.md](turns.md) |
+| avatar | Players' faces, the title bust, the canvas adapters | [avatar.md](avatar.md) |
+| world | World tables and Quick match (coming in next.9; off) | [world.md](world.md) |
 
 Also: [hooks.md](hooks.md) (every hook), [screenshots.md](screenshots.md),
 [whats-new.md](whats-new.md), [CHANGELOG.md](CHANGELOG.md).
 
-## Planned hub phases
+## Hub phases
 
-Some modules use hub APIs that aren't published yet. They check for the API
-at runtime and fall back (or stay off). Their tests are written and **skipped,
-naming the phase** they wait on (`src/kit/testing/phases.ts`). When the hub
-ships a phase, flip it in `HUB_PHASES` and the tests run.
+The kit is written against the pinned hub client (`@diffenderfer-games/hub`
+2.0.0-next.7). Saved games, online games over days and avatars shipped in
+next.6 and are on. The world (tables, Quick match, room files) is **coming in
+next.9**: kit/world checks for its API at runtime and stays off, and its tests
+are written and **skipped, naming the phase** they wait on
+(`src/kit/testing/phases.ts`). When the hub ships a phase, flip it in
+`HUB_PHASES` and the tests run. Also coming, in next.8: the online games'
+`turns-rules` entry, presence, `mayAct` and buzz ([turns.md](turns.md)).
+
+## The hub menu button
+
+The hub draws its menu button in one corner (`game.menuPosition`, default
+`top-left`; the template uses `top-right`), and players can move it. Keep a
+**64px square** in that corner, inside the safe area, clear of your own UI:
+the kit's own UI does (its pause button sits top-left, so keep the menu on the
+right, as the template does). A game with its own top bar tells the hub how tall it is with
+`hub.input.setInsets({ top })` (kit/input `setHudInsets` does it for HUD
+bands), so the hub's toasts sit below the bar instead of over it, and touch
+controls stay off it. See [layout.md](layout.md#the-hub-menu-button) and
+hub.md [Where the menu sits](../hub.md#where-the-menu-sits).
 
 ## Keeping up to date
 

@@ -70,8 +70,12 @@ Each is one file in `src/game/`, wired in `src/game/hooks.ts`:
 | `race.ts` | Races against friends | [kit/race.md](kit/race.md) |
 | `online.ts` | Online play in hub rooms | [kit/online.md](kit/online.md) |
 | `audio.ts`, `music-*.ts` | Sound and music in a worker | [kit/audio.md](kit/audio.md) |
-| `avatar.ts` | Faces in the game | [kit/avatar.md](kit/avatar.md) |
+| `avatar.ts` | Players' faces: the title bust, reactions (canvas faces: `render/avatar-*.ts`) | [kit/avatar.md](kit/avatar.md) |
+| `turns/rules.ts` | Online games over days, run by the hub (declare `game.turns`) | [kit/turns.md](kit/turns.md) |
 | `test-hook.ts` | Extra test drivers | [kit/test-hook.md](kit/test-hook.md) |
+
+Saved games need nothing extra: with `resumable: true` and a daily, the title
+lists the saved game and days in progress ([kit/saved.md](kit/saved.md)).
 
 `npm run todo` lists every `TODO(game)` still open. Every hook:
 [kit/hooks.md](kit/hooks.md).
@@ -80,7 +84,7 @@ Each is one file in `src/game/`, wired in `src/game/hooks.ts`:
 
 ```bash
 npm run check        # typecheck, unit tests, lint, format, kit files, hub-doctor, build
-npm run test:hub     # the kit's hub suites (pause, saves, daily, race, online) on a real hub
+npm run test:hub     # the kit's hub suites (pause, saves, daily, saved games, avatars, race, online) on a real hub
 npm run shots        # phone + desktop screenshots of dist/
 npm run shots:hub    # the hub scenarios
 ```

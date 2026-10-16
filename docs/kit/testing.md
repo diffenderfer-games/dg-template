@@ -26,7 +26,8 @@ fake.auth(null); // hub:auth (log out)
 
 - `FakeHub` records every hub call in `fake.log` (a `CallLog`) and has drivers for hub events: `openOverlay`, `auth`, `reset`, `goOffline`, `goOnline`, `menuVisible`, `runtime`, `blocker`, `today`.
 - Sub-fakes with their own drivers: `fake.daily.start(day)`, `fake.race.start/end/exit/close/hud`, `fake.rooms` and `FakeRoom` (`setInfo`, `addSeat`, `receive`, `seatChange`, `chatFrom`, `kicked`, `endedBy`), `fake.progress.seed(slot, data)` with `failReads` and `readDelay`, `fake.resume.loadDelay`, `fake.input`, `fake.mp`, `fake.social`.
-- Planned APIs (`hub.saved`, `hub.turns`, `hub.avatar`, world) exist only when you build with `planned: { savedGames, turns, avatars, world }`, so the kit sees the same "absent" as the real client.
+- `hub.saved`, `hub.turns`, `hub.avatar` and `hub.userId()` are always there, like the pinned client. The world's planned APIs exist only when you build with `planned: { world: true }`, so the kit sees the same "absent" as the real client.
+- `fake.daily.inProgressDay(day, saved?)` puts a day in progress (returns its id); `fake.saved.add(row)` adds a Your games row no other fake holds; `fake.avatar.change(userId, name)` changes someone's avatar; `fake.turns.open(id)` gives a `FakeTurnGame` with `opponentMoved`, `turnChanged`, `ended`.
 - `fakeClock()` moves only when told: `advance(ms)`, `flushFrames()`, `pending()`, `settle()`. It starts at 2026-10-15T00:00:00Z.
 - `fakeStorage(initial?)` is a Map-backed `Storage` with `dump()`; `throwingStorage()` throws on every call like Safari private mode.
 - Behaviour is copied from the hub docs and client source. Contract and parity tests keep it honest (below).
@@ -48,9 +49,9 @@ fake.auth(null); // hub:auth (log out)
 | `fakeClock(start?)`, `FakeClock` | Hand-driven clock |
 | `fakeStorage`, `throwingStorage` | Storage fakes |
 | `FakeOverlay`, `FakeInput`, `FakeDaily`, `FakeProgress`, `FakeResume`, `FakeRace`, `FakeRooms`, `FakeRoom`, `FakeMp`, `FakeSocial`, `FakePresence`, `FakeNotify`, `FakeMenu` | The parts of the fake |
-| `FakeSaved`, `FakeTurns`, `FakeTurnGame`, `FakeAvatar` | Planned-API fakes |
+| `FakeSaved`, `FakeTurns`, `FakeTurnGame`, `FakeAvatar` | Your games, online games over days, avatars (`savedEntry`, `turnSummary`, `fakeAvatarRef` build their shapes) |
 | `fakePlayer`, `fakeSeat`, `fakeRoomInfo`, `fakeHubError`, `fakeAudioContext` | Builders |
-| `HUB_PHASES`, `HubPhase`, `shipped(...)`, `waitsOn(...)` | The planned-phase list |
+| `HUB_PHASES`, `HubPhase`, `shipped(...)`, `waitsOn(...)` | The hub-phase list |
 | `simulate`, `seedRange`, `formatReport`, `SimSpec`, `SimReport` | The sim (`kit/testing/sim.ts`, imported by path, not from the index) |
 
 ## The test pyramid
@@ -87,7 +88,7 @@ it('opening hub UI pauses the game once', async () => {
 
 ### Planned hub tests
 
-`src/kit/testing/phases.ts` lists hub phases that are not published yet: `savedGames01`, `savedGames3`, `savedGames4`, `avatars0`, `avatars2`, `avatars4`, `worldW2`, `worldW3`, `worldW4`. Each has `shipped: false`. `waitsOn(...phases)` gives a skip reason; `shipped(...phases)` is true when all are out. Write the test now and skip it:
+`src/kit/testing/phases.ts` lists the hub phases kit features wait on: `savedGames01`, `savedGames3`, `savedGames4`, `avatars0`, `avatars2`, `avatars4` (all `shipped: true`: hub client next.6), and `worldW2`, `worldW3`, `worldW4` (`shipped: false`, coming in next.9). `waitsOn(...phases)` gives a skip reason; `shipped(...phases)` is true when all are out. Write the test now and skip it:
 
 ```ts
 import { planned } from './_support/planned.ts';
@@ -120,7 +121,7 @@ e2e('a new game starts', e, async (t) => {
 });
 ```
 
-The kit's suites are `tests/hub/kit/`: `pause`, `progress` (saves, Continue, daily), `race`, `online`, `planned` (all skipped), and `fake-parity` (FakeHub gives the same logs as the real hub).
+The kit's suites are `tests/hub/kit/`: `pause`, `progress` (saves, Continue, daily), `race`, `online`, `saved` (a day in progress from the title, credited to its day), `avatar` (the title bust, the designer, lobby faces), `planned` (all skipped: online games over days, the canvas adapters, the world), and `fake-parity` (FakeHub gives the same logs as the real hub). `api(player)` is that player's REST client (`get`, `post`, `put` under `/_api`); `today(-1)` is yesterday's daily day.
 
 ## Tests
 

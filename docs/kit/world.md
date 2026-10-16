@@ -4,6 +4,10 @@ Source: `src/kit/world/` (KIT: copy byte-identical; change it in the template fi
 
 The game's tables in the hub's world, and Quick match. The world is the hub's. A game mostly declares data.
 
+**Coming in hub client next.9.** Nothing here is in the pinned client
+(2.0.0-next.7): the module stays off, its types are the shims in
+`kit/core/planned.ts`, and its tests are skipped until the world ships.
+
 ## What the game does
 
 - Declares its tables in a `game.world` block (`key`, `title`, optional `mode`, `players`, `maxWaitSec`, `count`, `options`). If it declares none, the hub uses the defaults below.
@@ -20,7 +24,7 @@ worldBlock({ multiplayer: { players: [2, 4] }, race: true });
 
 ## What the hub does
 
-World plan phases W2 to W4:
+World plan phases W2 to W4, coming in next.9:
 
 - W2: `game.world` tables, `launch.table` on host and guest launches, and `hub.mp.quickMatch({ mode })`.
 - W3: the People panel, reactions (an `onReaction` hook), and `hub.mp.setRoster(userIds)` for own-server games.
@@ -39,7 +43,7 @@ World plan phases W2 to W4:
 - `worldW3`: People panel, reactions, `setRoster`.
 - `worldW4`: room files and the converter.
 
-All are `shipped: false` in `src/kit/testing/phases.ts`.
+All are `shipped: false` ("coming in next.9") in `src/kit/testing/phases.ts`.
 
 ## What works today
 
@@ -74,7 +78,7 @@ All are `shipped: false` in `src/kit/testing/phases.ts`.
 Skipped:
 
 - `tests/hub-events/planned.test.ts` row 58 (`worldW2`): a table launch passes its options to `start`.
-- Row 59 (`worldW2` + `savedGames3`): a join launch from a table opens a turn game with no host step.
+- Row 59 (`worldW2` + `savedGames3`, which shipped): a join launch from a table opens an online game with no host step.
 - Row 60 (`worldW3`): a reaction reaches the `onReaction` hook, and not when quiet.
 - Row 61 (`worldW3`): `setRoster` is called once per roster change.
 - Row 63 (`worldW2`): Quick match shows only when the hub has it, and routes like an invite.
