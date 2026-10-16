@@ -30,7 +30,7 @@ online or not, should pause when hub UI opens. See
   await hub.putSave('auto', { level: 7, gold: 120 });
   const { save } = await hub.getSave('auto');
 
-  // A long single-player run the player can resume from the home page (game.resumable: true).
+  // A long single-player run the player can pick up again from Your games (game.resumable: true).
   hub.resume.save({ state: { level: 7 }, progress: { label: 'Level 7 of 30', fraction: 7 / 30 } });
 
   // Submit a score — the board is created on first use.
@@ -265,6 +265,7 @@ promise.
 | Method | Description |
 | --- | --- |
 | `hub.me()` | `{ user, profiles }` — current user or `user: null`. |
+| `hub.userId()` | Your user id, or `null` (synchronous; follows the account as it appears or changes, see [Who you are](#who-you-are)). |
 | `hub.signup(username, password)` | Create an account and sign in. |
 | `hub.login(username, password)` | Sign in. |
 | `hub.logout()` | Sign out. |
@@ -456,6 +457,7 @@ client's route table carries them as `offline: 'replay'`.
 | `grant`, `exchange`, `buy`, `sell` | `hub.grant`, `hub.exchange` | `grantInventoryItems`, `exchangeInventoryItems` | never: every grant counts |
 | `setFavorite` | `hub.favorite` | `setGameFavorite` | last star or unstar of a game wins |
 | `hub.resume.save`, `hub.resume.clear` | `hub.resume` | `saveResumeSlot`, `clearResumeSlot` | one slot per game: the newest save or clear replaces the waiting one |
+| `hub.daily.save`, `hub.daily.discard` | `hub.saved` | `saveSavedGameState`, `discardSavedGame` (+ `startDailyChallenge` for a day started offline) | one per (game, day): the newest save or discard replaces the waiting one |
 
 - **Saves:** a `putSave` replayed from the queue carries the slot's
   `updatedAt` on the hub as this device last saw it (`base`, `null` when it
@@ -769,7 +771,11 @@ sync(); new ResizeObserver(sync).observe(hud); addEventListener('resize', sync);
 ```
 
 `setInsets` and `offset` only move auto-placed controls; `pos` and the player's
-dragged spots ignore them. `setInsets` is newer than some hub builds, so a game
+dragged spots ignore them. A `top` inset also keeps the **hub's toasts** (invites,
+messages, "Want a ping when it's your turn?") below your top bar: they sit just
+under it instead of over it. Without one the hub looks for the bar itself (a
+fixed, absolute or sticky element along the top edge, under the toasts); a bar
+drawn on a canvas needs the inset. `setInsets` is newer than some hub builds, so a game
 loading `/_hub/hub.js` can guard it: `hub.input.setInsets?.({ top })`.
 
 ### Navigable menus (the easy way)
@@ -948,14 +954,15 @@ next one starts ("New daily in 3h"), and an open menu redraws itself at the
 rollover. Games should do the same: use the `day` the hub hands to `play`, or
 `today` from `hub.daily.status()`, never the local date.
 
-### Wiring a game (two calls)
+### Wiring a game (two calls, plus one line to restore)
 
 ```js
 // 1) Register how a day is played. `seed` is the server's deterministic seed
 //    for (game, day) — derive difficulty/level/etc from it. Difficulty should
 //    be random (drawn from the seed) so each day feels fresh.
 hub.daily.define({
-  play(challenge) {        // { day, seed, token }
+  play(challenge) {        // { day, seed, token, instanceId, saved, savedVersion, resumed }
+    if (challenge.saved) return startFrom(challenge.saved);   // a day in progress: back where the player left it
     const rng = mulberry32(challenge.seed);
     const difficulty = DIFFS[Math.floor(rng() * DIFFS.length)];
     startLevel(deriveLevel(rng), difficulty);   // your game's "start this level"
@@ -969,7 +976,8 @@ if (hub.daily.active) hub.daily.complete({ score, difficulty, timeMs });
 That's it. The menu starts a day (`hub.daily.startAndPlay(day)` → your `play`),
 and a deep link `/<slug>/?daily=YYYY-MM-DD` (from the home hub) auto-starts that
 day on load. `complete(meta)` stores the metadata and bumps your completion
-count. A **failed/abandoned** attempt records nothing — the player can retry.
+count. A **failed or abandoned** attempt records nothing: the day stays in
+progress, and the player can pick it up again.
 
 **Seed-based vs level-based.** Procedural games derive everything from the seed
 (`mulberry32(seed)` → difficulty + layout). Level-based games (a fixed set of
@@ -981,27 +989,65 @@ is the same challenge for everyone, because the seed is server-issued.
 > day counts once. Daily runs are kept separate from a game's normal
 > progress/boards.
 
+### Days in progress (saved games)
+
+A started day is a **saved game** of its own (see [Saved games](#saved-games)):
+
+- **It is never lost or duplicated.** Starting a day that is in progress (the
+  calendar, a `?daily=` link, "Your games") picks it up again, whatever its
+  age: the 30-day window only limits *starting* a new day. Any number of days
+  can be in progress at once.
+- **Winning it any time later gives that day's credit**: the token names the
+  day's saved game, and finishing it records that day (a finish on a later
+  UTC day is kept with a hidden `backfilled` flag; the credit is the same).
+- **`challenge.saved`** is what was last saved for the day (`null` when it
+  starts fresh). Games that already use `hub.resume` need no new saving code:
+  **`hub.resume.save` during a daily saves to the day**, not to the game's run
+  (and `hub.resume.clear()` during a daily starts the day over from its
+  seed). A game whose daily state differs from its run calls
+  `hub.daily.save({ state, progress })` itself. A game that saves nothing still
+  gets the day in "Your games" (its label is "Started"); resuming it replays
+  the day from its seed.
+- **`cancel()` pauses**: the day stays in progress (and its last save is sent).
+  **`discard()`** gives the day up; it can then be started fresh while it is in
+  the window. The hub's own lists ask the player before discarding.
+- **Switching days doesn't pause for you.** `hub.daily.resume(id)` or
+  `startAndPlay(day)` for another day replaces the active day without saving
+  it: save the current day first (`hub.resume.save` or `hub.daily.save`) so
+  its progress is kept.
+- The calendar marks days in progress with ◐, also on days older than the
+  window ("Still in progress: Oct 2"), and so does the game sheet's Daily tab.
+- Up to 60 days per game can be in progress (409 `too_many_dailies` past it).
+- Offline, a day can be started (it gets a device-only id), saved and won; it
+  lands on the hub as the one saved game for that day when the connection is
+  back.
+
 ### `hub.daily` API
 
 | call | what |
 | --- | --- |
-| `hub.daily.define({ play })` | Register the day-runner (once, at load). |
-| `hub.daily.active` | The in-progress `{ day, seed, token }`, or null. |
-| `hub.daily.complete(meta?)` | Record the active day with optional metadata. Ends the daily run at once (`active` is `null` straight away, whatever the hub answers). |
-| `hub.daily.cancel()` | The player left the daily unfinished (quit, picked another level, started a normal game): end the run without recording it. **Call it** whenever play leaves a daily without `complete`. |
-| `hub.daily.startAndPlay(day)` | Start a specific day (the menu calls this). |
-| `hub.daily.status()` | This game's 30-day window + your completion state. |
-| `hub.daily.all()` | Every daily game + the global standings (home hub). |
+| `hub.daily.define({ play })` | Register the day-runner (once, at load). `play(challenge)` gets `{ day, seed, token, instanceId, saved, savedVersion, resumed, alreadyCompleted }`. |
+| `hub.daily.active` | The challenge being played, or null. |
+| `hub.daily.complete(meta?)` | Record the active day with optional metadata and finish its saved game. Ends the daily run at once (`active` is `null` straight away, whatever the hub answers). |
+| `hub.daily.save({ state, progress, title?, version? })` | Save the active day (debounced like `hub.resume.save`; works offline). `false` with no daily active, or for a replay of a completed day. |
+| `hub.daily.cancel()` | Pause: the player left the daily unfinished (quit, picked another level, started a normal game). Nothing is recorded; the day stays in progress. **Call it** whenever play leaves a daily without `complete`. |
+| `hub.daily.discard()` | Give the active day up (its progress is lost; the day can be started again while in the window). |
+| `hub.daily.resume(instanceId)` | Pick a day in progress up by its saved game's id (from `hub.saved`), with `challenge.saved`. A no-op while that day is being played. |
+| `hub.daily.inProgress()` | This game's days in progress (saved games of kind `daily`). |
+| `hub.daily.startAndPlay(day)` | Start (or pick up) a specific day (the menu calls this). |
+| `hub.daily.status()` | This game's 30-day window, your completions and your days in progress (`inProgress`). |
+| `hub.daily.all()` | Every daily game (with `completions` and `inProgress`) + the global standings (home hub). |
 
-Events: `hub:daily-started`, `hub:daily-complete`, `hub:daily-error`.
+Events: `hub:daily-started`, `hub:daily-resumed`, `hub:daily-complete`,
+`hub:daily-paused`, `hub:daily-discarded`, `hub:daily-queued`, `hub:daily-error`.
 
-A daily run lasts from `play` until `complete()` or `cancel()` (or the page
-unloads). The hub can't tell on its own that your game went back to normal
-play, so while `hub.daily.active` is set, other features treat the page as in
-a daily: `hub.resume.save` saves nothing (`blockedBy: 'daily'`, with one
-console warning). If the player can leave a daily any other way than winning
-it, call `hub.daily.cancel()` on that path (a level select, "Free play", a
-new game, quitting to the title).
+A daily run lasts from `play` until `complete()`, `cancel()` or `discard()`
+(or the page unloads, which is a pause). The hub can't tell on its own that
+your game went back to normal play, so while `hub.daily.active` is set, other
+features treat the page as in a daily: `hub.resume.save` saves to the day. If
+the player can leave a daily any other way than winning it, call
+`hub.daily.cancel()` on that path (a level select, "Free play", a new game,
+quitting to the title).
 
 ---
 
@@ -1049,34 +1095,99 @@ through to local rather than to the SDK's own localStorage:
 
 ---
 
-## Resume saved games (`hub.resume`)
+## Saved games
+
+Everything a player has in progress, in one place: the home page's **Your
+games** card (next to *Friends & chat* and *Play online*), its window, the
+**Your games** section of the hub menu inside every game, and the **Your
+games** tab of each game's card sheet. There are three kinds, and **players
+never see their internal names** ("run", "turn game", "instance"):
+
+| Kind | What players see | How a game makes one |
+|---|---|---|
+| `run` | "Your saved game" | `hub.resume.save(...)` during a long single-player run ([Saved runs](#saved-runs-hubresume)) |
+| `daily` | "Daily challenge · Yesterday" | starting a daily challenge ([Days in progress](#days-in-progress-saved-games)) |
+| `turns` | "Online with Sam · your turn" | an online game played over days (`hub.turns`, docs/multiplayer.md §16) |
+
+**Nothing expires.** A saved game leaves the lists only when it is finished,
+discarded, or (online) left. The card's line says what is waiting ("Your turn
+in 2 · 3 daily challenges · Solitaire"), its pill counts the online games
+waiting on the player's move, and the window groups them as players think of
+them: **Your turn**, **Daily challenges**, **Saved games**, **Online games**.
+Each row has the game's main button (Resume, Play or Open) and, behind "⋯",
+Discard (daily and saved games), or Mute, Nudge and Leave (online games),
+asking first where it can't be undone.
+
+Saved games are private: a daily or a saved run is its owner's alone; an
+online game is visible to its seated players only (and admins, logged).
+
+### `hub.saved`: a game's own "Continue" list
+
+A game can list its own games in progress (in its own style, on its title
+screen) and open the one the player picked, wherever they picked it:
+
+```ts
+const opened = hub.saved.opened;                     // the Your games window, the menu, an invite: synchronous
+if (opened) await openInstance(opened.id, opened.kind);
+else showTitle(await hub.saved.list());              // "Continue: Level 12 · Yesterday's daily · Online with Sam (your turn)"
+hub.saved.onOpen((game) => openInstance(game.id, game.kind));   // picked from the hub menu while the game runs: no reload
+hub.saved.on('change', (games) => refreshContinueList(games));
+
+async function openInstance(id, kind) {
+  if (kind === 'run') return startFrom(await hub.resume.load({ version: V }));
+  if (kind === 'daily') return hub.daily.resume(id);        // → define().play(challenge), with challenge.saved
+  if (kind === 'turns') return showOnlineGame(await hub.turns.open(id));
+}
+```
+
+A game that only uses `hub.resume` or `hub.daily` needs none of this: the
+lists open a saved run with `?hub_resume=1` and a daily with `?daily=<day>`,
+which those already handle.
+
+| Call | What it does |
+| --- | --- |
+| `hub.saved.list({ kinds? })` | This game's games in progress: online games waiting on the player first (oldest turn first), then the newest. Works offline (the device's copies). |
+| `hub.saved.listAll()` | Every game's (the home page and the menu). Online, plus this device's copies. |
+| `hub.saved.opened` | `{ id, kind }` of the game this page was opened for (`?hub_open=<id>&hub_kind=<kind>`, taken out of the address bar), or `null`. Synchronous. |
+| `hub.saved.onOpen(handler, { kinds? })` | Switch to a game of this game picked from the hub menu without a reload (without a handler the page reloads with `?hub_open`). With `kinds` (e.g. `['turns']`) the handler takes only those; the others still reload the page. Returns a function that removes it. |
+| `hub.saved.open(id)` | Open one: this game's through `onOpen` (or a reload), another game's by going there. |
+| `hub.saved.discard(id)` | Discard a daily or a saved run (the caller asks first). Online games are left with `game.leave()`. |
+| `hub.saved.counts()` | `{ yourTurn, dailies, runs, waiting, total }` across every game. |
+| `hub.saved.on('change', cb)` | This game's list changed (a save here or on another device, a finish, a discard, a move). |
+
+Each entry is a `SavedGame` (contract `api/saved.ts`): `id`, `game`,
+`gameTitle`, `path`, `kind`, `status`, `title`, `progress: { label, fraction }`,
+`version`, `createdAt`, `updatedAt`, `daily: { day, seed }` (daily) and
+`turns` (online: seats, whose turn, `isMyTurn`, `unseen`, `deadline`), plus
+`isLocalOnly` for one saved only on this device so far.
+
+The menu's **Reset game** discards the game's saved run and offers to discard
+its daily challenges in progress too; online games are never touched by it.
+
+### Saved runs (`hub.resume`)
 
 A long single-player run (a solitaire deal, level 12 of a climb, a skirmish
 against the computer) can be picked up again later, on any device. The game
-auto-saves the run with `hub.resume`; the home page then shows a **Resume**
-card next to *Friends & chat* and *Play online* ("Resume Solitaire and Clue",
-or "Resume 5 games" past three). It opens a window with one row per saved run:
-the game's picture and name, your progress label and bar, "played 2 hours
-ago", a **Resume** button and a discard ×. The hub menu has a matching
-"Resume a saved game" link. Resume opens `/<slug>/?hub_resume=1`, and the game
-restores at once, without asking.
+auto-saves the run with `hub.resume`; it shows in **Your games** with the
+game's picture and name, your progress label and bar and "played 2 hours
+ago". Resume opens `/<slug>/?hub_resume=1&hub_open=<id>&hub_kind=run`, and the
+game restores at once, without asking.
 
-**One slot per player per game; the latest save wins.** It is private: only
-the player who saved it ever sees it (guests too; a guest's runs move into
-their account when they log in, unless the account already has a run in
-that game: the account's run is kept). Runs nobody
-touches for **60 days** are deleted, and the menu's **Reset game** deletes
-that game's run too.
+**One saved run per player per game; the latest save wins.** It is private:
+only the player who saved it ever sees it (guests too; a guest's runs move
+into their account when they log in, unless the account already has a run in
+that game: the account's run is kept). It never expires: it is kept until the
+game clears it, the player discards it, or the menu's **Reset game**.
 
-**Never for online play.** Multiplayer rooms, races and daily challenges are
-not resumable runs: `hub.resume.save` returns `false` and saves nothing while
-the page is in a hub room, a race or a daily (`hub.resume.blockedBy` says
-which). A daily lasts until your game calls `hub.daily.complete()` or
-`hub.daily.cancel()`: call `cancel()` when the player leaves a daily
-unfinished, or resume stays off for the rest of the page (see
-[Daily challenges](#hubdaily-api)). Own-server online games must simply not call it during online play.
+**Never for online play.** Multiplayer rooms, races and online games are not
+saved runs: `hub.resume.save` returns `false` and saves nothing while the page
+is in a hub room, a race or has an online game open (`hub.resume.blockedBy`
+says which). **During a daily challenge it saves to the day instead** (see
+[Days in progress](#days-in-progress-saved-games)), and `hub.resume.clear()`
+during a daily starts the day over. Own-server online games must simply not
+call it during online play.
 
-### Adopting it (five steps)
+#### Adopting it (five steps)
 
 1. **Declare it** in `package.json`: `"game": { ..., "resumable": true }`. The
    hub refuses saves (404) from games that don't, and only lists theirs.
@@ -1095,9 +1206,9 @@ unfinished, or resume stays off for the rest of the page (see
    });
    ```
 3. **Clear it when the run ends**: won, lost or quit (`await hub.resume.clear()`).
-   A finished run must not stay on the Resume card.
+   A finished run must not stay in Your games.
 4. **Restore at load.** `hub.resume.requested` is a synchronous `true` when the
-   page was opened from the Resume card (the client takes `hub_resume` out of
+   page was opened from Your games (the client takes `hub_resume` out of
    the address bar first, so a reload or shared link doesn't resume again).
    Read it before you route or draw a title screen:
 
@@ -1119,7 +1230,7 @@ unfinished, or resume stays off for the rest of the page (see
 Static games without a build step get the same API on `window.HubSDK.hub.resume`
 or `import { hub } from '/_hub/hub.js'`.
 
-### What to put in `state`
+#### What to put in `state`
 
 - Everything needed to rebuild the run exactly, and nothing you can derive:
   a seed and the moves made, or the board itself; the score, the timer, the
@@ -1138,9 +1249,9 @@ or `import { hub } from '/_hub/hub.js'`.
 - Nothing secret and nothing other players typed: it is only ever shown back
   to the same player, but it is plain JSON on the device and the hub.
 
-### Writing good progress labels
+#### Writing good progress labels
 
-The label is the line the player reads on the Resume card, often a kid
+The label is the line the player reads in Your games, often a kid
 choosing between games. Up to 60 characters (longer is clipped).
 
 | Good | Not good |
@@ -1153,7 +1264,7 @@ choosing between games. Up to 60 characters (longer is clipped).
 Give `fraction` (0 to 1) when you can say how far along the run is; the window
 draws a bar. Leave it out for open-ended games.
 
-### Versioning saved state
+#### Versioning saved state
 
 Pass `version` (a whole number) to `save`, and the same number to
 `load({ version })` / `get({ version })`. When your state's shape changes in a
@@ -1163,7 +1274,7 @@ A run saved by a *newer* version (another tab already updated) reads as `null`
 but is kept. Small additive changes (a new optional field) don't need a bump:
 default the missing field when you restore.
 
-### Moving from your own resume slot
+#### Moving from your own resume slot
 
 Many games already keep a run in a save slot (`putSave('resume' | 'solo' |
 'game' | 'main')`). Migrate once, on load:
@@ -1185,24 +1296,24 @@ if (saved === null) {
 Keep using your own slots for things that aren't a run in progress (unlocked
 levels, settings, a career).
 
-### API
+#### `hub.resume` API
 
 | Call | What it does |
 | --- | --- |
-| `hub.resume.save({ state, progress: { label, fraction? }, title?, version? })` | Save the run (debounced; works offline). Returns `false` in a race, daily or room. Throws a `HubError` 400 without a label, 413 over 512 KB. |
+| `hub.resume.save({ state, progress: { label, fraction? }, title?, version? })` | Save the run (debounced; works offline). Returns `false` in a race, a room or with an online game open; during a daily it saves to the day. Throws a `HubError` 400 without a label, 413 over 512 KB. |
 | `hub.resume.flush()` | Send a waiting save now (the page does this itself when hidden or closed). |
 | `hub.resume.clear()` | The run ended: delete it (works offline). |
 | `hub.resume.load({ version? })` | The saved state, or `null`. The newer of the device's copy and the hub's wins. |
 | `hub.resume.get({ version? })` | The same with `{ state, progress, title, version, savedAt }`. |
-| `hub.resume.requested` | `true` when opened from the Resume card. Synchronous. |
-| `hub.resume.blockedBy` | `'race'`, `'daily'`, `'room'` or `null`. |
-| `hub.resume.list()` / `discard(slug)` | The player's runs across games / discard one (the home page's window; online only). |
+| `hub.resume.requested` | `true` when opened from Your games (`?hub_resume=1`). Synchronous. |
+| `hub.resume.blockedBy` | `'race'`, `'room'`, `'turns'` (an online game is open) or `null` (`'daily'` is no longer returned: a save during a daily goes to the day). |
+| `hub.resume.list()` / `discard(slug)` | The player's saved runs across games / discard one (online only). `hub.saved.listAll()` lists every kind. |
 
 Offline, the save is the `hub.resume` outbox kind (endpoints `saveResumeSlot`
 and `clearResumeSlot`); a new save or clear replaces the waiting one. The
 outbox entry stays small: it sends the run kept on the device
 (`hub:<slug>:resume` in `localStorage`), which is also what `load` and the
-home page's card read while the hub can't be reached. A save that reaches the
+home page's Your games read while the hub can't be reached. A save that reaches the
 hub after a newer one from another device is not applied, and a late clear
 never deletes a run saved after it.
 
@@ -1444,6 +1555,46 @@ The API (most games never call it): `GET /_api/changes[?game=slug]` and
 
 ---
 
+## Server data and backups (`game.data`)
+
+Everything the hub keeps (accounts, saves, scores, saved games…) is in its own
+database and is backed up for you. A game that runs **its own server** and
+writes files on the box (a SQLite database, JSON files, uploaded images) must
+say where, so the admin backup takes them too and a restore puts them back:
+
+```json
+"game": {
+  "type": "process",
+  "start": "node server/server.js",
+  "data": [
+    { "path": "server/data.db", "kind": "sqlite" },
+    "server/uploads"
+  ]
+}
+```
+
+- `path` is relative to the game's folder and may not leave it (letters,
+  digits, `.`, `_`, `-` and `/`; no `..`). At most 20 paths.
+- `kind: "sqlite"` is one SQLite database file. The backup takes a consistent
+  hot copy while your server keeps running (SQLite's online backup), and a
+  restore drops the file's stale `-wal`/`-shm` sidecars. Declare every
+  database this way, never as part of a folder.
+- `kind: "files"` (or a bare string) is a file or a whole folder, copied as
+  is. Write files atomically (write a temp file, then rename) so a copy never
+  catches one half-written. A restore replaces the whole folder.
+- Paths that don't exist yet are fine (nothing is copied); a restore then
+  leaves the live copy alone.
+- The admin's Backups tab lists process games that declare nothing as **not
+  backed up**. Static games have no server and need nothing.
+- A restore replaces your files only while your server is stopped: dg-host
+  applies it at its start, before any game server runs. Your server just
+  reads its files at start as usual.
+
+How backups and restores work, and the disaster-recovery runbook, are in
+`DEPLOY.md` §11a.
+
+---
+
 ## Social & multiplayer
 
 The hub runs one kid-safe social layer for the whole site. Games get it with no
@@ -1489,7 +1640,10 @@ repo.
 - **Opting a game in** is the `game.multiplayer` block in `package.json`
   (`lobby`, `players`, `transport: "hub-rooms" | "own-server"`, `invites`, `join`,
   `spectate`, `modes`, `quickChat`, `chatAllow`). The catalog shows an **Online**
-  tag, and `GET /games` exposes a summary for the invite picker.
+  tag, and `GET /games` exposes a summary for the invite picker. A game played
+  online over days (`game.turns`, `docs/multiplayer.md` §16) gets a `turns`
+  summary (`players`, `modes`) instead, and the picker lists it too: picking it
+  starts an online game with the friend invited.
 - **Own-server games** keep a copy of the zero-dependency game-server SDK in
   `server/hub-server.mjs` (not on npm; served at `/_hub/hub-server.mjs`, built from
   `packages/server/server-sdk`; `npm run sync-hub-server` in the game copies
@@ -1501,6 +1655,299 @@ repo.
   safe, the parent chat lock, the contact link), written to match the live config.
   **`/_admin`** is the admin console (suggestions, reports, moderation log, filter lab,
   users and suspension, live switches). It's a 404 for anyone who isn't an admin.
+
+## Avatars
+
+Every player has an avatar: a cartoon head and a small body "blob" built from
+pieces the hub drew. Players make theirs in the hub's **"Make your avatar"**
+designer (guide: [`avatar-designer.md`](avatar-designer.md)). Players who never
+make one get a stable default generated from their user id, so everyone has a
+face. A look is presets and colours only (no text, uploads or drawing), so it is
+kid-safe by construction. The design is `docs/plans/avatars.md` (§14 has the
+decisions, including the art style).
+
+**The rule for games:** show players' avatars wherever you show their names, and
+never draw your own faces for real players. Computer players keep their own
+characters (or use `hub.avatar.bot(seed)`).
+
+### Where the avatar comes from
+
+A look travels as a short **code** (`AV1…`, about 20 characters). It is already
+on every payload that carries a player, so most games never fetch anything:
+
+| Payload | Field |
+|---|---|
+| `hub.me()` user, the `hello` snapshot, `SocialMe` | `look` |
+| `PlayerLite` (friends, player cards, recent players, tournament entrants and brackets, Play online hosts) | `look` |
+| `RoomSeat` (refreshed live when a seated player changes their avatar) | `look` |
+| race racers, result players and race history (`''` for a hidden racer) | `look` |
+| leaderboard entries | `look` |
+| own-server tickets (`@dg/hub-server`'s verified `user`) | `look` |
+
+The older `avatar` token (`a0`…`a23`) is still sent for clients pinned to an old
+version; new code should use `look`. `''` means the player is hidden from you:
+draw the silhouette (every renderer does this for you).
+
+### `hub.avatar`: looks without the renderer
+
+The root client has a small `hub.avatar` namespace with no art and no renderer:
+
+```ts
+import { hub } from '@diffenderfer-games/hub';
+
+const me = await hub.avatar.mine();          // { code, look, isDefault, hidden } (works offline from the device cache)
+const meNow = hub.avatar.mineSync();         // the cached one, or your default; null while nobody is signed in
+const myId = hub.userId();                   // your user id, or null (see Who you are)
+const them = await hub.avatar.of(userId);    // batched with other calls in the same tick, cached
+const seats = await hub.avatar.many(ids);    // Map<userId, AvatarRef>
+const fromSeat = hub.avatar.from(seat);      // anything with `look` (and `userId`/`id`): no request
+const bot = hub.avatar.bot('uno:bot:2');     // a seeded default for computer players and local seats
+hub.avatar.on('change', ({ userId, ref }) => { /* someone you can see changed theirs */ });
+await hub.avatar.openDesigner({ reason: 'game' }); // "Make your avatar" over the game → { saved }
+const kit = await hub.avatar.load();         // the renderer below, with its art ready
+```
+
+`hub.avatar.save(look)` saves your own look (queued offline, latest wins); the
+designer is the usual way.
+
+**Wait for `change`; don't poll.** `change` fires whenever a look you can see
+differs from the one the page last had: someone changed theirs, your account
+appeared (a first-time guest's account is made by the menu just after the game
+starts), or the live connection came back and a change sent while it was down
+is fetched again. Before your account exists `mine()` resolves at once with a
+default look (and `mineSync()` is `null`); your own look then arrives as a
+`change` with your `userId`.
+
+#### Who you are
+
+`hub.userId()` is your user id (`null` while nobody is signed in). It is
+synchronous and needs no `hub.me()`: it follows the menu's new-guest account,
+sign-in and sign-out, and the live connection. Use it to find your seat and to
+pick your own changes out of `change`:
+
+```ts
+const isMine = (seat: { userId: number | null }) => seat.userId !== null && seat.userId === hub.userId();
+hub.avatar.on('change', ({ userId, ref }) => {
+  if (userId === hub.userId()) myBadge.setLook(ref.code);   // yours, including the first one
+  else seatFor(userId)?.setLook(ref.code);
+});
+```
+
+### `@diffenderfer-games/hub/avatar`: the renderer
+
+```ts
+import { ready, render, animator, lookToward, layout } from '@diffenderfer-games/hub/avatar';
+await ready(); // loads the art chunk once; renders are synchronous after this
+```
+
+Every render takes a **look-like**: a code, an `AvatarLook`, an `AvatarRef`, or
+`null` (the silhouette). Options (all optional):
+
+| Option | Meaning |
+|---|---|
+| `size` | px of the longer edge (default 48) |
+| `frame` | `'head'` (a badge, the default), `'bust'` or `'full'` (the whole character, feet at the bottom) |
+| `background` | `'badge'` (the site's rounded panel and ring; default for `head`), `'none'`, or a `#rrggbb` |
+| `facing` | `'S'` (default), `'SE'`, `'E'`, `'NE'`, `'N'`, `'NW'`, `'W'`, `'SW'` (or `view: 'front' \| 'back' \| 'left' \| 'right'`) |
+| `pose` | `{ expression, look: {x, y}, blink, talk, body, phase, status }` (an animator's `pose(t)` fills all of it) |
+| `title` | the accessible name ("Sam's avatar"); without it the avatar is decorative (`aria-hidden`) |
+| `rim` | a light edge for dark scenes (the world) |
+
+#### DOM
+
+```ts
+// Markup (safe to insert: catalog paths and derived colours only)
+chip.innerHTML = render.svg(seat.look, { size: 40 });
+
+// A live element that re-renders only when the pose changes
+const face = render.element(seat.look, { size: 40, frame: 'bust' });
+chip.append(face.el);
+face.update(anim.pose(performance.now()));
+
+// The custom element (call defineAvatarElement() once; /_hub/avatar.js does it for you)
+import { defineAvatarElement } from '@diffenderfer-games/hub/avatar';
+defineAvatarElement();
+```
+
+```html
+<dg-avatar look="AV1…" size="48" expression="happy" look-x="-1" animate title="Sam's avatar"></dg-avatar>
+```
+
+`<dg-avatar>` takes `look`, `size`, `frame`, `facing`, `expression`, `look-x`,
+`look-y`, `body`, `status`, `background`, `title` and `animate` (blinks and
+idles at up to 30 fps while connected). Its `animator` property gives full
+control. **In React**, write `class`, not `className`, on `<dg-avatar>`, and
+pass every option as an attribute string: `<dg-avatar class="seat-face"
+look={seat.look} size="40" animate="" />`.
+
+#### Canvas 2D
+
+```ts
+render.canvas(ctx, seat.look, { x: 10, y: 10, size: 64, pose: anim.pose(now) });       // the frame box's top-left at (x, y)
+render.canvasAt(ctx, seat.look, { x: px, y: py, scale: 0.4, facing: 'SE', pose });      // feet at (x, y), px per rig unit
+const bitmap = await render.bitmap(seat.look, { size: 64 });                            // ImageBitmap (cached)
+const url = await render.dataUrl(seat.look, { size: 64 }, 'png');                       // or 'svg'
+```
+
+#### PixiJS (`/avatar/pixi`; pass your PIXI, the hub has no pixi dependency)
+
+```ts
+import * as PIXI from 'pixi.js';
+import { animator } from '@diffenderfer-games/hub/avatar';
+import { pixiAvatar, avatarTexture, createCrowd } from '@diffenderfer-games/hub/avatar/pixi';
+
+const anim = animator(seat.look, { seed: seat.userId });
+const face = pixiAvatar(PIXI, seat.look, { size: 64, animator: anim });
+stage.addChild(face.view);                       // a Sprite, anchored at its centre
+app.ticker.add(() => face.update(performance.now()));
+const still = avatarTexture(PIXI, seat.look, { size: 64 });   // a still Texture (works on Pixi 7 too)
+```
+
+The adapters take pixi's real namespace (`import * as PIXI`) or an object of
+the named imports, and give back **pixi's own types**: `face.view` is a
+`Sprite` and `avatarTexture` a `Texture`, so they go into a `Container` with no
+cast. Nothing to declare:
+
+```ts
+import { Container, Rectangle, Sprite, Texture } from 'pixi.js';
+import { pixiAvatar, type PixiAvatar } from '@diffenderfer-games/hub/avatar/pixi';
+
+const PIXI_FOR_AVATARS = { Container, Rectangle, Sprite, Texture };  // or pass it inline
+const seatFace: PixiAvatar<Sprite> = pixiAvatar(PIXI_FOR_AVATARS, seat.look, { size: 48 });
+seatLayer.addChild(seatFace.view);              // a pixi Sprite
+```
+
+For crowds (the world, big lobbies), `createCrowd(PIXI, { atlas: createAtlas(), container })`
+bakes looks into shared atlas pages (time-sliced), y-sorts one container, and
+draws up to six `live: true` avatars as full vector faces:
+`crowd.set(id, { look, x, y, facing, body, status, name, friend, you, activity, emote })`,
+`crowd.update(t)` once a frame, `crowd.remove(id)`.
+
+#### three.js (`/avatar/three`; pass your THREE)
+
+```ts
+import * as THREE from 'three';
+import { avatarCanvasTexture, avatarSprite } from '@diffenderfer-games/hub/avatar/three';
+
+const { sprite, avatar } = avatarSprite(THREE, me.code, { frame: 'head', size: 128, height: 0.4 });
+helmet.add(sprite);
+avatar.update(anim.pose(now));                   // redraws at most 30 times a second, only on change
+const tex = avatarCanvasTexture(THREE, me.code, { size: 128 }); // a CanvasTexture for your own material
+```
+
+The same goes for three.js: pass `THREE` or the named imports
+(`{ CanvasTexture, SpriteMaterial, Sprite, SRGBColorSpace }`; `avatarCanvasTexture`
+needs only `CanvasTexture`) and you get three's own `Sprite` and
+`CanvasTexture` back, ready for `scene.add(sprite)` or
+`new MeshBasicMaterial({ map: tex.texture })` with no cast or subclass.
+
+#### No build step
+
+```html
+<script type="module" src="/_hub/avatar.js"></script>
+<script type="module">
+  const { render, animator } = window.HubAvatar;   // also .pixi and .three
+</script>
+```
+
+`hub.avatar.load()` in `/_hub/hub.js` loads this same file at run time. Servers
+and workers use `@diffenderfer-games/hub/avatar/svg` (`ready`, `renderSvg`, no
+DOM), and plain `<img>` tags can use the hub's server-rendered
+`/_hub/avatar/<code>.svg?s=64&f=head&e=happy&lx=-1&ly=0&b=badge` (cached
+forever per code).
+
+### Expressions and gaze
+
+Faces move by parameters, not drawings, so any expression combines with any
+gaze, blink and talking.
+
+- **Expressions (16):** `neutral`, `happy`, `laugh`, `grin`, `sad`, `cry`,
+  `surprised`, `shocked`, `angry`, `grumpy`, `thinking`, `wink`, `smug`,
+  `worried`, `sleepy`, `determined`. Blend two with `mix('happy', 'surprised', 0.4)`,
+  or pass your own `FaceParams`.
+- **Gaze:** `look: { x, y }` in [−1, 1] (x right, y down) moves the pupils and
+  turns the head a little. `lookToward(fromPoint, toPoint)` turns two screen
+  points into a gaze, for card tables where every seat looks at the active player.
+- **The animator** is pure in time: calls append to a schedule and `pose(t)`
+  evaluates it, so it works in any loop, in tests and in replays.
+
+```ts
+const anim = animator(seat.look, { seed: seat.userId });   // blinks every 2–6 s, idles
+anim.express('happy', { holdMs: 1500 });   // then back to the base face
+anim.setBase('thinking');                  // the resting face
+anim.lookAt(lookToward(seatPos(seat), seatPos(active)));
+anim.talkFor(1200);                        // or talk(true/false), talkLevel(0..1) from audio
+anim.react('cheer');                       // nod, shake, bounce, cheer, gasp, flinch, shrug, sleep, wave
+anim.feel('victim');                       // win, lose, bigPlay, victim, waiting, yourTurn, idle
+const pose = anim.pose(performance.now());
+```
+
+**Use `feel()` for game events** so every game reacts the same way: `win`
+(laugh and cheer), `lose` (sad), `bigPlay` (grin and bounce), `victim` (shocked
+and flinch, e.g. hit by a +4), `yourTurn` (determined and a nod), `waiting`
+(thinking). `expressionFromEmote('e:😂')` maps the hub's quick-chat emotes to
+faces. **Reduced motion** (`prefers-reduced-motion`, or `reducedMotion: true`)
+turns off the bob, sway and reaction movement, keeps blinks and expressions
+(with quick cross-fades), and shows a still open mouth for talking.
+
+### Bodies, facings and the world
+
+`pose.body` is `idle`, `walk`, `run`, `sit`, `play`, `wave`, `cheer`, `jump`,
+`dance` or `away`; cycle poses read `pose.phase` (0 to 1).
+`pose.status` adds a runtime prop: `goggles`, `headset`, `cards`, `controller`,
+`trophy`, `crown` or `book` (never stored in the look). `facingFrom(dx, dy, 8)`
+turns movement into a facing. `layout(look, { facing, pose })` returns the rig's
+anchors (`feet`, `head`, `eyeLine`, `mouth`, `hatTop`, `nameplate`, `bubble`,
+`seat`, `prop`, `pod`, …; feet at (0, 0), y down, the head about 100 units
+tall): place name plates and bubbles with these, never with magic numbers.
+`overlays.nameTag({ name, friend, you })` (a friend gets a green dot and a ★),
+`activityBubble({ game })`, `emoteBubble(emote)`, `reactionBubble('!' | '?' | '…' | 'zzz' | '♥')`
+and `selectionRing()` draw the world's overlays the same way everywhere
+(`overlaySvg`, `paintOverlay`).
+
+### New parts and older game builds
+
+The catalog grows by appending (`CATALOG_REVISION`; revision 3 added eight
+glasses and lens tints). Every saved code keeps decoding to the same avatar.
+A game draws avatars with the renderer and art **bundled in its own copy** of
+`@diffenderfer-games/hub/avatar` (`hub.avatar.load()` imports it from the
+package, not from the host), so an npm game shows new parts once it upgrades
+the package; until then it draws a part it doesn't know as its fallback (an
+unknown pair of glasses is left off), and a lens tint is skipped. Static games
+on `/_hub/hub.js` and the hub's own surfaces (menu, Friends, designer) update
+with the host.
+
+A look's glasses can carry a second colour, `tint` (the lens, from the `lens`
+palette or any colour), only on glasses tagged `tinted` (`isTinted(id)`);
+`FRAME_PRESETS` is the designer's order of frame colours (accessory presets).
+Long hair hangs **behind** the body: the renderer draws the parts of a hair
+style below the shoulder line before the body, and the rest over the head.
+
+### Accessibility and wording
+
+Avatars are decorative next to a name. Give a `title` ("Sam's avatar") only
+where the avatar stands alone, and use `describe(look)` ("Short curly auburn
+hair, green eyes and freckles.") where the avatar is the content.
+`avatarEmoji(look)` gives a person emoji with the nearest skin tone for plain
+text. Players see "avatar", "Make your avatar", "Edit avatar", never "look",
+"code", "default" or "preset".
+
+### Performance
+
+- **Up to about 12 on screen** (card tables, race HUDs): live faces, one
+  `pose(t)` each per frame. `render.element` and the adapters re-render only when
+  the quantised pose changes, so a still face costs nothing.
+- **Up to about 40** (lists, brackets, leaderboards): still SVGs or cached
+  bitmaps, animated only on events.
+- **Crowds** (30–200): `createCrowd` with the atlas, at most six live faces
+  (two on low-end devices), bakes time-sliced at about 4 ms a frame; an avatar
+  shows the silhouette until its frame is baked.
+- **Bundle cost:** the root client gains `hub.avatar` (the codec and defaults,
+  no art). `/avatar` loads its art chunk lazily on `ready()`; `/_hub/avatar.js`
+  is about 34 KB gzipped with the art. Games that never import `/avatar` pay
+  nothing for the renderer.
+- Never use Pixi's `arc()` for avatar shapes (it draws a stray line from the
+  origin in this codebase's Pixi); the renderer builds everything from paths.
 
 ---
 
@@ -1651,11 +2098,19 @@ All under `/_api`. JSON in, JSON out; errors are `{ "error": "..." }` with a
 - `PUT    /games/:slug/saves/:slot` `{data,label?}` → `{ok,updatedAt}`
 - `DELETE /games/:slug/saves/:slot` → `{ok}`
 
-### Resume (auth required; see [Resume saved games](#resume-saved-games-hubresume))
+### Resume (auth required; see [Saved runs](#saved-runs-hubresume))
 - `GET    /games/:slug/resume` → `{ resume: {state,progress:{label,fraction},title,version,updatedAt}|null }`
-- `PUT    /games/:slug/resume` `{state,progress:{label,fraction?},title?,version?,savedAt?}` → `{ok,updatedAt,applied}` (404 unless `game.resumable`; 413 over 512 KB, the only route allowed a body over 256 KB; 60 saves a minute per player)
+- `PUT    /games/:slug/resume` `{state,progress:{label,fraction?},title?,version?,savedAt?}` → `{ok,updatedAt,applied}` (404 unless `game.resumable`; 413 over 512 KB; 60 saves a minute per player, shared with saved games). The run is a saved game of kind `run`.
 - `DELETE /games/:slug/resume[?before=<ms>]` → `{ok}`
 - `GET    /me/resume` → `{ games:[{game,gameTitle,path,hasImage,progress,title,version,updatedAt}] }` (any session; no state; empty when signed out)
+
+### Saved games (see [Saved games](#saved-games))
+- `GET  /saved[?game=<slug>][&kinds=daily,run,turns]` → `{ games:[SavedGame], counts:{yourTurn,dailies,runs,waiting,total} }` (any session; empty when signed out; online games waiting on you first, then the newest)
+- `GET  /saved/:id` → `{ game:SavedGame, state }` (auth; your daily or run only, else 404)
+- `PUT  /saved/:id/state` `{state,progress:{label,fraction?},title?,version?,savedAt?}` → `{ok,updatedAt,applied}` (auth; 409 `instance_closed` once finished or discarded; 413 over 512 KB; offline replay)
+- `POST /saved/:id/discard` → `{ok}` (auth; idempotent; 409 for an online game; offline replay)
+- `POST /games/:slug/saved/discard` `{kinds:["daily","run"]}` → `{ok,discarded}` (auth; Reset game)
+- Socket event `saved` `{game:SavedGame}` to every tab of the player whenever one of their games in progress changes.
 
 ### Stats
 - `GET  /games/:slug/stats` → `{stats}` (own, auth) — or `?user=<id>` (public)
@@ -1668,10 +2123,11 @@ All under `/_api`. JSON in, JSON out; errors are `{ "error": "..." }` with a
 - `GET  /leaderboards?top=5` → `{ games:[{slug,title,boards:[{key,title,sortDir,top:[...]}]}] }`
 
 ### Daily challenges (game must set `dailyChallenges: true`)
-- `GET  /games/:slug/daily` → `{ enabled, today, window:[{day,seed,completed,completedAt,meta}] }` (per-user state)
-- `POST /games/:slug/daily/:day/start` → `{ token, day, seed, expiresAt, alreadyCompleted, meta }` (auth; mints a signed token)
-- `POST /games/:slug/daily/:day/complete` `{token,meta?}` → `{ ok, day, count, rank }` (auth; idempotent)
-- `GET  /daily` → `{ games:[{slug,title,today,window:[...]}], global:[{rank,userId,username,score}] }` — cross-game hub + global standing
+- `GET  /games/:slug/daily` → `{ enabled, today, completions:{[day]:{completedAt,meta}}, inProgress:[day] }` (per-user state; `today` is the UTC day key)
+- `POST /games/:slug/daily/:day/start` → `{ token, day, seed, expiresAt, alreadyCompleted, completedAt, meta, instanceId, saved, savedVersion, resumed }` (auth; finds or makes the day's saved game and mints a token naming it; a day in progress resumes at any age, a new start needs the window; 409 `too_many_dailies`)
+- `POST /daily/instances/:id/resume` → the same (auth; a fresh token and the saved state, no window check; 409 `instance_closed`)
+- `POST /games/:slug/daily/:day/complete` `{token,meta?}` → `{ ok, day, count, rank }` (auth; idempotent; finishes the day's saved game; 401 for a discarded one)
+- `GET  /daily` → `{ today, games:[{slug,title,completions,inProgress}], global:[{rank,userId,username,score}] }` — cross-game hub + global standing
 
 ### Inventory & economy (auth required)
 - `GET  /games/:slug/inventory` → `{ items:[{key,qty}], coins }`
@@ -1727,6 +2183,15 @@ fields go through the filter and answer **422** `content_rejected` on refusal.
 - `GET  /social/recent` (*claimed*) → `{players:[{…PlayerLite, game, lastAt}]}`
 - `GET  /social/counts` (*public*) → `{online, byGame:{slug:n}}`
 
+### Avatars ([Avatars](#avatars))
+- `GET  /avatar/me` (*signed in*, allowed while suspended) → `{look, code, isDefault, updatedAt, nudge:{shown, dismissedAt, promptedAt, upgrade}}`
+- `PUT  /avatar/me` (*active*, guests too) `{look, savedAt?}` → the same plus `applied` (400 `bad_avatar` with `field`; 30 saves / 10 min; an older `savedAt` than the stored look is not applied)
+- `DELETE /avatar/me` (*active*) → back to the default
+- `POST /avatar/me/nudge` `{event:'shown'|'dismissed'|'prompted'|'upgradeSeen'}` → `{nudge}`
+- `GET  /avatar/of/:id` → `{id, code, isDefault}` (300 / min) · `POST /avatar/batch` `{ids:[≤100]}` → `{codes:{id:code}}` (unknown ids left out; 120 / min)
+- `GET  /_hub/avatar/<code>.svg?f=&e=&lx=&ly=&s=&b=` (*public*) → the server-rendered SVG (`immutable` for a real code; the silhouette for garbage)
+- Socket: `ev:avatar {userId, code}` to your own tabs, your friends and the players and spectators in your room or race
+
 ### Messages (`handlers/messages.js`, mutual friends only)
 - `GET  /social/conversations` → `{conversations:[{user, last, unread}]}`
 - `GET  /social/messages/:userId?before=<id>` → `{messages (oldest→newest, ≤50), more, mode:'on'|'quick'|'off'}`
@@ -1737,8 +2202,9 @@ fields go through the filter and answer **422** `content_rejected` on refusal.
 - `POST /social/reports` `{kind:'message'|'user'|'username'|'suggestion'|'room_chat'|'presence', targetUserId, refId?, reason:'mean'|'bad_words'|'personal'|'inappropriate'|'spam'|'other'}` → `{ok, id}` (the server snapshots the content itself; 3 independent claimed reporters in 24 h → auto-mute + admin flag)
 
 ### Notifications (`handlers/notify.js`)
-- `GET  /social/notify` → `{dm, friend_request, friendOnlineAll, friendOnline:[userId], lobbyOpen:[slug]}`
-- `PUT  /social/notify` `{kind:'dm'|'friend_request'|'friend_online'|'lobby_open', target?, enabled}` → the same shape (`friend_online` with no `target` is the "any friend" switch)
+- `GET  /social/notify` → `{dm, friend_request, invite, friendOnlineAll, friendOnline:[userId], lobbyOpen:[slug], yourTurn, yourTurnOff:[slug], yourTurnAsked, quiet:{from,to,tz}|null}` (`yourTurn` is on by default once the player allows pushes on some device, until they set it)
+- `PUT  /social/notify` `{kind:'dm'|'friend_request'|'invite'|'friend_online'|'lobby_open'|'your_turn', target?, enabled}` → the same shape (`friend_online` with no `target` is the "any friend" switch; `your_turn` with no `target` is "When it's my turn", with a slug that game's switch; either answers the one-time question)
+- `PUT  /social/notify/quiet` `{quiet:{from:'21:00',to:'08:00',tz:'America/New_York'}|null}` → the same shape (quiet hours: pushes wait until they end, one per tag, never dropped; invites and tournament calls are never held; toasts are never held; 400 for an unknown zone or an empty window)
 - `POST /social/push` `{subscription}` → `{ok}` · `DELETE /social/push` `{endpoint}` → `{ok}` (Web Push; ≤5 per user)
 
 ### Suggestions
@@ -1774,6 +2240,14 @@ chat) is on the WebSocket **`/_ws`**: JSON envelopes `{t:'op', id, op, d}` →
 `hub.rooms` / `hub.presence`. The op and event tables are in
 `docs/plans/multiplayer-impl.md` §4 and §6.
 
+### Online games over days (claimed accounts; see docs/multiplayer.md §16)
+- `POST /turns` `{game,mode?,options?,invite?,link?,public?,seats?,bots?,deadline?}` → `TurnGameView` · `GET /turns/:id` → `TurnGameView` (seated players only)
+- `POST /turns/:id/join` `{key?}` · `POST /turns/join` `{key}` · `POST /turns/:id/start` · `POST /turns/:id/invite` `{userIds}`
+- `POST /turns/:id/moves` `{seq,move}` → `{game,events}` (403 `not_your_turn`, 409 `stale`, 422 `illegal` + `rule`, 500 `rules_error`, 413 over 2 KB; 30/min)
+- `GET  /turns/:id/history?since=<seq>` → `{moves:[{seq,seat,events,at}]}` · `POST /turns/:id/leave` · `/nudge` · `/rematch` · `/auto` · `/chat` `{text?|quick?}` · `PUT /turns/:id/notify` `{mode}`
+- `GET  /turns[?game=]` → `{games:[SavedGame]}` · `GET /open-turns[?game=]` → `{games:[OpenTurnGame]}`
+- Socket events `turn` (per seat: `{id,game,seq,seat,events,view,summary,outcome}`) and `turn.chat` `{id,line}`.
+
 ### Internal (game servers only)
 Loopback only, no `x-forwarded-for`, headers `x-hub-app: <slug>` + `x-hub-key: <HUB_APP_KEY>`.
 Anything else gets a 404. Use `hub-server.mjs` rather than calling these by hand.
@@ -1785,11 +2259,13 @@ Anything else gets a 404. Use `hub-server.mjs` rather than calling these by hand
 - `GET  /admin/overview` → online/byGame/rooms/parties, AI health, switches, open reports, pending suggestions, flagged users
 - `GET  /admin/reports?status=open|resolved` · `POST /admin/reports/:id/resolve` `{action:'dismiss'|'hide'|'mute'|'suspend'|'rename', duration?, note?}`
 - `GET  /admin/modlog?userId=&verdict=&severity=&limit=`
+- `GET  /admin/saved?game=&user=&kind=` → saved games and the online games' health · `GET /admin/saved/:id` (full state; logged) · `POST /admin/saved/:id/action` `{action:"end"|"seat-bot"|"clear-flag"|"delete", seat?}`
 - `POST /admin/filter/test` `{text, surface}` → `{result, forms}` · `GET|POST|DELETE /admin/filter/terms` `{term, list:'block'|'phrase'|'allow'|'soften', replacement?}`
 - `GET  /admin/users?q=` · `GET /admin/users/:id` · `POST /admin/users/:id/suspend` `{duration:'24h'|'7d'|'30d'|'perm', reason}` · `/unsuspend` `{restoreMessages}` · `/mute` `{duration}` · `/unmute` · `/rename` `{username?, force?}`
 - `GET  /admin/suggestions?status=` · `POST /admin/suggestions/:id` `{status?, adminNote?}`
 - `GET|PUT /admin/switches` `{chat?:'on'|'quick'|'off', dms?, friendRequests?}` (can only be stricter than `HUB_CHAT`)
 - `POST /admin/username-scan` → `{hits:[{id, username, reason}]}`
+- `GET  /admin/backups` → `{backups:[{name, kind:'backup'|'safety'|'upload', size, createdAt}], inventory, pendingRestore}` · `POST /admin/backups` → `{backup, files}` (takes one; logged) · `POST /admin/backups/:name/preview` → the dry run (changes nothing) · `POST /admin/backups/:name/restore` `{confirm:'RESTORE'}` → `{ok, safetyBackup, restarting}` (logged; both servers restart). The archives move outside `/_api`: `GET /_admin/backups/<name>` downloads one and `POST /_admin/backups/upload` (the raw `.tar.gz` body) stores one, admins only. See `DEPLOY.md` §11a.
 
 ### Test mode (`HUB_TEST=1` and loopback only)
 - `POST /test/suspend` `{userId, ms}` · `POST /test/unsuspend` `{userId}`
@@ -1823,6 +2299,11 @@ Social and multiplayer knobs, read at boot and validated by one schema
 | `HUB_REALTIME` | on | `0` disables `/_ws` (an escape hatch: social goes quiet, single-player is unaffected). |
 | `HUB_TEST` | off | `1` = test mode: relaxed limits, fake AI, push outbox, `/_api/test/*`. **Never in production.** |
 | `HUB_LIMITS_JSON` | `{}` | JSON overrides for any `SOCIAL_LIMITS` field (tests). |
+| `HUB_BACKUP_DIR` | `DATA_DIR/backups` (production: `/root/backups/diffenderfer-games`, set on `dg-hub.service`) | Where admin backups, uploads and the safety backup before a restore are kept on the box. |
+| `HUB_BACKUP_KEEP` | `10` | Backups of each kind (taken, safety, uploaded) kept on the box; older ones are removed. |
+| `HUB_BACKUP_MAX_BYTES` | `536870912` (512 MB) | Largest archive an admin may upload to restore. |
+| `HUB_BACKUP_ENV_FILE` | `/etc/diffenderfer-games.env` | The host env file copied into each backup when readable (it holds secrets; a restore never writes it). |
+| `HOST_INTERNAL_URL` | `http://127.0.0.1:8080` | dg-host as the hub reaches it (loopback), to restart it after a restore. |
 
 ### AI engines
 
@@ -1865,6 +2346,11 @@ game is hosted; the path-segment fallback only kicks in if it's absent.
 ---
 
 ## Changelog
+
+- **2026-10-15** — **Backups.** Games that keep their own data on the box
+  declare it in `game.data` (see
+  [Server data and backups](#server-data-and-backups-gamedata)) so the
+  admin's manual backup and restore cover it. No client change.
 
 - **2026-10-11** — **Saves offline.** Offline, `getSave` rejects with
   `save_unknown` when the device has never seen the hub's copy of the slot,

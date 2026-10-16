@@ -105,6 +105,7 @@ app sees requests as if mounted at root — **but** the browser still sees
 | `multiplayer` | no       | Makes the game an online invite/join target — see `docs/multiplayer.md` |
 | `changes`     | no       | Player-facing "What's new" notes, one per change (see below) — **keep it updated** |
 | `race`        | no       | Single-player game → multiplayer by racing (same seed, first to finish wins) — see `docs/multiplayer.md` §14 |
+| `data`        | if it writes files | What the server keeps on the box (`[{ "path": "server/data.db", "kind": "sqlite" }, "server/uploads"]`), so the admin backup and restore cover it — see `docs/hub.md` "Server data and backups" |
 
 > **Ports:** the host assigns each process app a free port (via `PORT`/
 > `GAME_PORT` and the `{{PORT}}` placeholder) and **probes that it's actually
@@ -217,6 +218,9 @@ literals:
   spawn or it's marked unhealthy. Any HTTP response with status < 500 counts.
 - The catalog proxies HTTP + WebSocket. `X-Forwarded-*` headers are set.
 - Crashed apps auto-restart up to 5 times with 2s cooldown, then give up.
+- Anything the server writes on the box (a database, JSON files, uploads) is
+  declared in `game.data`, or the admin backup won't have it. Declare SQLite
+  files with `kind: "sqlite"` and write other files atomically.
 - The app sees requests with the `/<slug>` prefix already stripped — code
   internally as if mounted at `/`, but emit asset URLs as if mounted at
   `GAME_PATH` (same `base: './'` rules apply).

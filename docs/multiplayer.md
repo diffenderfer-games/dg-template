@@ -69,6 +69,7 @@ loaded, and when it never loads (offline, `hub: false`, local `vite dev`). See
 13. [Definition of done](#13-definition-of-done)
 14. [Races (single-player games go multiplayer)](#14-races-single-player-games-go-multiplayer)
 15. [Tournaments](#15-tournaments)
+16. [Turn games (online games played over days)](#16-turn-games-online-games-played-over-days)
 
 ---
 
@@ -256,6 +257,11 @@ opens the chat / player card in place (or opens the site if nothing is running).
 | `friend_online` | any friend, or a chosen friend, comes online | nothing |
 | `invite` | a friend invites me to play a game (push only if I turned on **Game invites**, and only for as long as the invite lasts) | nothing |
 | `lobby_open` | **someone is waiting in a public lobby of a game I follow** | report lobby presence (below) + a 🔔 button |
+| `your_turn` | an online game waits on my move ([§16.6](#166-your-turn-alerts)); on by default once I allow pushes; per game; quiet hours | nothing |
+
+**Quiet hours** ("No buzzing between 9 pm and 8 am", in the player's time zone) hold
+every push except invites and tournament calls until they end; a toast on an open tab
+is never held.
 
 **Put a 🔔 in your lobby** that opens the hub's settings focused on your game:
 
@@ -1515,3 +1521,199 @@ by the hub.
 `test/e2e/tournaments.test.mjs` creates a quick 1v1 from the home page, signs a guest
 up, plays the match in MP Demo, and lets a ready window run out.
 
+---
+
+## 16. Turn games (online games played over days)
+
+A turn game is an online game the **hub runs from your game's own rules**, so
+players can move whenever they like (seconds or days apart), close the tab,
+come back tomorrow, and get a "your turn" alert in between. While both players
+are on the page it is live: moves arrive within milliseconds. Board and card
+games that take turns (Pop Four, Phase 10, Skip-Bo, Garbage) should play
+online this way, retiring their room code; rooms stay for realtime play and
+interrupt-driven rules (Uno's jump-in, races).
+
+**Wording.** "Turn game" is an internal term. Players see **an online game**:
+"Online with Sam · your turn", "Sam's turn", "Waiting for a player". Never
+"turn game", "instance" or "run" in your UI.
+
+**Why the hub runs the rules.** The full state (the deck, every hand, the
+secret solution) lives only on the hub; each player receives
+`view(state, theirSeat)` and nothing else. Moves are validated by your rules,
+so results are **trusted** (they count for `online_games`/`online_wins` and
+recent players), and nobody's browser has to be the host.
+
+### 16.1 Declare `game.turns`
+
+```jsonc
+"game": {
+  "turns": {
+    "rules": "dist-rules/rules.mjs",   // built by your game; one ES module, no imports
+    "players": [2, 4],
+    "bots": true,                       // your rules have autoMove: the computer fills seats, plays for leavers
+    "modes": [{ "key": "classic", "title": "Classic" }],
+    "maxApplyMs": 200                   // per rules call; at most 2000
+  }
+}
+```
+
+Build the bundle with `esbuild src/rules.ts --bundle --format=esm --outfile=dist-rules/rules.mjs`
+(or tsdown, rollup) as part of `npm run build`. It must have **no imports**
+and its **default export is the rules object**. The hub reads it from your
+checkout when a game is set up or moved, keeps every bundle it loaded by its
+hash, and runs it in a sandbox: a worker thread capped at 64 MB, a `vm`
+context with no `require`, `process`, `fetch` or timers, and **no
+`Math.random`**. A call that throws, runs past `maxApplyMs` or returns the
+wrong shape fails with 500 `rules_error`; the stored game is untouched and the
+game is flagged for an admin.
+
+### 16.2 The rules module
+
+```ts
+import { defineTurnRules, type TurnRng } from '@diffenderfer-games/hub/turns';
+
+export default defineTurnRules<State, Move, View, Event>({
+  version: 1,
+  setup({ seats, options, mode, rng }) { return { … }; },     // the starting state
+  view(state, seat) { return { … }; },        // what `seat` may see; seat null = a public view. HIDE other seats' secrets.
+  toAct(state) { return [state.turn]; },        // the seats that must move now; empty only once the game is over
+  apply(state, seat, move, rng) {               // the next state and what happened, or { error: 'short_code' }
+    if (!legal(state, seat, move)) return { error: 'illegal' };
+    return { state: next, events: [{ type: 'drew', seat, card }] };
+  },
+  eventView(event, seat) { return event.seat === seat ? event : { ...event, card: null }; },  // redact per seat (default: drop)
+  outcome(state) { return done ? { winners: [seat] } : null },   // also places? scores?
+  progress(state, seat) { return { label: `Round ${state.round} of 10`, fraction: state.round / 10 }; },
+  autoMove(state, seat, rng) { return bestMove(state, seat); },    // bots, leavers, overdue turns: must be legal
+  migrate(old, fromVersion) { return upgrade(old); },             // games in flight survive a rules update
+});
+```
+
+Rules are **pure and deterministic**: draw randomness only from the `rng` you
+are handed (`rng.next()`, `rng.int(n)`, `rng.pick(list)`, `rng.shuffle(list)`;
+the hub keeps its state between moves), keep the state JSON (at most 64 KB),
+and keep moves small JSON (at most 2 KB) and **never free text**. Bump
+`version` only together with a `migrate`.
+
+### 16.3 The page: `hub.turns`
+
+```ts
+// Boot: a game opened from Your games or an invite, or a link.
+const opened = hub.saved.opened;
+let game = opened?.kind === 'turns' ? await hub.turns.open(opened.id)
+  : hub.turns.link !== null ? await hub.turns.join(hub.turns.link)
+  : null;
+if (game?.summary.seats.some((s) => s.isMe && s.status === 'invited')) game = await hub.turns.join(game.id);
+hub.saved.onOpen((g) => void hub.turns.open(g.id).then(show), { kinds: ['turns'] });   // other kinds still reload the page
+
+// Make one: invite friends, share a link, or open seats anyone may take.
+game = await hub.turns.create({ invite: [friendId] });   // or { link: true } → game.link, or { public: true }
+await game.start();                                       // the creator, once enough have joined (bots fill seats if allowed)
+
+// Play.
+draw(game.view, game.summary);                            // summary: seats, toAct, isMyTurn, deadline, seq
+game.on('move', ({ seat, events, view }) => animate(events).then(() => draw(view)));   // another player's move, live
+game.on('turn', (summary) => drawWhoseTurn(summary));
+game.on('ended', ({ outcome }) => showResult(outcome));
+try { await game.move({ column: 3 }); }
+catch (error) { if (error.code === 'illegal') shake(error.rule); }   // 403 not_your_turn, 409 stale (view refreshed), 422 illegal
+```
+
+| `hub.turns` | |
+|---|---|
+| `create(opts)` | `{ mode?, options?, invite?, link?, public?, seats?, bots?, deadline?: 'none' \| '1d' \| '3d' \| '7d', autoStart? }` → `TurnGame` (its lobby, the player in seat 0). `autoStart`: it starts by itself once every seat is taken, so the creator needn't come back |
+| `join(idOrLinkKey)` | Take a seat: an invited one, an open one, or with a link key |
+| `open(id)` | A game the player sits in |
+| `list()` | This game's online games the player sits in (as `hub.saved` rows) |
+| `openLobbies()` | Open-seat games of this game anyone may join (none across a block) |
+| `link` | The invite link key the page was opened with (`?hub_turn_link=`, taken out of the address bar), or `null` |
+
+| `TurnGame` | |
+|---|---|
+| `summary`, `view`, `mySeat`, `outcome`, `chat`, `chatMode`, `link` | The game as this player sees it |
+| `start()` | Creator: lobby → playing |
+| `move(move)` | → `{ seq, view, events }` (this seat's events) |
+| `history(sinceSeq)` | Moves since a move, with the events this seat may see ("while you were away") |
+| `leave()` | The computer plays the seat (or, without bots, the others win); no coming back |
+| `nudge()` | Remind whoever must move (once a day) |
+| `setNotify('on' \| 'off')` | This game's "your turn" alerts |
+| `rematch()` | An ended game: a new one, the same friends invited. When another player already pressed it, this takes the seat in theirs instead of making a second game |
+| `invite(userIds)` | More friends, while seats are free |
+| `share({ link?, public? })` | Creator, before the start: add an invite link (then read `link`) or list the open seats for anyone |
+| `letComputerPlay()` | The turn's deadline passed (or that player is suspended): the computer plays it |
+| `say({ text } \| { quick })` | Chat: free text only when every seated player is a friend of everyone (moderated like DMs); quick-chat with anyone |
+| `refresh()`, `close()` | Fetch again (replaying missed moves); stop live updates for this page |
+| `on('move' \| 'turn' \| 'ended' \| 'chat', cb)` | Live events (a page without the hub runtime polls every 20 s while visible). `turn` also fires when `chatMode` or `link` changes, and when a seated player changes their avatar (the seat's `look`); when the live connection comes back (`hub:turn-resync`) the game fetches what it missed |
+
+While a turn game is open, `hub.resume.save` saves nothing (`blockedBy: 'turns'`):
+the hub holds the game.
+
+### 16.4 Who plays, and kid safety
+
+- **Claimed accounts only** (guests can't hold a seat: they can't get alerts
+  and could lose the account).
+- **The hub's Invite to play picker** lists your game too (from a friend's card
+  in the Friends window or their player card): picking it starts an online game
+  with that friend's seat held (`createTurnGame` with `invite`, `autoStart`, and
+  `players[0]` seats, at least two; the same start as Play online's **New online
+  game**), takes the inviter to it, and the friend gets the usual invite alert.
+  A game with live `multiplayer` too is listed once, with **Play now** and
+  **Over days** to choose from (each mode is its own choice). `GET /games`
+  carries `turns: { players, modes }` for it.
+- **Invites go to friends only**; a link lets anyone with it take a seat
+  (it stops working once the seats are full or the game starts); an **open-seat
+  game** (`public: true`) is listed in Play online for anyone. Nobody sits with
+  someone they blocked or who blocked them.
+- **Chat** is moderated free text only when everyone seated is a friend of
+  everyone; strangers in an open-seat game get quick-chat and emotes only.
+  Every line is reportable (`kind: 'turn_chat'`). Moves and progress labels
+  are game-written, never typed.
+- Caps: 30 games going per player (10 per game), 10 new games a day, 30 moves
+  a minute; suspended players can read their games but not move (the others
+  may let the computer play their turn).
+
+### 16.5 Leaving, bots, deadlines, the end
+
+- **Leave** any time: the seat goes to the computer when the game has bots
+  (`autoMove`), otherwise the remaining players win. With nobody left the game
+  ends. A player who left can't come back.
+- **No deadline by default.** A game created with `deadline: '1d' | '3d' | '7d'`
+  lets the others `letComputerPlay()` an overdue turn; otherwise a stuck game
+  is resolved by a nudge or by leaving.
+- **The end**: `outcome` is recorded as trusted results, the game leaves
+  everyone's "Your games", and `rematch()` invites the same friends.
+
+### 16.6 "Your turn" alerts
+
+The hub tells a player it's their turn through the same alerts as invites: a
+toast when they have the site open, otherwise a push (after 2 minutes, and not
+if they looked at the game first), then reminders at +1 day, +3 days and
+weekly (four at most), reset by a move. Several games at once make one push
+("It's your turn in 3 games"). Players choose in the Notifications window
+("Tell me when it's my turn", per game, quiet hours) and per game with
+`game.setNotify`; it is on by default for players who already allow pushes,
+and everyone else is asked once. Alerts only ever name the game and players'
+usernames. Your game needs no code for any of this.
+
+### 16.7 Testing
+
+- **Conformance kit** in your unit tests (no hub needed):
+
+  ```ts
+  import { checkTurnRules } from '@diffenderfer-games/hub/turns';
+  import rules from '../src/rules';
+
+  checkTurnRules(rules, { seats: [2, 4], games: 50, plant: (state, seat, marker) => plantInHand(state, seat, marker) });
+  ```
+
+  It plays seeded games to the end and fails on: a game that never ends, an
+  empty `toAct` mid-game, a state that doesn't survive JSON, `Math.random`
+  (the same seed must play the same game), an illegal `autoMove`, a seat seeing
+  another seat's planted secret in `view` or `eventView`, oversized moves or
+  states, and old `fixtures` that need `migrate`.
+- **Two browsers** (puppeteer, like §12): two players in two contexts; create +
+  invite + join + start, a move arriving live on the other page, one page
+  closed and reopened from Your games (missed moves replayed), leave (the
+  computer plays on), the end. The reference game is `apps-test/turndemo`
+  ("Turn Tac Toe", `TURNDEMO_DIR`) with `test/e2e/turn-games.test.mjs` and
+  `test/api/turns.test.mjs`.
