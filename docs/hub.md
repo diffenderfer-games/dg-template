@@ -1998,14 +1998,19 @@ instance when it has room), and remembers where each player stood. The map file 
 `GET /_api/world/maps/<key>?rev=<rev>`. Games don't call any of this.
 
 **Adventure Mode** is the world as players reach it: the top card on the home page
-and in the hub menu (it glows the first time a player sees it each day; a still
-border for less motion) opens `/world` (`/world/<place>` deep-links; `/world` alone
+and in the hub menu (it glows each time a player sees it, a page load or an opening
+of the menu, for about 13 s; a still border for less motion) opens `/world` (`/world/<place>` deep-links; `/world` alone
 goes back to your last world, the Hall the first time). Guests can come in. dg-host
 serves the page; `/_hub/adventure.js` loads `/_hub/world.js` and `/_hub/avatar.js`.
 The hub menu works inside (the world's input pauses under it, `hub.overlay.autoPause`),
-and **Library Mode** (in the world's top bar, and the menu's top card there) goes back
-to the games. In it:
+and **To All Games** (in the world's top bar, and the menu's top card there; once called
+Library Mode) goes back to the games. The top bar shows the place's name ("The Hall"). In it:
 
+- **Walking and running:** you walk 6.3 tiles/s; hold **Shift** to run half as fast again
+  (9.45), on any walk (keys, a click, a walk to a friend). A gamepad's left stick or d-pad
+  walks, and the stick pushed all the way (or RB/RT held) runs; on a phone a far tap runs
+  until you are close. The hub referees up to the run speed with headroom
+  (`worldWalkSpeed`, `@dg/hub-internal/world-pace`).
 - **Walk to a friend:** Friends lists the friends in the world and where (only friends
   who show you their presence; never across a block). "Walk to" asks `world.find` for
   their world, instance, cell and the portals on the way (the portal graph's fewest-hops
@@ -2024,6 +2029,103 @@ to the games. In it:
 - **Tips:** a first visit shows seven short tips, each done when the player does the
   thing or taps Got it (Skip tips ends them; ? in the top bar shows them again), kept
   per player in localStorage.
+
+### Playing over the world (`game.embed`)
+
+In the world, **arcade cabinets and game spots** (tables, the race grid, consoles)
+play a game. Walk up and press **E** (or tap the prompt, or click the thing): the game
+opens **in a box over the world**, which keeps running behind a gentle blur (other
+players keep walking), or, when it can't, as its own page. A game says it works in
+the box, and how big it likes to be, with `game.embed`:
+
+```jsonc
+"game": {
+  "embed": {
+    "supported": true,
+    "size": [480, 720],             // the ideal size, CSS px; or { "w": 800, "h": 600, "aspect": 1.333 }
+    "minScale": 0.7,                 // optional (default 0.7): the smallest scale the box may use
+    "frame": "embed/cabinet.svg"     // optional: an SVG drawn round the box (the format below)
+  }
+}
+```
+
+- **When the box is used (the 70 % rule):** the world fits the game's `size` (plus its
+  frame, or the hub's neon bezel, and the control bar) into the window, never above
+  scale 1. When that scale is at least `minScale` (0.7), the game plays over the
+  world; otherwise (a phone, a small window, `supported: false`, no `game.embed`) the
+  world goes to the game's page. `aspect` keeps the game's shape (letterboxed) when
+  the player fills the window; without it the game gets the whole window and lays
+  itself out. If the window shrinks while it plays, a note offers "Play it full size".
+- **Nothing else over the box:** while a game is open the hub menu's button (and its
+  corner peek spot) hides, so the box's own icons are the only controls; the game's
+  Select still opens the menu, and the button is back when the game closes. The "Add to
+  your home screen?" bar is never offered in Adventure Mode (`/world`), only on the home
+  page and the games' pages.
+- **The box:** your normal page in an iframe at `/<slug>/?hub_embed=1` (same origin;
+  `allow="autoplay; fullscreen; gamepad"`). Top right, three icon buttons: **go to**
+  (the game's own page), **fill the window / back to the cabinet**, and **exit** (back
+  to the world). It powers on and off like an old screen; with less motion it just
+  appears.
+- **One menu:** with `?hub_embed=1` the injected menu hides its button, the intro is
+  skipped, and the world's menu is the menu. Select/Start (and anything that opens the
+  hub menu) opens the world's; hub UI opening over the box pauses the game through
+  the usual `hub.overlay.autoPause` (the page's overlay stack gets a `menu` entry), so
+  **a game already wired for autoPause needs nothing new**. Saves, stats, boards,
+  presence and online play work as on the page.
+- **Focus and input:** the world's own input pauses while the box is open; keyboard and
+  gamepad focus go into the game (Tab stays in the box). **Esc leaves** unless the game
+  handled the key (call `event.preventDefault()` on the Escape keydown you use, e.g.
+  to pause or to go back a screen); **holding B** on a gamepad for 0.6 s leaves (a
+  short press is yours; the exit button fills a ring while it's held).
+- **Audio:** the iframe is allowed to autoplay after the tap that opened it; unlock
+  your `AudioContext` on the first gesture as usual. The world has no sound of its own,
+  so nothing competes. Closing the box removes the iframe (the game stops).
+- **Check your game embedded:** open `/<slug>/?hub_embed=1` in an iframe of the same
+  origin; no frame-busting (`top.location = …`), no `X-Frame-Options`/`frame-ancestors`
+  that forbid the site itself, and it must lay out at any size near `size`.
+
+**The frame format ("dg-frame").** An SVG drawn round the box; the iframe is laid over
+its screen. Rules (`sanitizeFrameSvg` in `@diffenderfer-games/hub-contract`, run by
+`hub-doctor`, the hub and the host):
+
+- one `<svg>` root with `viewBox="minX minY width height"` (plain numbers);
+- **the screen:** exactly one `<rect data-screen …>` (or `id="screen"`) with
+  plain-number `x`, `y`, `width`, `height` (and optional `rx`, the iframe's corner
+  radius), inside the viewBox, with no `transform` on it or its groups. Make its shape
+  match `size` (the doctor warns past 3 %); the frame scales so its screen is the
+  game's width;
+- vector art only: shapes, paths, text, gradients, patterns, clip paths, masks,
+  filters, markers, `<use href="#local">`, a `<style>` sheet, and SMIL `<animate>`,
+  `<animateTransform>` and `<set>` of visual attributes (blinking bulbs, a marquee);
+  players who ask for less motion get a still copy;
+- **refused (the frame is not used, the hub's bezel is drawn):** `<script>`,
+  `<foreignObject>`, `<image>`, `<a>`, `on*` handlers, any reference that isn't
+  `#local` (`href`, `url(…)`), `javascript:`/`data:`/`http:` URLs, `@import`, CSS escapes,
+  animating `href`, DOCTYPEs, entities and processing instructions; at most **256 KB**,
+  4000 elements, 32 deep. Editor data (Inkscape, Sodipodi, `<metadata>`) is dropped
+  with a warning.
+
+The host serves the sanitised copy (never your file) at `/_frames/<slug>.svg?v=<hash>`
+(`&still=1` for the still copy) with a CSP that allows nothing but inline styles. The
+catalog (`GET /_api/games`) lists each game's `embed` (`w`, `h`, `aspect`, `minScale`
+and, with a valid frame, its URLs, viewBox and screen). Example: Bubble Pop's arcade
+cabinet (`embed/cabinet.svg` in its repo).
+
+**The arcade's cabinets** play the catalog's games that play over the world first,
+then its other arcade games. **Tapping a game spot** (or clicking it) walks you to it
+(the cabinet's front, a free seat at a table: `useCells` in `@diffenderfer-games/world`),
+turns you to face it and shows the prompt; tapping it again, the prompt, or **E**
+plays. Sitting down at a table from its prompt plays at once. As a spot starts to
+glow, a bubble with the game's cover and name pops up over it for a few seconds.
+
+**Doors into games' rooms.** Every game with `game.world` gets a door into its room,
+generated from the catalog: in its family's room (`roomTypeForLabels`: the card room,
+the board-game café, the arcade, the war room) where the wall has space, else in the
+Hall. Each door has a name plate with the game's cover, the room's way out leads back
+to that door (unless the game's `needs.portals` says otherwise), and walking to a
+friend routes through it. **Near any door or portal**, a sign beside it says where it
+goes and which games are there (a game room's game; a room's game-room doors, cabinets
+and spots, a few and "+N more"); tap a game on it to play.
 
 ## Content safety & the rejection contract
 
@@ -2270,6 +2372,7 @@ fields go through the filter and answer **422** `content_rejected` on refusal.
 - `GET  /world/maps/:key?rev=` → `{key, rev, map}` (a `dg-world@1` file; `key` is `lounge`, `park`, `station`, `camp` or `game.<slug>`; `immutable` with the current `rev`; 404 `world_not_found`)
 - Socket ops: `world.enter {world, spawn?}` → place · `world.leave` · `world.move {steps[≤12], facing?}` → `{at, facing, accepted}` · `world.sit {object, index}` · `world.stand` · `world.teleport {portal}` → place · `world.say {quick}` (quick-chat only)
 - Socket events: `world.state {instance, join, update, leave}` · `world.say {instance, userId, quick, text}`; presence carries `world`
+- `GET  /games` lists `embed {w, h, aspect?, minScale, frame?: {url, stillUrl, viewBox, screen}}` for games that play over the world; dg-host serves the sanitised frame at `/_frames/<slug>.svg?v=<hash>[&still=1]` (*public*, `image/svg+xml`, locked-down CSP)
 
 ### Messages (`handlers/messages.js`, mutual friends only)
 - `GET  /social/conversations` → `{conversations:[{user, last, unread}]}`

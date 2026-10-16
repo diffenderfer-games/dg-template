@@ -302,7 +302,14 @@ analytics — with **nothing to set up**. The host injects a style-isolated menu
   `game.world` (a committed `dg-world@1` map file, `{ "map": "world/lobby.json" }`, or a
   generated one, `{ "generate": { "type": "lounge", "needs": { … } } }`). Make maps with
   `@diffenderfer-games/world` or in Tiled (`npx dg-world from-tiled`); `hub-doctor`
-  checks the file. See `docs/hub.md` "The world".
+  checks the file. See `docs/hub.md` "The world". A game with a room gets a door into
+  it in its family's room (or the Hall) automatically.
+- **Play over the world:** declare `game.embed` (`{ "supported": true, "size": [480, 720] }`,
+  optional `minScale` and an SVG `frame`) and the world's cabinets and game spots open
+  your game in a box over the world (an iframe of your page with `?hub_embed=1`) when it
+  fits at 70 % of that size, else as your page. Use `hub.overlay.autoPause`, call
+  `preventDefault()` on an Escape you handle, and don't frame-bust. `hub-doctor`
+  checks the frame. See `docs/hub.md` "Playing over the world".
 - **Opt out** of hub injection with `"hub": false` or PWA tags with `"pwa": false`;
   **move the menu** with `menuPosition`.
 
