@@ -8,10 +8,20 @@
  * exist) and the hub through its own UI and URL params.
  */
 import { waitsOn } from '../../../src/kit/testing/phases.ts';
-import type { Scenario } from './types.ts';
+import type { Scenario, ShotContext } from './types.ts';
 
 const L = '#hub-social-layer >>> ';
-const today = (): string => new Date().toISOString().slice(0, 10);
+const today = (offset = 0): string => new Date(Date.now() + offset * 86_400_000).toISOString().slice(0, 10);
+
+/** Wait until the hub's renderer has drawn the title's bust (`<dg-avatar>` upgraded, with its drawing). */
+const bustDrawn = (c: ShotContext): Promise<unknown> =>
+  c.page.waitForFunction(
+    () => {
+      const el = document.querySelector('[data-testid="avatar-demo"] dg-avatar');
+      return el !== null && 'animator' in el && el.childElementCount > 0;
+    },
+    { timeout: 15_000 },
+  );
 
 export const KIT_SCENARIOS: Scenario[] = [
   {
@@ -166,7 +176,7 @@ export const KIT_SCENARIOS: Scenario[] = [
   {
     name: 'continue',
     target: 'hub',
-    checks: 'the title’s Continue row after a reload (Your games once hub.saved ships)',
+    checks: 'the title’s Continue row after a reload',
     run: async (c) => {
       await c.open();
       await c.drive('newGame');
@@ -263,9 +273,26 @@ export const KIT_SCENARIOS: Scenario[] = [
   {
     name: 'avatar',
     target: 'hub',
-    checks: 'faces beside names; Edit opens the designer',
-    skip: waitsOn('avatars0', 'avatars2'),
-    run: (c) => c.open(),
+    checks: 'your avatar’s bust on the title (bottom-left) with Edit avatar, clear of the menu and the buttons',
+    run: async (c) => {
+      await c.open();
+      await c.screen('title');
+      await bustDrawn(c);
+      await c.wait(400);
+    },
+  },
+  {
+    name: 'avatar-designer',
+    target: 'hub',
+    checks: 'Edit avatar opens the hub’s designer over the game',
+    run: async (c) => {
+      await c.open();
+      await c.screen('title');
+      await bustDrawn(c);
+      await c.press('avatar-edit');
+      await c.hubFind(`${L}.so-design`);
+      await c.wait(600);
+    },
   },
   {
     name: 'table-launch',
@@ -277,8 +304,22 @@ export const KIT_SCENARIOS: Scenario[] = [
   {
     name: 'your-games',
     target: 'hub',
-    checks: '"Your games": Continue, Daily challenge · Oct 14',
-    skip: waitsOn('savedGames01'),
-    run: (c) => c.open(),
+    checks:
+      'the title lists every saved game: Continue (the saved game) and Daily challenge · <yesterday> (a day in progress)',
+    run: async (c) => {
+      await c.open(`?daily=${today(-1)}`);
+      await c.page.waitForFunction(() => document.querySelector('[data-screen="play"]') !== null, { timeout: 20_000 });
+      await c.drive('extra.addCoins', 3);
+      await c.drive('toTitle'); // saves the day, then pauses it: it stays in progress
+      await c.screen('title');
+      await c.drive('newGame');
+      await c.wait(800);
+      await c.drive('pause'); // saves the normal game
+      await c.wait(1500);
+      await c.open();
+      await c.page.waitForFunction(() => document.querySelectorAll('[data-testid^="continue"]').length >= 2, {
+        timeout: 15_000,
+      });
+    },
   },
 ];

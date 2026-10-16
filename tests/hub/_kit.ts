@@ -130,9 +130,27 @@ export async function mpdemoDir(): Promise<string> {
   return dir;
 }
 
+/** A player's REST client (the hub kit's ApiClient, signed in as them): paths are under /_api. */
+export type PlayerApi = {
+  get(path: string): Promise<{ status: number; body: unknown }>;
+  post(path: string, body?: JsonObject): Promise<{ status: number; body: unknown }>;
+  put(path: string, body?: JsonObject): Promise<{ status: number; body: unknown }>;
+};
+
+/** The trust boundary: the hub kit's ApiClient has these methods. */
+function isApi(x: unknown): x is PlayerApi {
+  return typeof x === 'object' && x !== null && 'get' in x && 'post' in x && 'put' in x;
+}
+
+/** Player `p`'s REST client. */
+export function api(p: Player): PlayerApi {
+  const a: unknown = Reflect.get(p, 'api');
+  if (!isApi(a)) throw new Error('the hub kit player has no api client (has the hub moved it?)');
+  return a;
+}
+
 /** Make two players friends (REST). */
 export async function befriend(a: Player, b: Player): Promise<void> {
-  const api = (p: Player): unknown => Reflect.get(p, 'api');
   await need(client, 'befriend')(api(a), api(b));
 }
 
@@ -224,8 +242,8 @@ export function overlayLog(p: Player): Promise<{ ev: string; reason: string; can
   });
 }
 
-/** Today's UTC day (the hub's daily calendar). */
-export const today = (): string => new Date().toISOString().slice(0, 10);
+/** Today's UTC day (the hub's daily calendar), or `offset` days from it. */
+export const today = (offset = 0): string => new Date(Date.now() + offset * 86_400_000).toISOString().slice(0, 10);
 
 /** Assert-friendly: the player object as Player (the kit's newPlayer result). */
 export function asPlayer(x: unknown): Player {

@@ -85,6 +85,13 @@ e2e('daily: ?daily=today starts the day; a win completes it once; quitting a day
   assert.equal(done, true);
   // Play the day again and quit mid-day: the daily is left, and a normal game saves for Continue again.
   await game.toTitle(a);
+  // The title redraws once it hears today is done: wait for that before pressing Daily.
+  await a.page.waitForFunction(
+    () => /Done today/.test(document.querySelector('[data-testid="daily"]')?.textContent ?? ''),
+    {
+      timeout: 10_000,
+    },
+  );
   await a.tid('daily');
   await a.page.waitForFunction(() => window.__game?.mode() === 'daily', { timeout: 20_000 });
   await game.toTitle(a);
