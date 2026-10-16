@@ -72,3 +72,15 @@ describe('SeatTable (SpacePong gameManager)', () => {
     expect(seats.anyoneHere()).toBe(true);
   });
 });
+
+describe('backups (game.data)', () => {
+  it('the strict manifest hub-doctor checks accepts game.data (hub client next.8 and later)', async () => {
+    const { GameData, GameManifest } = await import('@diffenderfer-games/hub-contract');
+    const data = [{ path: 'server/data.db', kind: 'sqlite' }, 'server/uploads'];
+    expect(GameData.safeParse(data).success).toBe(true);
+    const game = { type: 'process', title: 'X', start: 'node server/index.mjs', data };
+    expect(GameManifest.safeParse(game).success).toBe(true); // the game block, strict
+    expect(GameManifest.safeParse({ ...game, bogus: 1 }).success).toBe(false);
+    expect(GameData.safeParse([{ path: '../outside', kind: 'files' }]).success).toBe(false);
+  });
+});

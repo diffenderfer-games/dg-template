@@ -68,13 +68,11 @@ restore puts them back ([docs/hub.md Server data and backups](../hub.md#server-d
   Backups tab lists process games without `game.data` as not backed up. Static
   games (the template's default) need nothing.
 
-> **Known gap in the pinned client (2.0.0-next.7):** the live hub reads
-> `game.data`, but the strict manifest schema `hub-doctor` checks against
-> doesn't list the key yet, so it fails with `game: Unrecognized key: "data"`
-> (and so does `npm run check`). Until a client that knows it is pinned, keep
-> the declaration in `docs/game.md` and add it to `package.json` together with
-> that upgrade; until then the admin backup does not take those files, so tell
-> the hub's admin where they are.
+- `hub-doctor` checks it (since hub client 2.0.0-next.8) with the same schema
+  the hub's registry reads it with (hub-contract's `GameData`): a path outside
+  the folder, a repeated path or more than 20 fail `npm run check`. Declare it
+  in `package.json` as soon as your server writes files, so the next backup
+  takes them.
 
 ## `npm run sync-hub-server`
 

@@ -28,7 +28,7 @@ Map of the kit: [docs/kit/README.md](docs/kit/README.md).
 - Music and long audio in a Web Worker: [docs/kit/audio.md](docs/kit/audio.md).
 - Online play only through the hub (accounts, friends, invites, chat): [docs/kit/online.md](docs/kit/online.md).
 - Show players' avatars (the hub's) wherever you show their names; never draw your own faces for real players: [docs/kit/avatar.md](docs/kit/avatar.md).
-- An own server that writes files on the box declares them in `game.data` so backups take them (mind the next.7 `hub-doctor` gap there): [docs/kit/server.md](docs/kit/server.md#backups-gamedata).
+- An own server that writes files on the box declares them in `game.data` so backups take them (`hub-doctor` checks it): [docs/kit/server.md](docs/kit/server.md#backups-gamedata).
 - No violent words in player-facing text ("zap", not "shoot").
 - Never say "run" or "turn game" to players.
 - Rules are pure and seeded: no `Math.random`, no `Date` in `src/game/rules.ts` ([docs/kit/rng.md](docs/kit/rng.md)).
@@ -46,6 +46,7 @@ the kit calls it: [docs/kit/hooks.md](docs/kit/hooks.md).
 | `src/game/controls.ts` | Keys, gamepad, touch |
 | `src/game/render/`, `screens/` | Drawing, the title / HUD / result |
 | `src/game/daily.ts`, `race.ts`, `online.ts` | Optional modes |
+| `src/game/turns/rules.ts`, `board.ts` | Online games over days: the rules the hub runs, the board |
 | `src/game/test-hook.ts` | Extra `window.__game` drivers |
 
 ## How to check it
