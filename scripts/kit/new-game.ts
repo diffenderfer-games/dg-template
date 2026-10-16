@@ -1,5 +1,5 @@
 /**
- * `npm run new-game -- --renderer pixi|three|none [--no-daily] [--no-race] [--no-online] [--no-avatar] [--title "My Game"]`
+ * `npm run new-game -- --renderer pixi|three|none [--no-daily] [--no-race] [--no-online] [--no-turns] [--no-world] [--no-avatar] [--title "My Game"]`
  * Source: dg-template scripts/kit/ (kit v1.0). Copy byte-identical; change it in the template first.
  * Docs: docs/getting-started.md § "Step 3"
  *
@@ -7,14 +7,21 @@
  * - copies the chosen starter into src/game/render/ and deletes src/starters/;
  * - removes the other renderers' npm packages and sets the `2d`/`3d` label;
  * - drops the optional features you don't want (their hook files, game-block
- *   entries and the hooks.ts lines tagged `// new-game:<feature>`);
+ *   entries and the lines tagged `// new-game:<feature>` in hooks.ts and shots.config.ts);
  * - removes the template's own plans; then run `npm install` and `npm run check`.
  */
 import { cpSync, existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { readJsonFile } from './lib/json-file.ts';
 import { isTemplate, ROOT } from './lib/paths.ts';
-import { editPackage, FEATURE_FILES, parseNewGameArgs, setCopyTitle, stripFeatureLines } from './lib/scaffold.ts';
+import {
+  editPackage,
+  FEATURE_FILES,
+  parseNewGameArgs,
+  setCopyTitle,
+  stripFeatureLines,
+  TAGGED_FILES,
+} from './lib/scaffold.ts';
 
 if (!isTemplate()) {
   console.error('new-game runs once, in a fresh copy of the template (src/starters/ is already gone here).');
@@ -31,8 +38,10 @@ console.log(`✓ renderer: ${choice.renderer} (src/game/render/ is yours now)`);
 
 // 2. optional features
 for (const f of choice.drop) for (const file of FEATURE_FILES[f]) rmSync(join(ROOT, file), { force: true });
-const hooks = join(ROOT, 'src', 'game', 'hooks.ts');
-writeFileSync(hooks, stripFeatureLines(readFileSync(hooks, 'utf8'), choice.drop));
+for (const file of TAGGED_FILES) {
+  const path = join(ROOT, file);
+  if (existsSync(path)) writeFileSync(path, stripFeatureLines(readFileSync(path, 'utf8'), choice.drop));
+}
 if (choice.drop.length > 0) console.log(`✓ dropped: ${choice.drop.join(', ')}`);
 
 // 3. package.json

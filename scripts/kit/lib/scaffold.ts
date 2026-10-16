@@ -3,13 +3,13 @@
  * Source: dg-template scripts/kit/ (kit v1.0). Copy byte-identical; change it in the template first.
  * Docs: docs/getting-started.md § "Step 3"
  */
-import { arr, rec, type JsonRecord, type JsonValue } from './json-file.ts';
+import { arr, isRecord, rec, type JsonRecord, type JsonValue } from './json-file.ts';
 
 /** A renderer starter. */
 export type Renderer = 'pixi' | 'three' | 'none';
 
 /** The optional features a new game may drop. */
-export type Feature = 'daily' | 'race' | 'online' | 'avatar' | 'turns';
+export type Feature = 'daily' | 'race' | 'online' | 'avatar' | 'turns' | 'world';
 
 /** What `new-game` was asked for. */
 export type NewGameChoice = { renderer: Renderer; drop: Feature[]; title?: string };
@@ -37,13 +37,17 @@ export function stripFeatureLines(text: string, drop: readonly Feature[]): strin
   return out.join('\n');
 }
 
+/** The files whose `// new-game:<feature>` lines are stripped for dropped features. */
+export const TAGGED_FILES = ['src/game/hooks.ts', 'scripts/shots.config.ts'];
+
 /** The source files each optional feature owns (deleted when dropped). */
 export const FEATURE_FILES: Record<Feature, string[]> = {
   daily: ['src/game/daily.ts'],
   race: ['src/game/race.ts'],
   online: ['src/game/online.ts', 'tests/game/online.test.ts'],
   avatar: ['src/game/avatar.ts'],
-  turns: ['src/game/turns/rules.ts', 'tests/game/turns.test.ts'],
+  turns: ['src/game/turns/rules.ts', 'src/game/turns/board.ts', 'tests/game/turns.test.ts'],
+  world: [],
 };
 
 /** The npm dependency each renderer needs (the others are removed). */
@@ -63,12 +67,23 @@ export function editPackage(pkg: JsonRecord, c: NewGameChoice): JsonRecord {
   const dims = c.renderer === 'three' ? '3d' : '2d';
   let labels = arr(game.labels).filter((l): l is string => typeof l === 'string' && l !== '2d' && l !== '3d');
   labels = [...labels.slice(0, 1), dims, ...labels.slice(1)];
-  if (c.drop.includes('race') && c.drop.includes('online')) labels = labels.filter((l) => l !== 'multiplayer');
+  const solo = (['race', 'online', 'turns'] as const).every((f) => c.drop.includes(f));
+  if (solo) labels = labels.filter((l) => l !== 'multiplayer');
   game.labels = labels;
   if (c.drop.includes('daily')) delete game.dailyChallenges;
   if (c.drop.includes('race')) delete game.race;
   if (c.drop.includes('online')) delete game.multiplayer;
-  if (c.title !== undefined) game.title = c.title;
+  if (c.drop.includes('turns')) delete game.turns;
+  if (c.drop.includes('world')) delete game.world;
+  if (c.title !== undefined) {
+    game.title = c.title;
+    const copy: unknown = game.world === undefined ? undefined : JSON.parse(JSON.stringify(game.world));
+    const needs = isRecord(copy) ? rec(rec(copy.generate)?.needs) : undefined;
+    if (isRecord(copy) && needs !== undefined && typeof needs.game === 'string') {
+      needs.game = c.title; // the room's sign
+      game.world = copy;
+    }
+  }
   game.changes = [];
   return { ...pkg, dependencies: prune(pkg.dependencies), devDependencies: prune(pkg.devDependencies), game };
 }
@@ -79,7 +94,7 @@ export function setCopyTitle(strings: string, title: string): string {
   return strings.replace(/^(\s*title: )'[^'\n]*',$/m, (_m, lead: string) => `${lead}${quoted},`);
 }
 
-/** Parse `new-game` arguments (`--renderer pixi --no-daily --no-race --no-online --no-avatar --title "X"`). */
+/** Parse `new-game` arguments (`--renderer pixi --no-daily --no-race --no-online --no-turns --no-world --no-avatar --title "X"`). */
 export function parseNewGameArgs(argv: readonly string[]): NewGameChoice {
   const value = (flag: string): string | undefined => {
     const i = argv.indexOf(flag);
@@ -90,7 +105,8 @@ export function parseNewGameArgs(argv: readonly string[]): NewGameChoice {
     throw new Error(`--renderer must be pixi, three or none (got "${renderer}")`);
   }
   const drop: Feature[] = [];
-  for (const f of ['daily', 'race', 'online', 'avatar', 'turns'] as const) if (argv.includes(`--no-${f}`)) drop.push(f);
+  for (const f of ['daily', 'race', 'online', 'avatar', 'turns', 'world'] as const)
+    if (argv.includes(`--no-${f}`)) drop.push(f);
   const title = value('--title');
   return title === undefined ? { renderer, drop } : { renderer, drop, title };
 }
