@@ -62,9 +62,13 @@ To change a kit word, pass `strings` in the game definition (`defineGame` calls 
 
 `t('continueLabel', { label: 'Level 3' })` fills `{name}` placeholders. Override entries with `defineGame({ strings })`. The table follows the hub wording rules: never "run", "turn game" or "instance".
 
+### The manifest
+
+`manifest.ts` reads the game's own `game` block from package.json at build time (a named JSON import, so Vite bundles only that key): `MANIFEST.turns` (the game declares `game.turns`), `MANIFEST.turnsQuickChat` and `MANIFEST.roomQuickChat` (its quick-chat phrases). package.json stays the one place these are declared. Page code only: it is not in the core index, since Node can't import JSON without an import attribute.
+
 ### Planned hub APIs
 
-`planned.ts` holds type shims for hub APIs that are not published yet: only the world now (`launch.table`, `hub.mp.quickMatch`, `setRoster`; coming in next.9). `HubLike` lists them as optional, and the kit checks for them (`hub.mp.quickMatch !== undefined`) before use. Their tests wait on a phase in [testing](testing.md#planned-hub-tests).
+`planned.ts` holds type shims for hub APIs that are not published yet: only the world's tables and in-game presence now (`launch.table`, `hub.mp.quickMatch`, `setRoster`; world W2/W3, coming: the world itself shipped in next.9 without them). `HubLike` lists them as optional, and the kit checks for them (`hub.mp.quickMatch !== undefined`) before use. Their tests wait on a phase in [testing](testing.md#planned-hub-tests).
 
 ## Tests
 

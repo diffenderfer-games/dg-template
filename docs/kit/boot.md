@@ -79,13 +79,13 @@ Every hook gets a `GameContext` (built once in `context.ts`):
 
 ## Screens
 
-`screens.ts` builds the title, loading, play (HUD row plus pause button), pause and result screens from `kit/ui`. The title shows Continue rows, Play, Daily, Race and Open races, Play online, Quick match, Settings and How to play, each only when the game supports it and with a `data-testid`. The game skins them with CSS variables ([ui.md](ui.md)) and decorates them through `screens` hooks. The title shows an offline note when `hub.isOffline`, and disables Play online after `hub:rt-failed`.
+`screens.ts` builds the title, loading, play (HUD row plus pause button), pause and result screens from `kit/ui`. The title shows Continue rows, Play, Daily, Race and Open races, Play online, Quick match, Play over days, Settings and How to play, each only when the game supports it and with a `data-testid`. The game skins them with CSS variables ([ui.md](ui.md)) and decorates them through `screens` hooks. The title shows an offline note when `hub.isOffline`, and disables Play online and Play over days after `hub:rt-failed`. An online game over days has its own `turns` screen (`turns-flow.ts`, [turns.md](turns.md#the-screen)).
 
 ## What the kit does for you
 
 - Registers every hub handler before the first `await`.
 - Saves, resumes and clears the game in progress; reacts to `hub:reset`.
-- Routes launches, deep links, dailies, races and online rooms to the right mode.
+- Routes launches, deep links, dailies, races, online rooms and online games over days (Your games, `?hub_turn_link=`) to the right mode.
 - Syncs input groups and the hub menu button with the screen.
 - Installs `window.__game` (see [test-hook.md](test-hook.md)); drivers only in dev, on localhost or under `__HUB_TEST__`.
 

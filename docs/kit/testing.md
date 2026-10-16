@@ -26,8 +26,8 @@ fake.auth(null); // hub:auth (log out)
 
 - `FakeHub` records every hub call in `fake.log` (a `CallLog`) and has drivers for hub events: `openOverlay`, `auth`, `reset`, `goOffline`, `goOnline`, `menuVisible`, `runtime`, `blocker`, `today`.
 - Sub-fakes with their own drivers: `fake.daily.start(day)`, `fake.race.start/end/exit/close/hud`, `fake.rooms` and `FakeRoom` (`setInfo`, `addSeat`, `receive`, `seatChange`, `chatFrom`, `kicked`, `endedBy`), `fake.progress.seed(slot, data)` with `failReads` and `readDelay`, `fake.resume.loadDelay`, `fake.input`, `fake.mp`, `fake.social`.
-- `hub.saved`, `hub.turns`, `hub.avatar` and `hub.userId()` are always there, like the pinned client. The world's planned APIs exist only when you build with `planned: { world: true }`, so the kit sees the same "absent" as the real client.
-- `fake.daily.inProgressDay(day, saved?)` puts a day in progress (returns its id); `fake.saved.add(row)` adds a Your games row no other fake holds; `fake.avatar.change(userId, name)` changes someone's avatar; `fake.turns.open(id)` gives a `FakeTurnGame` with `opponentMoved`, `turnChanged`, `ended`.
+- `hub.saved`, `hub.turns`, `hub.avatar` and `hub.userId()` are always there, like the pinned client. The world's planned APIs (W2 tables, W3 `setRoster`) exist only when you build with `planned: { world: true }`, so the kit sees the same "absent" as the real client.
+- `fake.daily.inProgressDay(day, saved?)` puts a day in progress (returns its id); `fake.saved.add(row)` adds a Your games row no other fake holds; `fake.avatar.change(userId, name)` changes someone's avatar; `fake.turns.open(id)` gives a `FakeTurnGame` with `opponentMoved`, `turnChanged`, `ended`, `seatConnected(seat, connected)` (a player comes or goes) and `chatFrom(line)`; its `canLetComputerPlay(now)` is the client's own rule, `letComputerPlay()` turns the due seats into `bot`, `rematch()` gives the next game, and `fake.turns.link` is the invite link the page was opened with.
 - `fakeClock()` moves only when told: `advance(ms)`, `flushFrames()`, `pending()`, `settle()`. It starts at 2026-10-15T00:00:00Z.
 - `fakeStorage(initial?)` is a Map-backed `Storage` with `dump()`; `throwingStorage()` throws on every call like Safari private mode.
 - Behaviour is copied from the hub docs and client source. Contract and parity tests keep it honest (below).
@@ -88,7 +88,7 @@ it('opening hub UI pauses the game once', async () => {
 
 ### Planned hub tests
 
-`src/kit/testing/phases.ts` lists the hub phases kit features wait on: `savedGames01`, `savedGames3`, `savedGames4`, `avatars0`, `avatars2`, `avatars4` (all `shipped: true`: hub client next.6), and `worldW2`, `worldW3`, `worldW4` (`shipped: false`, coming in next.9). `waitsOn(...phases)` gives a skip reason; `shipped(...phases)` is true when all are out. Write the test now and skip it:
+`src/kit/testing/phases.ts` lists the hub phases kit features wait on: `savedGames01`, `savedGames3`, `savedGames4`, `avatars0`, `avatars2`, `avatars4` (`shipped: true`: hub client next.6), `world0` and `worldW4` (`shipped: true`: the live world and a game's own room, next.9), and `worldW2`, `worldW3` (`shipped: false`: game tables in the world and in-game presence, coming). `waitsOn(...phases)` gives a skip reason; `shipped(...phases)` is true when all are out. Write the test now and skip it:
 
 ```ts
 import { planned } from './_support/planned.ts';
@@ -96,6 +96,35 @@ planned('savedGames01')('row 56: hub.saved opens a daily in progress', async () 
 ```
 
 For node tests: `{ skip: shipped('worldW2') ? false : waitsOn('worldW2') }`. When the hub publishes a phase, a kit minor version flips its entry to `true` and the tests run. `HUB_PHASES` is a constant, not an environment variable: nothing reads an env of that name.
+
+### Online games over days: checkTurnRules
+
+The rules module's conformance test is the hub's own kit (`checkTurnRules`,
+re-exported by kit/turns; multiplayer.md [§16.7](../multiplayer.md#167-testing)).
+`tests/game/turns.test.ts` runs it on the game's rules:
+
+```ts
+checkTurnRules(rules, {
+  seats: [2, 4],
+  games: 50,
+  plant: (state, seat, marker) => plantInHand(state, seat, marker),
+  revealed: (state, marker) => state.discard.includes(marker),
+  shuffleHidden: (state, seat, rng) => redealOthers(state, seat, rng),
+});
+```
+
+| Option | What it checks |
+| --- | --- |
+| `seats`, `games`, `maxMoves` | Seat counts to play (default `[2]`), games per count (25), the longest game allowed (2000 moves) |
+| `setupOptions`, `mode` | What games are set up with |
+| `randomMove(state, seat, rng)` | A legal move (default: the rules' `autoMove`; one of the two is needed) |
+| `reactMove(state, seat, rng)` | A legal move out of turn for a `mayAct` seat, or `null` (default: `autoReact`) |
+| `plant(state, seat, marker)` | Hide `marker` where only `seat` may see it; no other seat's `view` or `eventView` may contain it |
+| `revealed(state, marker)` | True once a planted marker is rightly public (played face up, shown at the end): from then on that marker isn't checked, so a played card isn't a leak |
+| `shuffleHidden(state, seat, rng)` | The twin table: a copy with everything `seat` may not see shuffled or redealt (the deck's order, the other hands, keeping their counts); after every move each seat's `view` of the twin must equal its view of the real state, which catches leaks a marker can't (an order, a count, a hint) |
+| `fixtures` | Old states that must still load through `migrate` |
+
+It throws `checkTurnRules: …` with the seed; the report is `{ games, moves, longestGame, outOfTurn }`.
 
 ### Sim
 
@@ -121,7 +150,7 @@ e2e('a new game starts', e, async (t) => {
 });
 ```
 
-The kit's suites are `tests/hub/kit/`: `pause`, `progress` (saves, Continue, daily), `race`, `online`, `saved` (a day in progress from the title, credited to its day), `avatar` (the title bust, the designer, lobby faces), `planned` (all skipped: online games over days, the canvas adapters, the world), and `fake-parity` (FakeHub gives the same logs as the real hub). `api(player)` is that player's REST client (`get`, `post`, `put` under `/_api`); `today(-1)` is yesterday's daily day.
+The kit's suites are `tests/hub/kit/`: `pause`, `progress` (saves, Continue, daily), `race`, `online`, `saved` (a day in progress from the title, credited to its day), `avatar` (the title bust, the designer, lobby faces), `turns` (online games over days in two browsers: a link game, live moves, quick-chat, "Waiting for…", the hand-over, the end, Your games; skipped without `game.turns`), `world` (the hub serves the game's own room and a Tiled-made one; skipped without `game.world`), `planned` (all skipped: the canvas adapters, world tables), and `fake-parity` (FakeHub gives the same logs as the real hub). `env({ env: { HUB_LIMITS_JSON } })` shortens the hub's limits for a file (the turns suite hands over after 1.5 s); `env({ apps })` links more games. `api(player)` is that player's REST client (`get`, `post`, `put` under `/_api`); `today(-1)` is yesterday's daily day.
 
 ## Tests
 

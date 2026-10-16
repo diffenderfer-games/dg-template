@@ -24,7 +24,7 @@ function onlineDrivers(flow: OnlineFlow): GameHookDrivers['online'] {
 }
 
 /** The kit's version (kit.json `kitVersion`). */
-export const KIT_VERSION = '1.0';
+export const KIT_VERSION = '1.2';
 
 /** Install the hook for a defineGame game. */
 export function installGameHook<P extends JsonObject, R extends JsonObject>(o: {

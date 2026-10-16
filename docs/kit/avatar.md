@@ -7,7 +7,11 @@ title-screen demo of the player's own bust. The faces are the hub's: every
 player has an avatar (a default from their user id until they make one).
 Live since hub client 2.0.0-next.6; next.7 added long hair and new glasses
 (the renderer is bundled in the pinned package, so a game shows new parts once
-it upgrades).
+it upgrades). next.9 added a world-scale figure: `figure: 'walker'` on the
+renderer's full frames, `createAtlas` and the Pixi `createCrowd` draws a small
+full-body character that walks, runs, sits, waves and cheers (the hub's world
+draws players with it); `blob` stays the default, and heads and busts are
+unchanged.
 
 ## What the game does
 

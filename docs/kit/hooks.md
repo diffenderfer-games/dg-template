@@ -34,6 +34,7 @@ The kit calls these; you fill them in. `npm run todo` lists the open
 | `daily` | `meta(run, outcome)`, `offline` ([daily.md](daily.md)) |
 | `race` | `stats(run)`, `progress(run)`, `params()` ([race.md](race.md)) |
 | `online` | `onlineGame({...})` from `online.ts` ([online.md](online.md)) |
+| `turns` | `draw(ctx, el, board)`, `create`: the board of an online game over days, from `turns/board.ts` ([turns.md](turns.md)) |
 | `audio` | Sound and music ([audio.md](audio.md)) |
 | `avatar` | Faces ([avatar.md](avatar.md)) |
 | `snap(run)` | A JSON summary for tests and shots (`__game.snap()`) |

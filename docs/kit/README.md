@@ -43,9 +43,9 @@ everyone, change the template first.
 | haptics | Vibration | [haptics.md](haptics.md) |
 | server | Own-server games | [server.md](server.md) |
 | saved | "Your games": the title's Continue rows, days in progress | [saved.md](saved.md) |
-| turns | Online games over days: the hub runs the game's rules | [turns.md](turns.md) |
+| turns | Online games over days: the hub runs the game's rules; the kit's screen | [turns.md](turns.md) |
 | avatar | Players' faces, the title bust, the canvas adapters | [avatar.md](avatar.md) |
-| world | World tables and Quick match (coming in next.9; off) | [world.md](world.md) |
+| world | The game's own room in the hub's world (`game.world`, `dg-world`); tables and Quick match coming | [world.md](world.md) |
 
 Also: [hooks.md](hooks.md) (every hook), [screenshots.md](screenshots.md),
 [whats-new.md](whats-new.md), [CHANGELOG.md](CHANGELOG.md).
@@ -53,13 +53,15 @@ Also: [hooks.md](hooks.md) (every hook), [screenshots.md](screenshots.md),
 ## Hub phases
 
 The kit is written against the pinned hub client (`@diffenderfer-games/hub`
-2.0.0-next.7). Saved games, online games over days and avatars shipped in
-next.6 and are on. The world (tables, Quick match, room files) is **coming in
-next.9**: kit/world checks for its API at runtime and stays off, and its tests
-are written and **skipped, naming the phase** they wait on
-(`src/kit/testing/phases.ts`). When the hub ships a phase, flip it in
-`HUB_PHASES` and the tests run. Also coming, in next.8: the online games'
-`turns-rules` entry, presence, `mayAct` and buzz ([turns.md](turns.md)).
+2.0.0-next.9, with `@diffenderfer-games/world` at the same version). Saved
+games and avatars (next.6), online games on the server with who is there,
+moves out of turn, the game's own quick-chat, guests and the your-turn buzz
+(next.8, [turns.md](turns.md)), and the world with a game's own room
+(next.9, [world.md](world.md)) are live and on. Game tables in the world and
+in-game presence (world W2, W3) are **coming**: kit/world checks for their
+API at runtime and stays off, and their tests are written and **skipped,
+naming the phase** they wait on (`src/kit/testing/phases.ts`). When the hub
+ships a phase, flip it in `HUB_PHASES` and the tests run.
 
 ## The hub menu button
 

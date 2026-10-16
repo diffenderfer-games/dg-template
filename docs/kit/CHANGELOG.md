@@ -4,6 +4,81 @@ KIT doc. One entry per kit version; per module inside. A **major** version
 means a hook's signature changed: the entry says how to move a game over.
 `npm run kit:sync` prints the entries newer than a game's `kit.json`.
 
+## 1.2 (2026-10-16)
+
+The hub client is pinned at **2.0.0-next.9** (what diffenderfer.games runs),
+with `@diffenderfer-games/world` 2.0.0-next.9 next to it. Online games over
+days get the kit's own screen on next.8's online games on the server; the
+world and a game's own room (next.9) are on; game tables in the world (W2)
+and in-game presence (W3) stay off (coming).
+
+- **turns** 1.2: the rules types and RNG come from the zod-free
+  `@diffenderfer-games/hub/turns-rules` (`kit/turns/rules.ts`, what a rules
+  module imports; `checkTurnRules` stays in the index for tests). The kit's
+  screen for online games over days (`kit/turns/screen.ts`,
+  `kit/turns/status.ts`): the status line ("Your turn"; "Ann is playing", or
+  "Waiting for Ann…" only when her seat's `connected` is `false`), seats with
+  faces, Start, Copy the link, Remind them, **Let the computer play for Ann**
+  (only while `canLetComputerPlay()`; asked again on every `turn` event and
+  when `handOverAt` comes, no polling), Rematch, Leave, Back, and chat with
+  the game's own `game.turns.quickChat` phrases. A move out of turn
+  (`mayActNow`) is offered as `board.canMove`.
+- **boot** 1.2: a definition's `turns` hook (`draw(ctx, el, board)`,
+  `create`) with `game.turns` declared turns it on: the title's Play over
+  days (the computer, a link, anyone), Your games and the title's Continue
+  rows open online games on the kit's screen (`openTurns`), an invite link
+  (`?hub_turn_link=`) takes the seat at boot (`TurnsFlow`,
+  `kit/boot/turns-flow.ts`). Without it nothing changes.
+- **core** 1.2: `TurnGameLike` adds `outcome`, `chat`, `chatMode`, `link`,
+  `mayActNow`, `start`, `say`, `canLetComputerPlay`, `letComputerPlay`,
+  `rematch`; `kit/core/manifest.ts` reads `game.turns` and the quick-chat
+  phrases from package.json at build time; new strings for the screen
+  (`isPlaying`, `letComputerPlay`, `turns*`, `yourTurn`, `back`).
+- **online** 1.1: one chat panel for rooms and online games (`ChatPort`,
+  `roomChat`, `gamePhrases`); rooms offer the game's own
+  `game.multiplayer.quickChat` phrases after the hub's.
+- **ui** 1.1: the turns screen's styles; the due seat outlined.
+- **world** 1.2: a game's own room is live: `game.world` (`map` and/or
+  `generate`), `kit/world/room.ts` (`parseGameWorld`, `generateRoom`,
+  `roomProblems`, `worldKey`) with the hub's schema and
+  `@diffenderfer-games/world`. `npm run world:check`, `world:generate`,
+  `world:tiled`, `world:build` run the hub's `dg-world` CLI (the `dg-room`
+  plan is gone). Tables, Quick match and `setRoster` stay off (W2/W3).
+- **testing** 1.2: `FakeTurnGame` has the new members, `seatConnected`,
+  `chatFrom` and the client's `canLetComputerPlay` rule; `HUB_PHASES` adds
+  `world0` and flips `worldW4` (shipped); W2 and W3 say "coming".
+- **hub-events, hub-suites** 1.2: `tests/hub-events/turns.test.ts`; new
+  suites `tests/hub/kit/turns.test.ts` (two browsers: a link game, live moves,
+  quick-chat, "Waiting for…", the hand-over, the end, Your games) and
+  `world.test.ts` (the hub serves the game's room and a Tiled-made one);
+  `planned` keeps only world tables and the canvas adapters.
+- **scripts** 1.2: `build:rules` skips a game without rules (`npm run build`
+  runs it after vite); `new-game --no-turns` (also drops `game.turns` and
+  the template's `turns` shot) and `--no-world`, and `--title` names the
+  generated room; `checkWorld` uses the hub's `GameWorld` schema.
+- **server** 1.2 (docs): `game.data` passes `hub-doctor` since next.8; the
+  next.7 gap note is gone. A test checks the contract accepts it.
+- **test-hook** 1.1 (docs): the `turns` screen.
+- **docs, saved, avatar** 1.2: README, testing (the `checkTurnRules` options,
+  `revealed` and `shuffleHidden` among them), the walker figure, Your games.
+
+### Moving a game over
+
+1. `npm install --save-exact @diffenderfer-games/hub@2.0.0-next.9` and
+   `npm install --save-exact --save-dev @diffenderfer-games/world@2.0.0-next.9`,
+   then `npm run kit:sync`.
+2. Online rules: import the types from `../../kit/turns/rules.ts`. In
+   package.json set `"build": "vite build && node scripts/kit/build-rules.ts"`
+   (and `game.build` back to `npm run build`).
+3. To use the kit's screen for online games over days: add a `turns` hook
+   (copy the template's `src/game/turns/board.ts`) to the definition. A game
+   with its own screen keeps it and gives no hook. Drop any refresh timer of
+   your own: the client catches up by itself.
+4. `game.world`: replace any `tables` block with `map` and/or `generate`
+   (docs/kit/world.md); the `dg-room` scripts are now `world:*`.
+5. An own-server game that kept `game.data` out of package.json: add it now.
+6. Tests that called `chatPanel(room, …)` pass `roomChat(room)`.
+
 ## 1.1 (2026-10-15)
 
 The hub client is pinned at **2.0.0-next.7** (what diffenderfer.games runs).

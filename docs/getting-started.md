@@ -28,13 +28,15 @@ npm run new-game -- --renderer pixi --no-online --no-race --title "My Game"
 
 It copies the starter into `src/game/render/`, removes the other renderers'
 packages, sets the `2d`/`3d` label and drops the features you said no to
-(`--no-daily`, `--no-race`, `--no-online`, `--no-avatar`). Run it once.
+(`--no-daily`, `--no-race`, `--no-online`, `--no-turns`, `--no-world`, `--no-avatar`). Run it once.
 
 ## Step 4. The `game` block
 
 In `package.json`: `title`, `description` (one plain sentence), `labels` (the
 catalog filter: see [HANDOFF.md](../HANDOFF.md)), and the features you keep:
-`resumable`, `dailyChallenges`, `leaderboards`, `race`, `multiplayer`. Keep
+`resumable`, `dailyChallenges`, `leaderboards`, `race`, `multiplayer`, `turns`
+(online games over days), `world` (your room in the hub's world:
+[kit/world.md](kit/world.md)), `data` (an own server's files, for backups). Keep
 `type: "static"`, `build`, `serveDir: "dist"`. `npm run hub-doctor` checks it.
 `game.changes` starts empty: see [kit/whats-new.md](kit/whats-new.md).
 
@@ -71,7 +73,7 @@ Each is one file in `src/game/`, wired in `src/game/hooks.ts`:
 | `online.ts` | Online play in hub rooms | [kit/online.md](kit/online.md) |
 | `audio.ts`, `music-*.ts` | Sound and music in a worker | [kit/audio.md](kit/audio.md) |
 | `avatar.ts` | Players' faces: the title bust, reactions (canvas faces: `render/avatar-*.ts`) | [kit/avatar.md](kit/avatar.md) |
-| `turns/rules.ts` | Online games over days, run by the hub (declare `game.turns`) | [kit/turns.md](kit/turns.md) |
+| `turns/rules.ts`, `turns/board.ts` | Online games over days: the rules the hub runs, and the board the kit's screen shows (declare `game.turns`) | [kit/turns.md](kit/turns.md) |
 | `test-hook.ts` | Extra test drivers | [kit/test-hook.md](kit/test-hook.md) |
 
 Saved games need nothing extra: with `resumable: true` and a daily, the title
@@ -84,7 +86,7 @@ lists the saved game and days in progress ([kit/saved.md](kit/saved.md)).
 
 ```bash
 npm run check        # typecheck, unit tests, lint, format, kit files, hub-doctor, build
-npm run test:hub     # the kit's hub suites (pause, saves, daily, saved games, avatars, race, online) on a real hub
+npm run test:hub     # the kit's hub suites (pause, saves, daily, saved games, avatars, race, online, online games over days, your room) on a real hub
 npm run shots        # phone + desktop screenshots of dist/
 npm run shots:hub    # the hub scenarios
 ```

@@ -8,8 +8,10 @@ worker, the test hook). You write the game: its state, its rules, its controls
 and how it looks.
 
 It is built against the hub client that diffenderfer.games runs,
-`@diffenderfer-games/hub` **2.0.0-next.7** (pinned exactly). Coming, and not
-in it yet: online games' presence and buzz (next.8) and the world (next.9).
+`@diffenderfer-games/hub` **2.0.0-next.9** (pinned exactly), with online
+games over days on the kit's own screen and the game's room in the hub's
+world (`@diffenderfer-games/world`, `dg-world`). Coming, and not in it yet:
+game tables in the world.
 
 ## Make a game in 10 steps
 

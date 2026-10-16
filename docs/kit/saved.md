@@ -16,10 +16,10 @@ the adapter and routes what the player opens:
 - a day in progress goes to `hub.daily.resume(id)`, then `play` runs with
   `challenge.saved` (straight back where the player left it);
 - the saved game goes to `session.continueSaved()`;
-- an online game played over days goes to `openTurns`, which `defineGame` does
-  not set: the kit has no screen for those yet (see [turns.md](turns.md)), so
-  they are left to the hub (it reloads the page with `?hub_open=`) and never
-  appear on the title.
+- an online game played over days goes to `openTurns`: `defineGame` sets it
+  when the game plays them (a `turns` hook and `game.turns`), and the game
+  opens on the kit's screen ([turns.md](turns.md)); a game without them leaves
+  them to the hub (it reloads the page with `?hub_open=`) and never lists them.
 
 What players see on the title (never "run", "turn game" or "instance"):
 
@@ -27,7 +27,7 @@ What players see on the title (never "run", "turn game" or "instance"):
 |---|---|
 | The saved game | Continue, with `6 coins · 48 s left` under it (the label `run.progress` gave) |
 | A day in progress | `Daily challenge · Oct 14 (6 coins)` |
-| An online game | `Online with Sam · your turn` (a game with `openTurns` only) |
+| An online game | `Online with Sam · your turn` (a game that plays them only) |
 
 ## What the hub does
 
@@ -100,6 +100,8 @@ if (!saved.routeOpened()) {
   day in progress), the fallback when the list fails, the hub wording, opened
   and `onOpen` routing by kind, online games left to the hub without
   `openTurns`, discard.
+- `tests/hub-events/turns.test.ts`: an online game opened from Your games
+  lands on the kit's turns screen; none for a game without a `turns` hook.
 - `tests/hub-events/planned.test.ts` row 56: opened routes by kind, `change`
   refreshes Continue, `onOpen` switches without a reload.
 - `tests/hub-events/daily.test.ts` row 28 and after: a day in progress restores

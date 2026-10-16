@@ -11,7 +11,7 @@ import { existsSync, readdirSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
 
 /** The kit's version: `major.minor`. A major means a hook signature changed (see the CHANGELOG). */
-export const KIT_VERSION = '1.1';
+export const KIT_VERSION = '1.2';
 
 /** A module: its version and the paths (files or folders) it owns. */
 export type KitModuleDef = { version: string; paths: string[] };
@@ -23,8 +23,8 @@ function srcModule(name: string, version = '1.0'): KitModuleDef {
 
 /** Every module. */
 export const KIT_MODULES: Record<string, KitModuleDef> = {
-  core: srcModule('core', '1.1'),
-  testing: srcModule('testing', '1.1'),
+  core: srcModule('core', '1.2'),
+  testing: srcModule('testing', '1.2'),
   rng: srcModule('rng'),
   'daily-puzzle': srcModule('daily-puzzle'),
   save: srcModule('save'),
@@ -32,29 +32,29 @@ export const KIT_MODULES: Record<string, KitModuleDef> = {
   daily: srcModule('daily', '1.1'),
   pause: srcModule('pause'),
   scores: srcModule('scores'),
-  'test-hook': srcModule('test-hook'),
-  boot: srcModule('boot', '1.1'),
+  'test-hook': srcModule('test-hook', '1.1'),
+  boot: srcModule('boot', '1.2'),
   input: srcModule('input'),
   layout: srcModule('layout', '1.1'),
   loop: srcModule('loop'),
-  ui: srcModule('ui'),
+  ui: srcModule('ui', '1.1'),
   'settings-ui': srcModule('settings-ui'),
   race: srcModule('race'),
-  online: srcModule('online'),
+  online: srcModule('online', '1.1'),
   audio: srcModule('audio'),
   haptics: srcModule('haptics'),
-  server: srcModule('server', '1.1'),
-  saved: srcModule('saved', '1.1'),
-  turns: srcModule('turns', '1.1'),
-  avatar: srcModule('avatar', '1.1'),
-  world: srcModule('world', '1.1'),
-  'hub-events': { version: '1.1', paths: ['tests/hub-events'] },
-  'hub-suites': { version: '1.1', paths: ['tests/hub/_kit.ts', 'tests/hub/kit'] },
-  scripts: { version: '1.1', paths: ['scripts/kit', 'tests/scripts'] },
+  server: srcModule('server', '1.2'),
+  saved: srcModule('saved', '1.2'),
+  turns: srcModule('turns', '1.2'),
+  avatar: srcModule('avatar', '1.2'),
+  world: srcModule('world', '1.2'),
+  'hub-events': { version: '1.2', paths: ['tests/hub-events'] },
+  'hub-suites': { version: '1.2', paths: ['tests/hub/_kit.ts', 'tests/hub/kit'] },
+  scripts: { version: '1.2', paths: ['scripts/kit', 'tests/scripts'] },
   ci: { version: '1.0', paths: ['.github/workflows/deploy.yml'] },
   config: { version: '1.0', paths: ['eslint.config.ts', 'tsconfig.base.json', '.prettierrc.json', '.prettierignore'] },
   docs: {
-    version: '1.1',
+    version: '1.2',
     paths: [
       'docs/getting-started.md',
       'docs/repo-setup.md',
