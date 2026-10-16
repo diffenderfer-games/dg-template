@@ -1993,9 +1993,37 @@ rooms (`lounge`, `park`, `station`, `camp`) need nothing from games. A game can 
 The live world runs over the hub socket (`world.*` ops and events, contract
 `realtime/ops/world.ts`): the hub referees every step with the same collision code
 the client walks with, shows each player the others near them, overflows a full room
-into a second instance, allows only quick-chat bubbles and emotes (emotes only in
-quiet zones; nothing when chat is off), and remembers where each player stood. The
-map file is `GET /_api/world/maps/<key>?rev=<rev>`. Games don't call any of this.
+into a second instance (entering or walking through a door to a friend joins *their*
+instance when it has room), and remembers where each player stood. The map file is
+`GET /_api/world/maps/<key>?rev=<rev>`. Games don't call any of this.
+
+**Adventure Mode** is the world as players reach it: the top card on the home page
+and in the hub menu (it glows the first time a player sees it each day; a still
+border for less motion) opens `/world` (`/world/<place>` deep-links; `/world` alone
+goes back to your last world, the Hall the first time). Guests can come in. dg-host
+serves the page; `/_hub/adventure.js` loads `/_hub/world.js` and `/_hub/avatar.js`.
+The hub menu works inside (the world's input pauses under it, `hub.overlay.autoPause`),
+and **Library Mode** (in the world's top bar, and the menu's top card there) goes back
+to the games. In it:
+
+- **Walk to a friend:** Friends lists the friends in the world and where (only friends
+  who show you their presence; never across a block). "Walk to" asks `world.find` for
+  their world, instance, cell and the portals on the way (the portal graph's fewest-hops
+  route, `planWorldRoute` in `@diffenderfer-games/world`), then walks the A* path to
+  each door and through it, step by refereed step, to a free cell beside them, facing
+  them. It follows them if they move and stops when you move yourself, they leave or
+  hide, or no door leads there.
+- **Say something** (and Enter on a keyboard) puts a bubble over your head for a few
+  seconds. Quick-chat phrases and emotes go to everyone who can see you (emotes only
+  in quiet zones; nothing when chat is off). **Typed text only when your chat allows
+  it** (`WorldPlace.chat` is `on`: not a guest, no parent lock, a friend to type to),
+  moderated like all chat (the 422 hint, the draft kept, softening, mutes), and
+  delivered **only to your mutual friends who can see you**; strangers never receive
+  it (docs/plans/multiplayer.md: free text only between mutual friends). Rate-limited
+  (`worldSayPerFiveSec`).
+- **Tips:** a first visit shows seven short tips, each done when the player does the
+  thing or taps Got it (Skip tips ends them; ? in the top bar shows them again), kept
+  per player in localStorage.
 
 ## Content safety & the rejection contract
 
