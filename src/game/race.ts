@@ -9,12 +9,11 @@
  * a param's key, only its `title`.
  */
 import type { RaceHooks } from '../kit/boot/index.ts';
-import { RACE_DEFAULTS } from './config.ts';
 import type { Run } from './state.ts';
 
-/** TODO(game): your race stats and progress. */
+/** TODO(game): your race stats (the keys of `game.race.stats`) and how far along a player is (0..1). */
 export const race: RaceHooks<Run> = {
   stats: (run) => ({ score: run.score }),
-  progress: (run) => (run.target > 0 ? run.score / run.target : 0),
-  params: () => ({ target: RACE_DEFAULTS.target }),
+  progress: () => 0,
+  // TODO(game): `params: () => ({ … })` for the Race button (default: the `game.race.params` defaults).
 };

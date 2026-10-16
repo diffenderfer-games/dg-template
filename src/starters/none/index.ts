@@ -3,8 +3,8 @@
  * (STARTER: `npm run new-game -- --renderer none` copies this folder to src/game/render/.)
  * Docs: docs/getting-started.md § "Renderers"
  *
- * A placeholder: the score in a disc that pops when the player scores, laid
- * out in the play region (`region()`, screen pixels). Replace it with your game.
+ * TODO(game): your board, built with `h()` inside the play region (`region()`, screen
+ * pixels). The placeholder shows the score so you can see it run.
  */
 import type { View } from '../../game/view.ts';
 import type { Region } from '../../kit/layout/index.ts';
@@ -16,53 +16,30 @@ export const RENDERER = 'none';
 /** Create the View. */
 export function createView(o: { region: () => Region; slug: string }): View {
   const board = h('div.dom-board', {
-    style: { position: 'absolute', display: 'grid', 'place-items': 'center', gap: '16px' },
-  });
-  const disc = h('div.dom-disc', {
     style: {
-      width: 'min(40vw, 40vh)',
-      height: 'min(40vw, 40vh)',
-      'border-radius': '50%',
-      background: '#ff5f3b',
+      position: 'absolute',
       display: 'grid',
       'place-items': 'center',
-      font: '700 min(12vw, 12vh) system-ui, sans-serif',
+      font: '700 48px system-ui',
       color: '#fff',
-      transition: 'transform 120ms ease-out',
     },
   });
-  const players = h('div.dom-players', { style: { display: 'flex', gap: '12px', font: '600 20px system-ui' } });
-  board.append(disc, players);
   let last = '';
-  const place = (r: Region): void => {
+  const show = (text: string): void => {
+    const r = o.region();
     const key = `${r.x},${r.y},${r.width},${r.height}`;
-    if (key === last) return;
-    last = key;
-    Object.assign(board.style, { left: `${r.x}px`, top: `${r.y}px`, width: `${r.width}px`, height: `${r.height}px` });
-  };
-  const text = (el: HTMLElement, s: string): void => {
-    if (el.textContent !== s) el.textContent = s;
+    if (key !== last) {
+      last = key;
+      Object.assign(board.style, { left: `${r.x}px`, top: `${r.y}px`, width: `${r.width}px`, height: `${r.height}px` });
+    }
+    if (board.textContent !== text) board.textContent = text;
   };
   return {
     mount(stage) {
       stage.appendChild(board);
       return Promise.resolve();
     },
-    draw(run) {
-      place(o.region());
-      disc.hidden = false;
-      players.hidden = true;
-      text(disc, run === null ? '' : String(run.score));
-    },
-    drawOnline(view, me) {
-      place(o.region());
-      disc.hidden = true;
-      players.hidden = false;
-      text(players, view ? view.players.map((p) => `${p.id === me ? 'You' : 'Player'}: ${p.score}`).join(' · ') : '');
-    },
-    scored() {
-      disc.style.transform = 'scale(1.15)';
-      setTimeout(() => (disc.style.transform = ''), 120);
-    },
+    draw: (run) => show(run === null ? '' : String(run.score)),
+    drawOnline: (view) => show(view?.players.map((p) => p.score).join(' · ') ?? ''),
   };
 }

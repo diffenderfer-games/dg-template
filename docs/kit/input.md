@@ -55,7 +55,7 @@ Call `ctx.controls.relayout(width)` from `ctx.onResize` if your touch layout dep
   The d-pad (buttons 12–15) and the stick (axes 0, 1) need separate inputs.
 - **`down(name)` and `pressed(name)` are per frame**, not per step: with two fixed steps in
   one frame a press is seen twice, with none it is missed. For a press per step, compare
-  `value(name) >= 0.5` with last step's (the template's `hooks.ts` does).
+  `value(name) >= 0.5` with last step's.
 - **The hub's controller adapter sends keyboard events from the gamepad** (A → Space, B →
   Enter…), and they are not trusted (`e.isTrusted === false`). A game that listens to
   `keydown` itself ignores untrusted events, or the gamepad types and submits.

@@ -7,23 +7,18 @@
  */
 import type { KitStrings } from '../kit/core/strings.ts';
 
-/** TODO(game): your title, tagline and how-to-play lines (`new-game --title` sets the title). */
+/** TODO(game): your tagline and how-to-play lines (`new-game --title` sets the title). */
 export const COPY = {
   title: 'My Game',
-  tagline: 'Score as many points as you can!',
-  howTo: [
-    'Press Space, the gamepad’s A button or the on-screen button to score a point.',
-    'Daily challenge: reach the target before time is up. Everyone gets the same target today.',
-    'Race: the first to reach the target wins.',
-  ],
+  tagline: 'TODO(game): one line that makes a kid want to play.',
+  howTo: ['TODO(game): how to play, in a few short lines.'],
 } as const;
 
 /** Kit words this game says differently (optional). */
 export const KIT_OVERRIDES: Partial<KitStrings> = {};
 
-/** The HUD's words. */
+/** The HUD's words. TODO(game): yours. */
 export const HUD = {
-  score: (n: number, target: number) => (target > 0 ? `Score ${n} / ${target}` : `Score ${n}`),
-  time: (s: number) => `Time ${s}`,
+  score: (n: number) => `Score ${n}`,
   best: (n: number) => `Best ${n}`,
 };

@@ -6,12 +6,13 @@ means a hook's signature changed: the entry says how to move a game over.
 
 ## 1.4 (2026-10-16)
 
-After Wordle, the first real game (docs/plans/after-wordle.md): **the kit's
+After Wordle, the first real game (kit-retros.md): **the kit's
 tests now pass in any game**, not only the template's example. They ask the
 game for its shapes and need only a short test contract; suites for features a
 game doesn't declare skip on their own; and a kit test that still doesn't fit
 is listed with its reason in `tests/kit-skips.json` instead of being deleted.
-New games start neutral (no Coin Dash), and making one, and its first deploy,
+New games start from a skeleton of `TODO(game)` comments (no Coin Dash to
+delete), and making one, and its first deploy,
 are one command each.
 
 To move a game over:
@@ -69,14 +70,19 @@ To move a game over:
   **world** (docs): the test contract and kit skips (testing.md), sim `maxSteps`,
   `test:hub` timing; `hub.input` facts and typing games (input.md); a lost day
   restarts from its seed (daily.md); race param keys are never shown (race.md);
-  `testMove` (turns.md); neutral examples (`score`, `target`) everywhere.
+  `testMove` (turns.md); examples use `score` everywhere.
 - **docs** 1.5: getting-started and repo-setup use `npm run create` and
   `npm run first-deploy` (and say `DG_HOST` isn't set in CI: the hub suites are
   skipped there); hooks.md: the game finishes the frame `outcome` is non-null;
   screenshots.md: the cover pattern, run `shots` last.
-- **The template** (not synced): the example is a neutral placeholder (a press
-  scores a point; `score`, `target`, a pile for online games) instead of Coin Dash;
-  the starters draw it; the Pixi starter has `stage.layout()` (screen pixels from the
+- Same day, after the first 1.4 push: **input** 1.2, **hub-suites** 1.5, **docs** 1.6, **scripts** 1.6 (these versions):
+  the starter is a skeleton (getting-started.md); the online resilience suite checks the
+  match goes on and the player comes back (not that the game's own computer player
+  changes the view: a game may not have one yet).
+- **The template** (not synced): Coin Dash is gone; `src/game/` is a skeleton of
+  hooks with `TODO(game)` comments and only what the kit needs to run (a score,
+  `addScore`, `solve`, a pass-the-turn placeholder for online games); the starters
+  show the score and a `TODO(game)` for the scene; the Pixi starter has `stage.layout()` (screen pixels from the
   play region) beside `stage.fit(arena)`; `pause` is Escape and Start (no P);
   `tools/New-Game.ps1` calls `npm run create` and takes `-Name`, `-Renderer`,
   `-No*`, `-NoShortcut`, `-NoLaunch`.

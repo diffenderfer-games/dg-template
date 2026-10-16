@@ -23,15 +23,15 @@ export const scenarios: Scenario[] = [
   {
     name: 'turns',
     target: 'hub',
-    checks: 'an online game the hub runs with the computer: whose move it is, the seats, the pile, the takes, chat',
+    checks: 'an online game the hub runs with the computer: whose move it is, the seats, the board, chat',
     run: async (c) => {
       await c.open();
       await c.press('turns-new');
       await c.press('turns-computer');
       await c.screen('turns');
-      await c.page.waitForSelector('[data-testid="take-1"]:not([disabled])', { timeout: 15_000 });
-      await c.press('take-2');
-      await c.page.waitForSelector('[data-testid="take-1"]:not([disabled])', { timeout: 15_000 });
+      await c.page.waitForSelector('[data-testid="turn-pass"]:not([disabled])', { timeout: 15_000 });
+      await c.press('turn-pass');
+      await c.page.waitForSelector('[data-testid="turn-pass"]:not([disabled])', { timeout: 15_000 });
       await c.wait(300);
     },
   },

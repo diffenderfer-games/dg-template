@@ -5,7 +5,7 @@
 import type { View } from '../../game/view.ts';
 import type { Region } from '../../kit/layout/index.ts';
 import { warmup } from './loader.ts';
-import { createStarterScene, type StarterScene } from './scene.ts';
+import { createScene, type StarterScene } from './scene.ts';
 import { createThreeStage, type ThreeStage } from './stage.ts';
 
 /** The renderer name. */
@@ -19,7 +19,7 @@ export function createView(o: { region: () => Region; slug: string }): View {
   return {
     async mount(host) {
       stage = createThreeStage(host, o.slug);
-      scene = createStarterScene(stage);
+      scene = createScene(stage);
       await warmup(stage.renderer, stage.scene, stage.camera);
     },
     draw(run) {
@@ -29,9 +29,6 @@ export function createView(o: { region: () => Region; slug: string }): View {
     drawOnline(view, me) {
       t += 1 / 60;
       scene?.drawOnline(view, me, t);
-    },
-    scored() {
-      scene?.pop();
     },
   };
 }

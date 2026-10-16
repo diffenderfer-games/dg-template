@@ -14,6 +14,4 @@ export type View = {
   draw(run: Run | null, alpha: number): void;
   /** Draw an online match (`me` is this player's user id). */
   drawOnline?(view: OnlineView | null, me: number): void;
-  /** A quick effect when the player scores (optional juice). */
-  scored?(run: Run): void;
 };

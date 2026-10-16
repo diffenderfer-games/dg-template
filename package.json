@@ -45,7 +45,7 @@
   "game": {
     "type": "static",
     "title": "My Game",
-    "description": "Score as many points as you can. A new daily challenge every day, and races against friends.",
+    "description": "TODO: one plain sentence about the game.",
     "labels": [
       "arcade",
       "2d",
@@ -67,18 +67,7 @@
       }
     ],
     "race": {
-      "params": [
-        {
-          "key": "target",
-          "title": "Points to win",
-          "options": [
-            10,
-            20,
-            30
-          ],
-          "default": 20
-        }
-      ],
+      "params": [],
       "stats": [
         {
           "key": "score",
@@ -98,7 +87,7 @@
       "modes": [
         {
           "key": "party",
-          "title": "Score party"
+          "title": "Party"
         }
       ]
     },

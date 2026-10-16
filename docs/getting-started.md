@@ -1,10 +1,10 @@
 # Make a new game in 10 steps
 
-KIT doc. A new game starts as a small placeholder: each press of the action
-button scores a point, with a normal game, a daily challenge, races, online
-play in hub rooms and online games the hub runs all wired up. Every part of it
-is a `TODO(game)` stub with neutral names (`score`, `target`), so you replace
-its insides with your game; the kit keeps doing the hub's jobs.
+KIT doc. A new game starts as a skeleton: every hook in `src/game/` is there and
+wired up (a normal game, a daily challenge, races, online play in hub rooms,
+online games the hub runs), with `TODO(game)` comments saying what to fill in
+and only the few lines the kit needs to run it. You write your game into it;
+there is no example to delete. The kit keeps doing the hub's jobs.
 
 ## Step 1. Make the game's folder
 
@@ -23,7 +23,7 @@ shortcut ([repo-setup.md](repo-setup.md)).
 ## Step 2. Play it
 
 ```bash
-npm run dev     # the placeholder: press Space, a gamepad's A or the on-screen button
+npm run dev     # the skeleton: the kit's title, play (the score), pause and result screens
 npm run check   # every local gate: a new game passes it as created
 ```
 
