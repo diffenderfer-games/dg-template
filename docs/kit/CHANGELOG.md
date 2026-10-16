@@ -4,6 +4,16 @@ KIT doc. One entry per kit version; per module inside. A **major** version
 means a hook's signature changed: the entry says how to move a game over.
 `npm run kit:sync` prints the entries newer than a game's `kit.json`.
 
+## Docs 1.3 (2026-10-16)
+
+- **docs** 1.3: [look.md](look.md), what every game's UI must be: the owner's
+  expectations (Weston's structure and motion, each game's own colours, every
+  screen dressed, gameplay juice), the tokens, components, motion timings,
+  how to dress the kit's screens (markup and test ids), and how to check it.
+  Learned on Wordle. Linked from CLAUDE.md, getting-started step 7 and the kit map.
+  **scripts** 1.3: `docs/kit/look.md` added to the docs module list. No game code changes:
+  `npm run kit:sync` brings both in.
+
 ## 1.2 (2026-10-16)
 
 **Wording (the owner):** players never see "over days". An online game the hub

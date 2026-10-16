@@ -194,6 +194,10 @@ own filter (the answers and definitions players see must still be clean).
 
 ## 6. Styling the kit's screens (the "Weston look")
 
+The full expectations (tokens, components, motion timings, juice, markup,
+checks) are now a kit doc: [../kit/look.md](../kit/look.md). This section is
+what the kit itself should change so games can meet it with less work.
+
 The owner wants every game to look and move like **Weston's UI** (`../weston`,
 `src/ui/ui.css`): a gold letter-spaced kicker, a wordmark that drops in and
 bobs, rotating taglines, the menu in a glass panel, buttons with an icon tile +

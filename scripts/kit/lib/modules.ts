@@ -50,12 +50,13 @@ export const KIT_MODULES: Record<string, KitModuleDef> = {
   world: srcModule('world', '1.2'),
   'hub-events': { version: '1.2', paths: ['tests/hub-events'] },
   'hub-suites': { version: '1.2', paths: ['tests/hub/_kit.ts', 'tests/hub/kit'] },
-  scripts: { version: '1.2', paths: ['scripts/kit', 'tests/scripts'] },
+  scripts: { version: '1.3', paths: ['scripts/kit', 'tests/scripts'] },
   ci: { version: '1.0', paths: ['.github/workflows/deploy.yml'] },
   config: { version: '1.0', paths: ['eslint.config.ts', 'tsconfig.base.json', '.prettierrc.json', '.prettierignore'] },
   docs: {
-    version: '1.2',
+    version: '1.3',
     paths: [
+      'docs/kit/look.md',
       'docs/getting-started.md',
       'docs/repo-setup.md',
       'docs/kit/README.md',

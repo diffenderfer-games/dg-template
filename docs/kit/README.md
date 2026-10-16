@@ -47,7 +47,8 @@ everyone, change the template first.
 | avatar | Players' faces, the title bust, the canvas adapters | [avatar.md](avatar.md) |
 | world | The game's own room in the hub's world (`game.world`, `dg-world`); tables and Quick match coming | [world.md](world.md) |
 
-Also: [hooks.md](hooks.md) (every hook), [screenshots.md](screenshots.md),
+Also: [look.md](look.md) (what every game's UI and motion must be),
+[hooks.md](hooks.md) (every hook), [screenshots.md](screenshots.md),
 [whats-new.md](whats-new.md), [CHANGELOG.md](CHANGELOG.md).
 
 ## Hub phases

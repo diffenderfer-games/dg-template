@@ -67,6 +67,7 @@ Stop what you start (`npm run clean:procs`).
 
 ## Definition of done
 
+- Every screen and animation meets [docs/kit/look.md](docs/kit/look.md) (Weston's UI style and motion in the game's own colours; the kit's default look is only a scaffold).
 - `npm run check` passes (so `kit:check` is clean and `hub-doctor` is happy).
 - The hub suites pass (`npm run test:hub`), including online ones if the game is online.
 - The contact sheet looks right at phone and desktop sizes.

@@ -57,6 +57,10 @@ The hub draws the on-screen controls ([kit/input.md](kit/input.md)). Keep the
 
 ## Step 7. Draw it
 
+Read [kit/look.md](kit/look.md) first: the owner's expectations for every
+screen and every animation (the kit's default look is a scaffold, not a
+finished game).
+
 - `src/game/render/`: the scene (from the starter you picked).
 - `src/game/screens/`: decorate the kit's title, HUD and result screens.
 - `src/game/strings.ts`: the words players read. No violent words, and never
