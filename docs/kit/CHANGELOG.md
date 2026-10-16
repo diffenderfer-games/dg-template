@@ -51,7 +51,9 @@ and in-game presence (W3) stay off (coming).
   suites `tests/hub/kit/turns.test.ts` (two browsers: a link game, live moves,
   quick-chat, "Waiting for…", the hand-over, the end, Your games) and
   `world.test.ts` (the hub serves the game's room and a Tiled-made one);
-  `planned` keeps only world tables and the canvas adapters.
+  `planned` keeps only world tables and the canvas adapters; the online suite picks
+  "play now" in the Invite to play picker (a game with `game.turns` and modes can
+  start on "Over days").
 - **scripts** 1.2: `build:rules` skips a game without rules (`npm run build`
   runs it after vite); `new-game --no-turns` (also drops `game.turns` and
   the template's `turns` shot) and `--no-world`, and `--title` names the

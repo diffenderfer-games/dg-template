@@ -37,6 +37,17 @@ async function startMatch(a: Player, b: Player): Promise<string> {
   return code;
 }
 
+/**
+ * In the hub's Invite to play picker, choose playing now (the first way listed: live modes come before
+ * "Over days"). A game that also declares game.turns gets both, and the picker can start on "Over days".
+ */
+async function inviteLive(p: Player): Promise<void> {
+  await p.find(`${L}.so-dialog .so-dtitle`, 'Invite to play');
+  const seg = await p.page.$(`${L}.so-dialog .so-seg button`);
+  if (seg !== null) await seg.click();
+  await p.click(`${L}.so-dialog .so-row button`, 'Invite');
+}
+
 /** A player on our game's page. */
 const onGame = (t: E2eTest): Promise<Player> => t.newPlayer(undefined, `/${SLUG}/`);
 
@@ -48,8 +59,7 @@ e2e('1. invite → jump → accept → lobby: both end up in the same room', e, 
   await a.tid('online');
   await waitScreen(a, 'lobby');
   await a.tid('lobby-invite');
-  await a.find(`${L}.so-dialog .so-dtitle`, 'Invite to play');
-  await a.click(`${L}.so-dialog .so-row button`, 'Invite');
+  await inviteLive(a);
   await b.find(`${L}.so-toast`, `${a.name} invited you`);
   await b.click(`${L}.so-toast button`, 'Accept');
   await b.page.waitForFunction((slug) => location.pathname === `/${slug}/`, { timeout: 20_000 }, SLUG);
@@ -67,7 +77,7 @@ e2e('2. a declined invite tells the inviter, and nobody moves', e, async (t) => 
   await a.tid('online');
   await waitScreen(a, 'lobby');
   await a.tid('lobby-invite');
-  await a.click(`${L}.so-dialog .so-row button`, 'Invite');
+  await inviteLive(a);
   await b.find(`${L}.so-toast`, `${a.name} invited you`);
   await b.click(`${L}.so-toast button`, 'Decline');
   await a.find(`${L}.so-toast`, `${b.name} can't play right now`);
