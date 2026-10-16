@@ -30,7 +30,7 @@ online or not, should pause when hub UI opens. See
   await hub.putSave('auto', { level: 7, gold: 120 });
   const { save } = await hub.getSave('auto');
 
-  // A long single-player run the player can pick up again from Your games (game.resumable: true).
+  // A long single-player run the player can pick up again from Resume (game.resumable: true).
   hub.resume.save({ state: { level: 7 }, progress: { label: 'Level 7 of 30', fraction: 7 / 30 } });
 
   // Submit a score — the board is created on first use.
@@ -994,7 +994,7 @@ is the same challenge for everyone, because the seed is server-issued.
 A started day is a **saved game** of its own (see [Saved games](#saved-games)):
 
 - **It is never lost or duplicated.** Starting a day that is in progress (the
-  calendar, a `?daily=` link, "Your games") picks it up again, whatever its
+  calendar, a `?daily=` link, "Resume") picks it up again, whatever its
   age: the 30-day window only limits *starting* a new day. Any number of days
   can be in progress at once.
 - **Winning it any time later gives that day's credit**: the token names the
@@ -1006,7 +1006,7 @@ A started day is a **saved game** of its own (see [Saved games](#saved-games)):
   (and `hub.resume.clear()` during a daily starts the day over from its
   seed). A game whose daily state differs from its run calls
   `hub.daily.save({ state, progress })` itself. A game that saves nothing still
-  gets the day in "Your games" (its label is "Started"); resuming it replays
+  gets the day in "Resume" (its label is "Started"); resuming it replays
   the day from its seed.
 - **`cancel()` pauses**: the day stays in progress (and its last save is sent).
   **`discard()`** gives the day up; it can then be started fresh while it is in
@@ -1097,10 +1097,10 @@ through to local rather than to the SDK's own localStorage:
 
 ## Saved games
 
-Everything a player has in progress, in one place: the home page's **Your
-games** card (next to *Friends & chat* and *Play online*), its window, the
-**Your games** section of the hub menu inside every game, and the **Your
-games** tab of each game's card sheet. There are three kinds, and **players
+Everything a player has in progress, in one place: the home page's **Resume**
+card (next to *Friends & chat* and *Play online*), its window, the
+**Resume** section of the hub menu inside every game, and the **Resume**
+tab of each game's card sheet (all called "Your games" until October 2026). There are three kinds, and **players
 never see their internal names** ("run", "turn game", "instance"):
 
 | Kind | What players see | How a game makes one |
@@ -1127,7 +1127,7 @@ A game can list its own games in progress (in its own style, on its title
 screen) and open the one the player picked, wherever they picked it:
 
 ```ts
-const opened = hub.saved.opened;                     // the Your games window, the menu, an invite: synchronous
+const opened = hub.saved.opened;                     // the Resume window, the menu, an invite: synchronous
 if (opened) await openInstance(opened.id, opened.kind);
 else showTitle(await hub.saved.list());              // "Continue: Level 12 · Yesterday's daily · Online with Sam (your turn)"
 hub.saved.onOpen((game) => openInstance(game.id, game.kind));   // picked from the hub menu while the game runs: no reload
@@ -1168,7 +1168,7 @@ its daily challenges in progress too; online games are never touched by it.
 
 A long single-player run (a solitaire deal, level 12 of a climb, a skirmish
 against the computer) can be picked up again later, on any device. The game
-auto-saves the run with `hub.resume`; it shows in **Your games** with the
+auto-saves the run with `hub.resume`; it shows in **Resume** with the
 game's picture and name, your progress label and bar and "played 2 hours
 ago". Resume opens `/<slug>/?hub_resume=1&hub_open=<id>&hub_kind=run`, and the
 game restores at once, without asking.
@@ -1206,9 +1206,9 @@ call it during online play.
    });
    ```
 3. **Clear it when the run ends**: won, lost or quit (`await hub.resume.clear()`).
-   A finished run must not stay in Your games.
+   A finished run must not stay in Resume.
 4. **Restore at load.** `hub.resume.requested` is a synchronous `true` when the
-   page was opened from Your games (the client takes `hub_resume` out of
+   page was opened from Resume (the client takes `hub_resume` out of
    the address bar first, so a reload or shared link doesn't resume again).
    Read it before you route or draw a title screen:
 
@@ -1251,7 +1251,7 @@ or `import { hub } from '/_hub/hub.js'`.
 
 #### Writing good progress labels
 
-The label is the line the player reads in Your games, often a kid
+The label is the line the player reads in Resume, often a kid
 choosing between games. Up to 60 characters (longer is clipped).
 
 | Good | Not good |
@@ -1305,7 +1305,7 @@ levels, settings, a career).
 | `hub.resume.clear()` | The run ended: delete it (works offline). |
 | `hub.resume.load({ version? })` | The saved state, or `null`. The newer of the device's copy and the hub's wins. |
 | `hub.resume.get({ version? })` | The same with `{ state, progress, title, version, savedAt }`. |
-| `hub.resume.requested` | `true` when opened from Your games (`?hub_resume=1`). Synchronous. |
+| `hub.resume.requested` | `true` when opened from Resume (`?hub_resume=1`). Synchronous. |
 | `hub.resume.blockedBy` | `'race'`, `'room'`, `'turns'` (an online game is open) or `null` (`'daily'` is no longer returned: a save during a daily goes to the day). |
 | `hub.resume.list()` / `discard(slug)` | The player's saved runs across games / discard one (online only). `hub.saved.listAll()` lists every kind. |
 
@@ -1313,7 +1313,7 @@ Offline, the save is the `hub.resume` outbox kind (endpoints `saveResumeSlot`
 and `clearResumeSlot`); a new save or clear replaces the waiting one. The
 outbox entry stays small: it sends the run kept on the device
 (`hub:<slug>:resume` in `localStorage`), which is also what `load` and the
-home page's Your games read while the hub can't be reached. A save that reaches the
+home page's Resume read while the hub can't be reached. A save that reaches the
 hub after a newer one from another device is not applied, and a late clear
 never deletes a run saved after it.
 

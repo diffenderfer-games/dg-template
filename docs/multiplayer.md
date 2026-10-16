@@ -1534,7 +1534,7 @@ match as an online game (§16), even when it also declares
   (the better seed in seat 0), started at once, no link, not listed. Its
   launch ticket has no token: `url` is `/<slug>/?hub_open=<id>&hub_kind=turns`
   and `turnGame` is the id, so your page opens it the way it opens any game
-  from Your games (`hub.saved.opened`). The other player's Play opens the
+  from Resume (`hub.saved.opened`). The other player's Play opens the
   same game.
 - `game.tournament` (`{ id, title, match }`) says which match it is; show it
   if you like. The opponent is the other seat.
@@ -1678,7 +1678,7 @@ The reference is `apps-test/jumpdemo` ("Jump In", a tiny Uno-like,
 ### 16.3 The page: `hub.turns`
 
 ```ts
-// Boot: a game opened from Your games or an invite, or a link.
+// Boot: a game opened from Resume or an invite, or a link.
 const opened = hub.saved.opened;
 let game = opened?.kind === 'turns' ? await hub.turns.open(opened.id)
   : hub.turns.link !== null ? await hub.turns.join(hub.turns.link)
@@ -1822,7 +1822,7 @@ the hub holds the game.
   filled by it, `letComputerPlay()` is refused, and a player who doesn't
   turn up forfeits by the tournament's own clock.
 - **The end**: `outcome` is recorded as trusted results, the game leaves
-  everyone's "Your games", and `rematch()` brings everyone back to one new game.
+  everyone's "Resume", and `rematch()` brings everyone back to one new game.
 
 ### 16.6 "Your turn" alerts
 
@@ -1875,7 +1875,7 @@ usernames. Your game needs no code for any of this.
   order, a count, a hint derived from a hidden card).
 - **Two browsers** (puppeteer, like §12): two players in two contexts; create +
   invite + join + start, a move arriving live on the other page, one page
-  closed and reopened from Your games (missed moves replayed), leave (the
+  closed and reopened from Resume (missed moves replayed), leave (the
   computer plays on), the end. The reference game is `apps-test/turndemo`
   ("Turn Tac Toe", `TURNDEMO_DIR`) with `test/e2e/turn-games.test.mjs` and
   `test/api/turns.test.mjs`; moves out of turn and tournament matches have
