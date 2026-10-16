@@ -11,7 +11,7 @@ import { existsSync, readdirSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
 
 /** The kit's version: `major.minor`. A major means a hook signature changed (see the CHANGELOG). */
-export const KIT_VERSION = '1.2';
+export const KIT_VERSION = '1.3';
 
 /** A module: its version and the paths (files or folders) it owns. */
 export type KitModuleDef = { version: string; paths: string[] };
@@ -24,7 +24,7 @@ function srcModule(name: string, version = '1.0'): KitModuleDef {
 /** Every module. */
 export const KIT_MODULES: Record<string, KitModuleDef> = {
   core: srcModule('core', '1.2'),
-  testing: srcModule('testing', '1.2'),
+  testing: srcModule('testing', '1.3'),
   rng: srcModule('rng'),
   'daily-puzzle': srcModule('daily-puzzle'),
   save: srcModule('save'),
@@ -33,7 +33,7 @@ export const KIT_MODULES: Record<string, KitModuleDef> = {
   pause: srcModule('pause'),
   scores: srcModule('scores'),
   'test-hook': srcModule('test-hook', '1.1'),
-  boot: srcModule('boot', '1.2'),
+  boot: srcModule('boot', '1.3'),
   input: srcModule('input'),
   layout: srcModule('layout', '1.1'),
   loop: srcModule('loop'),
@@ -45,16 +45,16 @@ export const KIT_MODULES: Record<string, KitModuleDef> = {
   haptics: srcModule('haptics'),
   server: srcModule('server', '1.2'),
   saved: srcModule('saved', '1.2'),
-  turns: srcModule('turns', '1.2'),
+  turns: srcModule('turns', '1.3'),
   avatar: srcModule('avatar', '1.2'),
-  world: srcModule('world', '1.2'),
+  world: srcModule('world', '1.3'),
   'hub-events': { version: '1.2', paths: ['tests/hub-events'] },
-  'hub-suites': { version: '1.2', paths: ['tests/hub/_kit.ts', 'tests/hub/kit'] },
-  scripts: { version: '1.3', paths: ['scripts/kit', 'tests/scripts'] },
+  'hub-suites': { version: '1.3', paths: ['tests/hub/_kit.ts', 'tests/hub/kit'] },
+  scripts: { version: '1.4', paths: ['scripts/kit', 'tests/scripts'] },
   ci: { version: '1.0', paths: ['.github/workflows/deploy.yml'] },
   config: { version: '1.0', paths: ['eslint.config.ts', 'tsconfig.base.json', '.prettierrc.json', '.prettierignore'] },
   docs: {
-    version: '1.3',
+    version: '1.4',
     paths: [
       'docs/kit/look.md',
       'docs/kit/look',

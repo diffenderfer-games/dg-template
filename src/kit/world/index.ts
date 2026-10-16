@@ -1,11 +1,13 @@
 /**
- * kit/world: game tables in the hub's world and Quick match (world W2, coming); the page side.
+ * kit/world: the page side: your room's key and Adventure Mode link; game tables and Quick match (W2, coming).
  * Source: dg-template src/kit/world/ (kit v1.0). Copy byte-identical; change it in the template first.
  * Docs: docs/kit/world.md
  *
  * The world is live (hub client next.9) and a game's own room is data
  * (`game.world`: a map file or a generated room; kit/world/room.ts makes and
- * checks it for scripts and tests). Tables that launch a game are still
+ * checks it for scripts and tests). Players walk it in Adventure Mode
+ * (next.10): `/world`, and `/world/game.<slug>` opens this game's room
+ * (`roomPath`); nothing here talks to the world. Tables that launch a game are still
  * planned (world.md §3, W2): `worldBlock` derives the default tables world.md
  * §3.1 describes from `game.multiplayer` and `game.race` (not in the manifest
  * yet: its strict schema refuses `world.tables`), and launches from a table
@@ -14,6 +16,16 @@
  * feature check.
  */
 import type { HubLike } from '../core/hub-like.ts';
+
+/** The world key the hub serves a game's room under (`game.<slug>`). */
+export function worldKey(slug: string): string {
+  return `game.${slug}`;
+}
+
+/** The Adventure Mode page that opens straight into this game's room (`/world/game.<slug>`), for a link. */
+export function roomPath(slug: string): string {
+  return `/world/${encodeURIComponent(worldKey(slug))}`;
+}
 
 /** One table type (world.md §3.1). */
 export type TableDecl = {

@@ -10,7 +10,9 @@ A game mostly declares data.
 **Live since hub client 2.0.0-next.9:** the world itself (the hub serves it as
 `/_hub/world.js` and draws players with the avatars' `walker` figure), a
 game's own room (`game.world`: a map file or a generated one), the hub's
-`dg-world` CLI and `hub-doctor`'s checks. **Coming:** game tables in the world
+`dg-world` CLI and `hub-doctor`'s checks. **Since next.10:** Adventure Mode,
+the way players reach the world (`/world`), with walk to a friend and typed
+bubbles between friends ([Adventure Mode](#adventure-mode-world)). **Coming:** game tables in the world
 (W2: `launch.table`, Quick match) and in-game presence (W3: the People panel,
 reactions, `setRoster`); their parts here stay off and their tests skipped.
 
@@ -18,7 +20,8 @@ reactions, `setRoster`); their parts here stay off and their tests skipped.
 
 - Players reach a game from the hub's world (its rooms, the Hall's doors, a
   game's own room) the way they reach it from the catalog: an ordinary page
-  load. A game needs no code for it, and never calls the world's socket ops.
+  load. A game needs no code for it, and never calls the world's socket ops
+  (`world.*`, including `world.say` and `world.find`, are the hub's).
 - A game **may** have its own room, served as the world `game.<slug>`: a
   themed lounge for its players, with its name on it and portals to the
   hub's rooms. Without `game.world` the game simply has none.
@@ -49,6 +52,49 @@ Declare the room in `package.json` (the template does):
   either or both. Bump the map's `revision` when you change it.
 - The hub never runs a game's script: make the map at build time and commit it.
 - Its text (title, labels, game names) goes through the hub's content filter.
+
+## Adventure Mode (`/world`)
+
+Adventure Mode (hub client next.10) is the world as players reach it: the
+glowing **Adventure Mode** card at the top of the home page and the hub
+menu opens `/world` (dg-host serves it; `/_hub/adventure.js` starts it).
+`/world` alone goes back to the player's last world (the Hall the first
+time); `/world/<place>` deep-links. Guests can come in. The hub menu works
+inside (the world's input pauses under it), and **Library Mode** goes back
+to the games. Nothing in it runs your game's code.
+
+**How your room appears in it:**
+
+- It is the place `game.<slug>`: `/world/game.<slug>` opens straight into
+  it (`roomPath(slug)` in kit/world, for a link from your docs, What's new
+  or your own UI; an ordinary link, the hub does the rest).
+- Its doors lead **out** to the hub's rooms (`needs.portals`; a `lounge`
+  defaults to the Hall and the park). The Hall's doors lead to the hub's
+  rooms, not to games' rooms, so players come in by the link (or a door you
+  give another of your maps).
+- Your room's title, labels and game names show in it, through the content
+  filter. A full room overflows into a second instance like any other.
+- Don't name a game `world`: a game that owns the slug takes `/world` from
+  Adventure Mode.
+
+**Walk to a friend:** the Friends panel lists the friends in the world and
+where (only friends who show their presence; never across a block). "Walk
+to" asks the hub for the fewest-doors route (`planWorldRoute` in
+`@diffenderfer-games/world`) and walks it, door by door, to a cell beside
+them, following them if they move. From your room it goes out through your
+room's door; into your room only if a door leads there, else the player is
+told "There's no door from here to …". Nothing for a game to do, except keep
+the room's doors reachable (`npm run world:check` checks it).
+
+**Say something (`world.say`):** a bubble over the player's head for a few
+seconds. **Quick-chat** phrases and emotes reach everyone who can see them
+(emotes only in quiet zones; nothing when chat is off). **Typed text** only
+when the player's chat allows it (not a guest, no parent lock, a friend to
+type to), moderated like all chat, and delivered **only to their mutual
+friends who can see them**; strangers never receive it (multiplayer.md:
+free text only between mutual friends). The phrases are the hub's own: a
+game's `game.turns.quickChat` / `game.multiplayer.quickChat` phrases are
+for its own rooms and online games, not the world.
 
 ## Your room: the `dg-world` CLI
 
@@ -82,9 +128,11 @@ is valid, within the size limit) and warns about an unknown world type;
 
 - `kit/world/room.ts` (Node and tests): `parseGameWorld(block)` (the hub
   contract's `GameWorld` schema), `generateRequest` / `generateRoom(world,
-  slug)` (the hub's way: the seed defaults to the slug), `roomProblems(text)`
-  (the map file's errors) and `worldKey(slug)` (`game.<slug>`). The page never
-  imports it: the hub draws the world.
+  slug)` (the hub's way: the seed defaults to the slug) and `roomProblems(text)`
+  (the map file's errors). The page never imports it: the hub draws the world.
+- `kit/world/index.ts` (page-safe): `worldKey(slug)` (`game.<slug>`) and
+  `roomPath(slug)` (`/world/game.<slug>`, Adventure Mode in your room);
+  room.ts re-exports both.
 - `scripts/kit/world.ts`: the four scripts above.
 - Coming with W2, off now: `worldBlock(game)` derives default tables from the
   game block (one per mode, or Play, and Race for race games; titles cut to
@@ -100,6 +148,7 @@ is valid, within the size limit) and warns about an unknown world type;
 In `src/kit/testing/phases.ts`:
 
 - `world0` (shipped, next.9): the live world.
+- `adventure` (shipped, next.10): Adventure Mode, walk to a friend, typed bubbles for friends.
 - `worldW4` (shipped, next.9): a game's own room, map files, `dg-world`, `hub-doctor`.
 - `worldW2` (coming): game tables in the world, `launch.table`, Quick match.
 - `worldW3` (coming): the People panel, reactions, `setRoster`.
@@ -107,6 +156,7 @@ In `src/kit/testing/phases.ts`:
 ## Rules enforced
 
 - The hub never runs a game's code for its room: commit the map ([The world](../hub.md#the-world-gameworld)).
+- Free text in the world only between mutual friends; everyone else gets quick chat. The hub enforces it; a game never sends world chat.
 - Room text is player-facing: kid words, nothing violent; the hub filters it.
 - A table launch (W2) will be an ordinary launch and follow the same contract: [The launch contract](../multiplayer.md#6-the-launch-contract).
 - Show other players with the player card: [Showing other players](../multiplayer.md#11-showing-other-players--notification-etiquette).
@@ -118,7 +168,8 @@ In `src/kit/testing/phases.ts`:
 | `parseGameWorld(block)` | `{ world, problems }`: the block (or `null`) by the hub's schema |
 | `generateRequest(world, slug)`, `generateRoom(world, slug)` | the hub's generate request; the generated `WorldMap` (or `null`) |
 | `roomProblems(text)` | a map file's errors, empty when the hub would take it |
-| `worldKey(slug)` | `game.<slug>`, the world the hub serves it as |
+| `worldKey(slug)` | `game.<slug>`, the world the hub serves it as (kit/world; room.ts re-exports it) |
+| `roomPath(slug)` | `/world/game.<slug>`: Adventure Mode, opened in this game's room |
 | `TableDecl`, `WorldSource`, `worldBlock(game)` | W2 (coming): one table type; the default `{ tables }` block, or `null` |
 | `quickMatch(hub)` | W2 (coming): `(mode?) => Promise<void>`, or `null` without the hub feature |
 | `TableLaunch`, `KitLaunch` | in `kit/core/planned.ts`: `launch.table` as the kit reads it (W2) |
@@ -136,7 +187,11 @@ Run now:
 - `tests/hub/kit/world.test.ts` (a real hub; skipped without `game.world`):
   the hub serves this game's room as a valid `dg-world@1` map the size
   `world:check` makes it, and the hub's own rooms; a room drawn in Tiled and
-  converted with `dg-world from-tiled` is served from a game's map file.
+  converted with `dg-world from-tiled` is served from a game's map file;
+  Adventure Mode at `roomPath(slug)` opens this game's room, a typed bubble
+  reaches a friend there and never a stranger, quick chat reaches the
+  stranger, and "Walk to" takes a player out through the room's door to a
+  friend in the Hall.
 
 Skipped until W2 or W3:
 

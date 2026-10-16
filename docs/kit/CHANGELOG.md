@@ -4,8 +4,40 @@ KIT doc. One entry per kit version; per module inside. A **major** version
 means a hook's signature changed: the entry says how to move a game over.
 `npm run kit:sync` prints the entries newer than a game's `kit.json`.
 
-## Docs 1.3 (2026-10-16)
+## 1.3 (2026-10-16)
 
+The hub client is pinned at **2.0.0-next.10** (what diffenderfer.games runs),
+with `@diffenderfer-games/world` 2.0.0-next.10 next to it: **Adventure Mode**,
+the way players reach the world. No game code changes are needed; a game's own
+room (`game.world`) is in it as it is.
+
+To move a game over: `npm install --save-exact @diffenderfer-games/hub@2.0.0-next.10`
+and `npm install --save-exact --save-dev @diffenderfer-games/world@2.0.0-next.10`,
+`npm run kit:sync`, `npm run sync-docs`, `npm run hub-doctor`, `npm run check`.
+
+- **world** 1.3: [world.md](world.md) "Adventure Mode": `/world` (the glowing
+  card on the home page and in the hub menu; the menu inside; Library Mode
+  back), how a game's own room appears in it (`/world/game.<slug>`, its doors
+  lead out, the Hall's doors don't lead in, don't name a game `world`), walk to
+  a friend (the fewest-doors route), and `world.say`: quick-chat and emotes to
+  everyone who sees you, typed text moderated and only to mutual friends (the
+  world uses the hub's phrases, not a game's `quickChat`). New page-safe
+  `roomPath(slug)` (`/world/game.<slug>`, for a link); `worldKey` moves to
+  `kit/world/index.ts` (room.ts re-exports both, so imports keep working).
+- **testing** 1.3: `HUB_PHASES.adventure` (shipped, next.10).
+- **hub-suites** 1.3: `tests/hub/kit/world.test.ts` adds two Adventure Mode
+  tests: `roomPath` opens the game's room; a typed bubble reaches a friend and
+  never a stranger, quick chat reaches the stranger; "Walk to" goes out through
+  the room's door to a friend in the Hall.
+- **turns** 1.3 (docs): the client's quiet refresh runs in a lobby too (next.10),
+  so a lobby waiting for seats or a start never gets stuck; the kit never polled
+  a lobby, so nothing to remove.
+- **boot** 1.3: `KIT_VERSION` 1.3 (`window.__game`'s `kit`).
+- **scripts** 1.4: `KIT_VERSION` 1.3 and the module versions above.
+- **docs** 1.4: the kit map and "Hub phases" (README) name next.10 and
+  Adventure Mode; this entry.
+- **Wording** (kit 1.2, unchanged): players never see "over days"; an online
+  game is just "an online game", and **Play online** is the default.
 - **docs** 1.3: [look.md](look.md), the standard for every game's UI and
   motion: tokens, components, motion timings, gameplay feedback, layout, the
   kit's markup and test ids for dressing its screens, how to check it, and

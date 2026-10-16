@@ -1,11 +1,11 @@
-// kit/world: the game's own room (game.world, live since hub client next.9) and the planned W2 adapter.
+// kit/world: the game's own room (game.world, live since hub client next.9; Adventure Mode next.10) and the planned W2 adapter.
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { mapFingerprint, serializeWorldMap } from '@diffenderfer-games/world';
 import { describe, expect, it } from 'vitest';
 import { field } from '../../../src/kit/core/json.ts';
 import { createFakeHub } from '../../../src/kit/testing/index.ts';
-import { quickMatch, worldBlock } from '../../../src/kit/world/index.ts';
+import { quickMatch, roomPath, worldBlock } from '../../../src/kit/world/index.ts';
 import { generateRequest, generateRoom, parseGameWorld, roomProblems, worldKey } from '../../../src/kit/world/room.ts';
 
 const ROOT = join(import.meta.dirname, '..', '..', '..');
@@ -20,6 +20,7 @@ describe('kit/world: your room (game.world)', () => {
       needs: { tables: 2 },
     });
     expect(worldKey('coin-dash')).toBe('game.coin-dash');
+    expect(roomPath('coin-dash')).toBe('/world/game.coin-dash');
     expect(parseGameWorld(undefined)).toEqual({ world: null, problems: [] });
   });
 

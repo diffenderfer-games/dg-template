@@ -88,7 +88,7 @@ it('opening hub UI pauses the game once', async () => {
 
 ### Planned hub tests
 
-`src/kit/testing/phases.ts` lists the hub phases kit features wait on: `savedGames01`, `savedGames3`, `savedGames4`, `avatars0`, `avatars2`, `avatars4` (`shipped: true`: hub client next.6), `world0` and `worldW4` (`shipped: true`: the live world and a game's own room, next.9), and `worldW2`, `worldW3` (`shipped: false`: game tables in the world and in-game presence, coming). `waitsOn(...phases)` gives a skip reason; `shipped(...phases)` is true when all are out. Write the test now and skip it:
+`src/kit/testing/phases.ts` lists the hub phases kit features wait on: `savedGames01`, `savedGames3`, `savedGames4`, `avatars0`, `avatars2`, `avatars4` (`shipped: true`: hub client next.6), `world0` and `worldW4` (`shipped: true`: the live world and a game's own room, next.9), `adventure` (`shipped: true`: Adventure Mode, next.10), and `worldW2`, `worldW3` (`shipped: false`: game tables in the world and in-game presence, coming). `waitsOn(...phases)` gives a skip reason; `shipped(...phases)` is true when all are out. Write the test now and skip it:
 
 ```ts
 import { planned } from './_support/planned.ts';
@@ -150,7 +150,7 @@ e2e('a new game starts', e, async (t) => {
 });
 ```
 
-The kit's suites are `tests/hub/kit/`: `pause`, `progress` (saves, Continue, daily), `race`, `online`, `saved` (a day in progress from the title, credited to its day), `avatar` (the title bust, the designer, lobby faces), `turns` (online games the hub runs in two browsers: a link game, live moves, quick-chat, "Waiting for…", the hand-over, the end, Your games; skipped without `game.turns`), `world` (the hub serves the game's own room and a Tiled-made one; skipped without `game.world`), `planned` (all skipped: the canvas adapters, world tables), and `fake-parity` (FakeHub gives the same logs as the real hub). `env({ env: { HUB_LIMITS_JSON } })` shortens the hub's limits for a file (the turns suite hands over after 1.5 s); `env({ apps })` links more games. `api(player)` is that player's REST client (`get`, `post`, `put` under `/_api`); `today(-1)` is yesterday's daily day.
+The kit's suites are `tests/hub/kit/`: `pause`, `progress` (saves, Continue, daily), `race`, `online`, `saved` (a day in progress from the title, credited to its day), `avatar` (the title bust, the designer, lobby faces), `turns` (online games the hub runs in two browsers: a link game, live moves, quick-chat, "Waiting for…", the hand-over, the end, Your games; skipped without `game.turns`), `world` (the hub serves the game's own room and a Tiled-made one; Adventure Mode opens it, friends-only typed bubbles, walk to a friend through its door; skipped without `game.world`), `planned` (all skipped: the canvas adapters, world tables), and `fake-parity` (FakeHub gives the same logs as the real hub). `env({ env: { HUB_LIMITS_JSON } })` shortens the hub's limits for a file (the turns suite hands over after 1.5 s); `env({ apps })` links more games. `api(player)` is that player's REST client (`get`, `post`, `put` under `/_api`); `today(-1)` is yesterday's daily day.
 
 ## Tests
 

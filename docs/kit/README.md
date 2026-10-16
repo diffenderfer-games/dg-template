@@ -45,7 +45,7 @@ everyone, change the template first.
 | saved | "Your games": the title's Continue rows, days in progress | [saved.md](saved.md) |
 | turns | Online games: the hub runs the game's rules; the kit's screen | [turns.md](turns.md) |
 | avatar | Players' faces, the title bust, the canvas adapters | [avatar.md](avatar.md) |
-| world | The game's own room in the hub's world (`game.world`, `dg-world`); tables and Quick match coming | [world.md](world.md) |
+| world | The game's own room in the hub's world (`game.world`, `dg-world`), in Adventure Mode at `/world/game.<slug>`; tables and Quick match coming | [world.md](world.md) |
 
 Also: [look.md](look.md) (what every game's UI and motion must be),
 [hooks.md](hooks.md) (every hook), [screenshots.md](screenshots.md),
@@ -54,11 +54,13 @@ Also: [look.md](look.md) (what every game's UI and motion must be),
 ## Hub phases
 
 The kit is written against the pinned hub client (`@diffenderfer-games/hub`
-2.0.0-next.9, with `@diffenderfer-games/world` at the same version). Saved
+2.0.0-next.10, with `@diffenderfer-games/world` at the same version). Saved
 games and avatars (next.6), online games on the server with who is there,
 moves out of turn, the game's own quick-chat, guests and the your-turn buzz
 (next.8, [turns.md](turns.md)), and the world with a game's own room
-(next.9, [world.md](world.md)) are live and on. Game tables in the world and
+(next.9, [world.md](world.md)), and Adventure Mode, where players walk it
+(next.10: `/world`, walk to a friend, typed bubbles between friends), are
+live and on. Game tables in the world and
 in-game presence (world W2, W3) are **coming**: kit/world checks for their
 API at runtime and stays off, and their tests are written and **skipped,
 naming the phase** they wait on (`src/kit/testing/phases.ts`). When the hub

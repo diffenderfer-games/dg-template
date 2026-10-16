@@ -119,7 +119,9 @@ The kit draws everything around the board (`kit/turns/screen.ts`, on the
 
 **No polling.** The screen follows the game's own live events (`move`,
 `turn`, `ended`, `chat`); the client catches up after a gap or a quiet spell
-(multiplayer.md "No polling needed"). The one timer asks
+(multiplayer.md "No polling needed"), **in the lobby too** since hub client
+next.10 (a page waiting for seats or a start fetches the game again after a
+quiet spell), so the lobby needs no refresh of its own either. The one timer asks
 `canLetComputerPlay()` again when `summary.handOverAt` (or the deadline)
 comes, and every `turn` event (a player coming or going) redraws. The hub's
 your-turn buzz needs nothing from the game.

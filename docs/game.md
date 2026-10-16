@@ -27,7 +27,8 @@ the gamepad's Start pauses.
 ## Room
 
 `game.world` generates a lounge with 4 tables and the game's name on it
-(`npm run world:check`; the hub serves it as `game.<slug>`).
+(`npm run world:check`; the hub serves it as `game.<slug>`, and players walk
+it in Adventure Mode at `/world/game.<slug>`).
 
 ## Test drivers
 

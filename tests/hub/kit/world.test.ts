@@ -1,7 +1,9 @@
-// KIT suite (games with game.world): the game's own room in the hub's world, on a real hub (client next.9).
+// KIT suite (games with game.world): the game's own room in the hub's world, on a real hub (client next.10).
 // The hub serves the room this game declares (game.<slug>) as a valid dg-world@1 map, made the way
-// `npm run world:check` makes it; and a room drawn in Tiled, converted with the hub's `dg-world from-tiled`
-// (what `npm run world:build` runs), is served from a game's map file. Skipped without game.world.
+// `npm run world:check` makes it; a room drawn in Tiled, converted with the hub's `dg-world from-tiled`
+// (what `npm run world:build` runs), is served from a game's map file; and Adventure Mode opens the room at
+// /world/game.<slug> (roomPath), where a typed bubble reaches only friends, quick chat reaches everyone, and
+// "Walk to" takes a player out through the room's door to a friend. Skipped without game.world.
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
@@ -10,8 +12,24 @@ import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { createWorldTypeRegistry, generateWorld, worldMapToTiled } from '@diffenderfer-games/world';
 import { field, numField } from '../../../src/kit/core/json.ts';
-import { generateRoom, parseGameWorld, roomProblems, worldKey } from '../../../src/kit/world/room.ts';
-import { api, e2e, env, ROOT, SLUG } from '../_kit.ts';
+import { generateRoom, parseGameWorld, roomPath, roomProblems, worldKey } from '../../../src/kit/world/room.ts';
+import { api, befriend, e2e, env, ROOT, SLUG, settle, type Player } from '../_kit.ts';
+
+/** Adventure Mode's test handle (`window.__ADVENTURE__`, the hub's runtime), as far as this suite reads it. */
+type AdventureHandle = {
+  live: {
+    current: { map: { key: string }; instance: string | number } | null;
+    crowd: Map<number, { x: number; y: number }>;
+  };
+  session: { player: { x: number; y: number } };
+  tips: { skip(): void };
+};
+
+declare global {
+  interface Window {
+    __ADVENTURE__?: { adventure?: AdventureHandle };
+  }
+}
 
 const declared: unknown = field(field(JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8')), 'game'), 'world');
 const { world } = parseGameWorld(declared);
@@ -85,4 +103,104 @@ e2e(
     );
   },
   { skip },
+);
+
+/** Wait until Adventure Mode is in a world; its key. */
+async function inWorld(p: Player): Promise<string> {
+  await p.page.waitForFunction(() => window.__ADVENTURE__?.adventure?.live.current != null, { timeout: 45_000 });
+  const key = await p.page.evaluate(() => window.__ADVENTURE__?.adventure?.live.current?.map.key ?? '');
+  await p.page.evaluate(() => window.__ADVENTURE__?.adventure?.tips.skip());
+  return key;
+}
+
+/** Does `p` see a bubble from `from` whose text matches? */
+function sees(p: Player, from: Player, text: string): Promise<boolean> {
+  return p.page.evaluate(
+    (id, t) =>
+      [...document.querySelectorAll<HTMLElement>('[data-testid="world-speech"]')].some(
+        (el) => el.dataset.agent === `u${String(id)}` && (el.textContent ?? '').includes(t),
+      ),
+    from.id,
+    text,
+  );
+}
+
+e2e(
+  "Adventure Mode: /world/game.<slug> opens this game's room; typed bubbles reach friends only, quick chat everyone",
+  e,
+  async (t) => {
+    const ann = await t.newPlayer(undefined, null);
+    const ben = await t.newPlayer(undefined, null);
+    const cat = await t.newPlayer(undefined, null);
+    await befriend(ann, ben);
+    for (const p of [ann, ben, cat]) {
+      await p.goto(roomPath(SLUG));
+      assert.equal(await inWorld(p), worldKey(SLUG), 'the deep link opens the game room');
+    }
+    await ann.page.click('[data-testid="adventure-say"]');
+    await ann.page.type('[data-testid="adventure-say-input"]', 'hello from the room');
+    await ann.page.click('[data-testid="adventure-say-send"]');
+    await ben.page.waitForFunction(
+      (id) =>
+        [...document.querySelectorAll<HTMLElement>('[data-testid="world-speech"]')].some(
+          (el) => el.dataset.agent === `u${String(id)}` && (el.textContent ?? '').includes('hello from the room'),
+        ),
+      { timeout: 10_000 },
+      ann.id,
+    );
+    await settle(1000);
+    assert.equal(await sees(cat, ann, 'hello from the room'), false, 'a stranger never receives typed text');
+
+    await ann.page.click('[data-testid="adventure-say"]');
+    const chip = await ann.page.waitForSelector('[data-testid="adventure-say-box"] .adv-say-chip:not(.is-emote)');
+    const phrase = (await chip?.evaluate((el) => el.textContent ?? '')) ?? '';
+    assert.notEqual(phrase, '', 'the box offers the hub quick-chat phrases');
+    await chip?.click();
+    await cat.page.waitForFunction(
+      (id) =>
+        [...document.querySelectorAll<HTMLElement>('[data-testid="world-speech"]')].some(
+          (el) => el.dataset.agent === `u${String(id)}`,
+        ),
+      { timeout: 10_000 },
+      ann.id,
+    );
+  },
+  { skip, timeout: 120_000 },
+);
+
+e2e(
+  "Adventure Mode: Walk to takes a player out through this game's room's door to a friend in another room",
+  e,
+  async (t) => {
+    const ann = await t.newPlayer(undefined, null);
+    const ben = await t.newPlayer(undefined, null);
+    await befriend(ann, ben);
+    await ben.goto('/world/hall');
+    assert.equal(await inWorld(ben), 'hall');
+    await ann.goto(roomPath(SLUG));
+    assert.equal(await inWorld(ann), worldKey(SLUG));
+    await ann.page.click('[data-testid="adventure-friends"]');
+    const walk = `[data-testid="adventure-friends-panel"] [data-user="${String(ben.id)}"] [data-testid="adventure-walk-to"]`;
+    await ann.page.waitForSelector(walk, { timeout: 20_000 });
+    await ann.page.click(walk);
+    await ann.page.waitForFunction(() => window.__ADVENTURE__?.adventure?.live.current?.map.key === 'hall', {
+      timeout: 60_000,
+    });
+    await ann.page.waitForFunction(
+      () => document.querySelector<HTMLElement>('[data-testid="adventure-walking"]')?.hidden === true,
+      { timeout: 60_000 },
+    );
+    const gap = await ann.page.evaluate((id) => {
+      const a = window.__ADVENTURE__?.adventure;
+      const friend = a?.live.crowd.get(id);
+      if (a === undefined || friend === undefined) return null;
+      const me = a.session.player;
+      return Math.max(
+        Math.abs(Math.floor(friend.x) - Math.floor(me.x)),
+        Math.abs(Math.floor(friend.y) - Math.floor(me.y)),
+      );
+    }, ben.id);
+    assert.equal(gap, 1, 'next to the friend');
+  },
+  { skip, timeout: 150_000 },
 );

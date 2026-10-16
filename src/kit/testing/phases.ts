@@ -11,6 +11,8 @@
  * moves out of turn and the buzz in next.8). The world shipped in next.9: the
  * live world (W0) and a game's own room (`game.world`, the W4 map files);
  * game tables in the world (W2) and in-game presence (W3) are still coming.
+ * Adventure Mode (the way into the world: `/world`, walk to a friend, typed
+ * bubbles between friends) shipped in next.10.
  */
 
 /** A hub phase, the plan that defines it, and whether the pinned client has it. */
@@ -23,6 +25,10 @@ export const HUB_PHASES = {
   avatars4: { label: 'avatars phase 4 (the Pixi and three.js adapters; next.6)', shipped: true },
   world0: {
     label: 'world W0 (the live world: walking, presence, /_hub/world.js, the walker figure; next.9)',
+    shipped: true,
+  },
+  adventure: {
+    label: 'Adventure Mode (/world, walk to a friend, world.say bubbles for friends; next.10)',
     shipped: true,
   },
   worldW2: { label: 'world W2 (game tables in the world, launch.table, quickMatch; coming)', shipped: false },

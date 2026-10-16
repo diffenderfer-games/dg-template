@@ -24,10 +24,7 @@ import {
 /** A game's world block, parsed. */
 export type GameWorldBlock = GameWorld;
 
-/** The world key the hub serves a game's room under. */
-export function worldKey(slug: string): string {
-  return `game.${slug}`;
-}
+export { roomPath, worldKey } from './index.ts';
 
 /** Parse a `game.world` block: the block, or the schema's problems (`null` block when there is none). */
 export function parseGameWorld(block: unknown): { world: GameWorldBlock | null; problems: string[] } {
