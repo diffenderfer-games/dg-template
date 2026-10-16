@@ -121,6 +121,8 @@ progress-label wording, `HUD`/`strings.ts`, `state.ts` (`player`, `coin`,
 stick, `pause` on **P**), `config.ts` (`ARENA`, `TUNING.coinRadius`), the race
 param `coins`, `audio.ts` (`coin` sfx), `avatar.ts` (`feelOn: { coin: … }`),
 `scripts/shots.config.ts` (`many-coins`), the `cover` scenario (autoplay 2.5 s),
+`index.html` (`<title>Coin Dash</title>`: a game deploys with the wrong tab
+title unless someone notices; `new-game --title` should set it),
 docs (hooks.md, test-hook.md, daily.md…), and `docs/game.md`. An agent has to
 work out which parts are the kit and which are the example, then delete Coin
 Dash piece by piece, then find out the kit tests needed it.
