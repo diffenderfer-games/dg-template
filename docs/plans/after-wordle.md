@@ -3,14 +3,13 @@
 Template only. A task brief for the agent who updates dg-template next. Wordle
 (`../wordle`, `diffenderfer-games/wordle`) was the first real game made with the
 kit (kit 1.2, 2026-10-16). Everything below cost time, broke the gate, or needed
-research outside the docs. The next game is **Lingo** (a word game like Wordle),
-so the word-game items matter right away.
+research outside the docs.
 
 Work order: §1 first (it blocks every new game's deploy), then §2, then the rest.
 After each change: `npm run kit:hash`, `npm run check`, CHANGELOG line, module
 version bump (docs/kit/README.md § "Changing the kit"). Then in `../wordle`:
 `npm run kit:sync`, `npm run check` must pass with **zero** failures, push, and
-watch the deploy (it has never deployed; see §1).
+watch the deploy.
 
 ---
 
@@ -44,6 +43,30 @@ this game declares no game.turns"):
 - Add a template test that runs `new-game` with every `--no-*` flag into a temp
   folder and runs `npx vitest run` there: it must pass. That test would have
   caught all of §1.
+
+### 1c. Say in the docs: tests that don't apply may be removed or disabled
+
+Until (and after) the gating above, the docs must say plainly that **kit
+tests that don't apply to a game can be removed or disabled so the game
+deploys**. Put it in CLAUDE.md (definition of done, beside "`npm run check`
+passes"), testing.md and README.md § "Three kinds of file":
+
+- A kit test covers a feature the game doesn't have (online rooms, online
+  games, the world, a lobby): delete it, or skip it with the reason
+  (`describe.skip('…: this game has no online play')`).
+- A kit test assumes another game's shapes but covers a feature the game has
+  (Continue, the daily): move it into `tests/game/`, build its states with the
+  game's own rules, and keep it.
+- Either way, drop the removed or moved files from `kit.json` (so
+  `kit:check` doesn't report them missing), list them in `docs/game.md`
+  "Known issues", and know that `npm run kit:sync` brings the originals back.
+- Never weaken a test of a feature the game has just to get green.
+
+This is what Wordle does now: it deleted `tests/hub-events/online.test.ts`,
+`turns.test.ts` and `tests/hub/kit/online.test.ts`, moved `resume.test.ts`
+and `daily.test.ts` into `tests/game/kit-*.test.ts` with Wordle-shaped saved
+games, and moved `tests/hub/kit/avatar.test.ts` to `tests/hub/` without its
+lobby test. Its `npm run check` passes and it deploys.
 
 ### 1b. Tests hard-code Coin Dash's shapes (4 failures, plus design bending)
 
@@ -176,11 +199,11 @@ Nothing in the docs covers typing. Wordle worked out:
   rules above, a key-row layout and gamepad-cursor helper (`moveCursor` that
   keeps its place between rows), and a test driver to type words. Wordle's
   `src/game/hooks.ts` (queue, `keyOf`, `readPad`), `src/game/keyboard.ts` and
-  `src/game/controls.ts` are the source; Lingo needs exactly this.
+  `src/game/controls.ts` are the source; any typing game needs exactly this.
 - Proposal: `src/kit/words/`: read packed word lists (see `../words.md` and
   Wordle's `src/game/words.ts`): `chunks`, `isWord` (lazy Set), `definition`,
   plus `marks(guess, answer)` (green/yellow/grey with repeated letters) from
-  Wordle's `rules.ts`. Lingo uses the same.
+  Wordle's `rules.ts`. Any guess-the-word game uses the same.
 
 ## 5. The lint rule against violent words hits data
 
@@ -295,14 +318,15 @@ gh run watch -R diffenderfer-games/<slug>
 - `DG_HOST` (for the hub suites in CI) is an org variable; `gh variable list
   --org` needs org admin, so an agent can't see whether it's set. Say whether it
   is, in repo-setup.md.
-- Until §1 is fixed, the first push of any new game fails the gate. Wordle was
-  pushed with `[skip ci]` and waits for the fix.
+- Until §1 is fixed, a new game's first push fails the gate unless the tests
+  that don't apply are removed or disabled (§1c).
 
 ## Done when
 
-- A game made with `npm run create -- lingo --renderer pixi --no-online --no-turns --no-world`
-  (or the fixed `New-Game.ps1 -Name Lingo ...`) passes `npm run check` with no
+- A game made with `npm run create -- <slug> --renderer pixi --no-online --no-turns --no-world`
+  (or the fixed `New-Game.ps1 -Name <Name> ...`) passes `npm run check` with no
   edits, has no Coin Dash names, and its first push deploys.
+- The docs say tests that don't apply may be removed or disabled (§1c).
 - Wordle, after `npm run kit:sync`, passes `npm run check` and `npm run test:hub`
   with nothing failing, deploys, and can drop its workarounds: `html:root` /
   `html .kit-…` selectors, `music-tune.ts` beside an untouched `music-core.ts`,
