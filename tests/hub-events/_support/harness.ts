@@ -180,6 +180,8 @@ export const HAS = {
   resume: field(block, 'resumable') === true,
   /** src/game/avatar.ts: the title's bust and players' reactions. */
   avatar: PROBE.avatar !== undefined,
+  /** The title's bust: on with src/game/avatar.ts, unless it says `titleDemo: false`. */
+  titleBust: PROBE.avatar !== undefined && PROBE.avatar.titleDemo !== false,
 };
 
 /** `describe` for a feature this game has, else `describe.skip` with the reason in the name. */

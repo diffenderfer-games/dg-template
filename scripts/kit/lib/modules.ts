@@ -11,7 +11,7 @@ import { existsSync, readdirSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
 
 /** The kit's version: `major.minor`. A major means a hook signature changed (see the CHANGELOG). */
-export const KIT_VERSION = '1.4';
+export const KIT_VERSION = '1.5';
 
 /** A module: its version and the paths (files or folders) it owns. */
 export type KitModuleDef = { version: string; paths: string[] };
@@ -24,7 +24,7 @@ function srcModule(name: string, version = '1.0'): KitModuleDef {
 /** Every module. */
 export const KIT_MODULES: Record<string, KitModuleDef> = {
   core: srcModule('core', '1.2'),
-  testing: srcModule('testing', '1.4'),
+  testing: srcModule('testing', '1.5'),
   rng: srcModule('rng'),
   'daily-puzzle': srcModule('daily-puzzle'),
   save: srcModule('save', '1.1'),
@@ -33,7 +33,7 @@ export const KIT_MODULES: Record<string, KitModuleDef> = {
   pause: srcModule('pause', '1.1'),
   scores: srcModule('scores', '1.1'),
   'test-hook': srcModule('test-hook', '1.2'),
-  boot: srcModule('boot', '1.4'),
+  boot: srcModule('boot', '1.5'),
   input: srcModule('input', '1.2'),
   layout: srcModule('layout', '1.2'),
   loop: srcModule('loop', '1.1'),
@@ -46,11 +46,11 @@ export const KIT_MODULES: Record<string, KitModuleDef> = {
   server: srcModule('server', '1.2'),
   saved: srcModule('saved', '1.3'),
   turns: srcModule('turns', '1.4'),
-  avatar: srcModule('avatar', '1.3'),
+  avatar: srcModule('avatar', '1.4'),
   world: srcModule('world', '1.4'),
-  'hub-events': { version: '1.3', paths: ['tests/hub-events'] },
-  'hub-suites': { version: '1.5', paths: ['tests/hub/_kit.ts', 'tests/hub/kit'] },
-  scripts: { version: '1.6', paths: ['scripts/kit', 'tests/scripts'] },
+  'hub-events': { version: '1.4', paths: ['tests/hub-events'] },
+  'hub-suites': { version: '1.6', paths: ['tests/hub/_kit.ts', 'tests/hub/kit'] },
+  scripts: { version: '1.7', paths: ['scripts/kit', 'tests/scripts'] },
   ci: { version: '1.0', paths: ['.github/workflows/deploy.yml'] },
   config: {
     version: '1.1',
@@ -64,7 +64,7 @@ export const KIT_MODULES: Record<string, KitModuleDef> = {
     ],
   },
   docs: {
-    version: '1.6',
+    version: '1.7',
     paths: [
       'docs/kit/look.md',
       'docs/kit/look',

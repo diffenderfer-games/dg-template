@@ -4,6 +4,24 @@ KIT doc. One entry per kit version; per module inside. A **major** version
 means a hook's signature changed: the entry says how to move a game over.
 `npm run kit:sync` prints the entries newer than a game's `kit.json`.
 
+## 1.5 (2026-10-16)
+
+After Lingo:
+
+- **avatar 1.4, boot 1.5:** `avatar.titleDemo` is the switch for the title's bust.
+  The kit adds the bust and Edit avatar under the title's buttons itself;
+  `titleDemo: false` hides them, and the bust tests skip (hub-events 1.4: `HAS.titleBust`;
+  hub-suites 1.6). Before, the flag did nothing: the bust came from a `titleDemo()`
+  call in `screens/title.ts`, and turning the flag off failed a kit test.
+- **scripts 1.7:** the kit's title, pause and result screenshots wait 1.4 s, so they
+  show the screens settled (no own `*-settled` scenarios needed).
+- **docs 1.7, testing 1.5:** look.md §9, avatar.md and testing.md say so.
+
+To move a game over: `npm run kit:sync`. A title hook that calls `titleDemo(ctx.hub, el)`
+can drop the call (the kit adds it; leaving it in is harmless). A game that hid the
+bust by not calling it sets `titleDemo: false` in `src/game/avatar.ts` and removes
+the bust tests from `tests/kit-skips.json`.
+
 ## 1.4 (2026-10-16)
 
 After Wordle, the first real game (kit-retros.md): **the kit's

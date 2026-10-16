@@ -17,9 +17,10 @@ const L = '#hub-social-layer >>> ';
 
 /**
  * How long a screen's entrance takes to settle (cards that pop in, buttons that slide in 60 ms
- * apart: docs/kit/look.md). Scenarios that open a screen wait this long, so the shot isn't half-drawn.
+ * apart, the title's panel after its wordmark: docs/kit/look.md). Scenarios that open a screen
+ * wait this long, so the title, pause and result shots show them settled, never half-drawn.
  */
-const SETTLE_MS = 800;
+const SETTLE_MS = 1400;
 
 /** This game's `game` block (package.json). */
 const BLOCK: unknown = Reflect.get(Object(JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8'))), 'game');
@@ -29,6 +30,15 @@ function needs(key: string): { skip?: string } {
   if (key.startsWith('src/')) return existsSync(join(ROOT, key)) ? {} : { skip: `this game has no ${key}` };
   const v: unknown = typeof BLOCK === 'object' && BLOCK !== null ? Reflect.get(BLOCK, key) : undefined;
   return v === undefined || v === null || v === false ? { skip: `this game declares no game.${key}` } : {};
+}
+/** The title's bust: with src/game/avatar.ts, unless it says `titleDemo: false` (docs/kit/avatar.md). */
+function needsBust(): { skip?: string } {
+  const own = needs('src/game/avatar.ts');
+  if (own.skip !== undefined) return own;
+  const text = readFileSync(join(ROOT, 'src', 'game', 'avatar.ts'), 'utf8');
+  return /\btitleDemo\s*:\s*false\b/.test(text)
+    ? { skip: 'this game hides the title bust (avatar.titleDemo: false)' }
+    : {};
 }
 const today = (offset = 0): string => new Date(Date.now() + offset * 86_400_000).toISOString().slice(0, 10);
 
@@ -305,7 +315,7 @@ export const KIT_SCENARIOS: Scenario[] = [
   },
   {
     name: 'avatar',
-    ...needs('src/game/avatar.ts'),
+    ...needsBust(),
     target: 'hub',
     checks: 'your avatar’s bust under the title’s buttons with Edit avatar, covering nothing',
     run: async (c) => {
@@ -317,7 +327,7 @@ export const KIT_SCENARIOS: Scenario[] = [
   },
   {
     name: 'avatar-designer',
-    ...needs('src/game/avatar.ts'),
+    ...needsBust(),
     target: 'hub',
     checks: 'Edit avatar opens the hub’s designer over the game',
     run: async (c) => {

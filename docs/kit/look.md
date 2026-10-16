@@ -218,8 +218,9 @@ Rules:
 
 1. `npm run shots`, Read `shots/sheet.png`, then Read the phone shots at full
    size (title, play, pause, result, how to play, settings).
-2. The kit's scenarios shoot screens mid-entrance. Add a scenario per card that
-   waits ~1 s (`await c.wait(1000)`) to see it settled.
+2. The kit's title, pause and result scenarios wait 1.4 s, so they show the
+   screens settled. A card of your own (a level end, a shop) needs its own
+   scenario that waits as long (`await c.wait(1400)`).
 3. For each shot: the palette is applied (no kit grey, no flat background);
    every button has an icon and a sub-line; headings are 3D lettering; panels
    are glass; the menu corner is empty; text fits a 390 px phone; the play

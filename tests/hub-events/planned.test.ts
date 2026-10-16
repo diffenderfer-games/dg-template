@@ -13,7 +13,11 @@ const needs = (has: boolean, why: string, ...phases: Parameters<typeof planned>)
 
 /** Row 56 opens a day in progress; row 62 redraws the title's bust. */
 const withDaily = needs(HAS.daily, 'this game declares no daily', 'savedGames01');
-const withBust = needs(HAS.avatar, 'this game has no src/game/avatar.ts', 'avatars0');
+const withBust = needs(
+  HAS.titleBust,
+  HAS.avatar ? 'this game hides the title bust (avatar.titleDemo: false)' : 'this game has no src/game/avatar.ts',
+  'avatars0',
+);
 
 describe('planned hub APIs', () => {
   withDaily(

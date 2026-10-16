@@ -1,13 +1,21 @@
 // KIT suite: avatars on a real hub. The title's bust is the player's own face, drawn by the hub's
 // renderer, and follows a change live; Edit avatar opens the hub's designer; lobby seats show faces.
 import assert from 'node:assert/strict';
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { field, isJsonObject, strField, type JsonObject } from '../../../src/kit/core/json.ts';
 import { api, e2e, env, L, ready, ROOT, SLUG, unlessDeclared, until, waitScreen, type Player } from '../_kit.ts';
 
-/** The title's bust and Edit avatar come with src/game/avatar.ts (`new-game --no-avatar` deletes it). */
-const noAvatar = existsSync(join(ROOT, 'src', 'game', 'avatar.ts')) ? false : 'this game has no src/game/avatar.ts';
+/**
+ * The title's bust and Edit avatar come with src/game/avatar.ts (`new-game --no-avatar` deletes it),
+ * unless it says `titleDemo: false`.
+ */
+const AVATAR_FILE = join(ROOT, 'src', 'game', 'avatar.ts');
+const noAvatar = !existsSync(AVATAR_FILE)
+  ? 'this game has no src/game/avatar.ts'
+  : /\btitleDemo\s*:\s*false\b/.test(readFileSync(AVATAR_FILE, 'utf8'))
+    ? 'this game hides the title bust (avatar.titleDemo: false)'
+    : false;
 
 const e = env();
 
