@@ -1,5 +1,5 @@
 /**
- * kit/turns: online games played over days (hub.turns), the rules module and its conformance check.
+ * kit/turns: online games the hub runs (hub.turns), the rules module and its conformance check.
  * Source: dg-template src/kit/turns/ (kit v1.0). Copy byte-identical; change it in the template first.
  * Docs: docs/kit/turns.md
  *

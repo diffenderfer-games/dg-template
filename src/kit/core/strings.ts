@@ -4,7 +4,7 @@
  * Docs: docs/kit/core.md § "Strings"
  *
  * Rules (hub wording, saved-games.md §11 and multiplayer.md): never "run",
- * "turn game", "instance" or a kind name; no violent words. A game changes any
+ * "turn game", "instance", "over days" or a kind name; no violent words. A game changes any
  * entry with `defineGame({ strings })` (and could localize the table later).
  * `{name}` placeholders are filled by `t()`.
  */
@@ -61,9 +61,12 @@ export const KIT_STRINGS = {
   computerPlaying: 'The computer is playing for {name}.',
   letComputerPlay: 'Let the computer play for {name}',
   remindThem: 'Remind them',
-  // Online games played over days (kit/turns): "an online game", never "turn game".
-  turnsNew: 'Play over days',
-  turnsNewSub: 'An online game, one move at a time',
+  // Online games the hub runs (kit/turns): "an online game", never "turn game" or "over days"
+  // (it may take minutes or days, which isn't known in advance). With game.turns it is the
+  // default way to play online, so its title button is "Play online"; a live room beside it is "Play now".
+  turnsNew: 'Play online',
+  turnsNewSub: 'With friends, a link or anyone',
+  playNow: 'Play now',
   turnsTitle: 'Online game',
   turnsWho: 'Who do you want to play with?',
   turnsWithComputer: 'The computer',

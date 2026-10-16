@@ -58,7 +58,7 @@ describe('new-game', () => {
     expect(pkg.game.world.generate.needs.game).toBe('Coin Dash'); // the input is left alone
   });
 
-  it('--no-turns drops game.turns; online games over days alone keep the multiplayer label', () => {
+  it('--no-turns drops game.turns; online games the hub runs alone keep the multiplayer label', () => {
     const pkg = { game: { labels: ['board', 'multiplayer'], turns: { rules: 'dist-rules/rules.mjs' }, race: {} } };
     expect(editPackage(pkg, { renderer: 'none', drop: ['turns'] }).game).toEqual({
       labels: ['board', '2d', 'multiplayer'],

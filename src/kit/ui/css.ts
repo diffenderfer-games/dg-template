@@ -86,7 +86,7 @@ html[data-controls="touch"] #ui[data-screen="play"] .kit-toasts { bottom: auto; 
 .kit-seat[data-connected="false"] { opacity: 0.6; }
 .kit-seat .kit-tagline { margin: 0 0 0 auto; font-size: 13px; }
 .kit-seat[data-due="true"] { box-shadow: inset 0 0 0 2px var(--kit-accent); }
-/* An online game over days (kit/turns): status, seats, the game's board, buttons, chat; scrolls on a phone. */
+/* An online game the hub runs (kit/turns): status, seats, the game's board, buttons, chat; scrolls on a phone. */
 .kit-turns { overflow-y: auto; justify-content: flex-start; padding-top: max(var(--kit-top, 16px), 72px); padding-bottom: 24px; }
 .kit-turn-status { font-size: 18px; font-weight: 700; min-height: 1.4em; }
 .kit-turns[data-kind="mine"] .kit-turn-status { color: var(--kit-accent); }

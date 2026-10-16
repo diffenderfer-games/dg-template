@@ -1,4 +1,4 @@
-// Appendix B rows 56–63: hub APIs that were planned. Saved games, online games over days and avatars are
+// Appendix B rows 56–63: hub APIs that were planned. Saved games, online games the hub runs and avatars are
 // live (next.6 to next.8) and run; the world shipped in next.9 without tables (W2) or in-game presence (W3), so
 // those rows stay skipped (kit/testing/phases.ts). The kit's online-games screen is tests/hub-events/turns.test.ts.
 import { describe, expect } from 'vitest';

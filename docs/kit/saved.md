@@ -16,7 +16,7 @@ the adapter and routes what the player opens:
 - a day in progress goes to `hub.daily.resume(id)`, then `play` runs with
   `challenge.saved` (straight back where the player left it);
 - the saved game goes to `session.continueSaved()`;
-- an online game played over days goes to `openTurns`: `defineGame` sets it
+- an online game the hub runs goes to `openTurns`: `defineGame` sets it
   when the game plays them (a `turns` hook and `game.turns`), and the game
   opens on the kit's screen ([turns.md](turns.md)); a game without them leaves
   them to the hub (it reloads the page with `?hub_open=`) and never lists them.
@@ -71,7 +71,7 @@ import { createSaved } from './kit/saved/index.ts';
 const saved = createSaved(hub, {
   continueRun: () => void session.continueSaved(),
   resumeDaily: (id) => void hub.daily.resume(id),
-  openTurns: (id) => showOnlineGame(id), // only a game with a screen for online games over days
+  openTurns: (id) => showOnlineGame(id), // only a game with a screen for online games the hub runs
 });
 if (!saved.routeOpened()) {
   const rows = await saved.continueRows(async () => savedGameLabel()); // label or null

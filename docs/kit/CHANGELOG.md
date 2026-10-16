@@ -6,16 +6,22 @@ means a hook's signature changed: the entry says how to move a game over.
 
 ## 1.2 (2026-10-16)
 
+**Wording (the owner):** players never see "over days". An online game the hub
+runs may finish in minutes or take days, which isn't known in advance, so it is
+just "an online game" and the default way to play online: the title's button is
+**Play online** ("With friends, a link or anyone"), and a live room beside it is
+**Play now** (`core` strings `turnsNew`, `turnsNewSub`, `playNow`).
+
 The hub client is pinned at **2.0.0-next.9** (what diffenderfer.games runs),
-with `@diffenderfer-games/world` 2.0.0-next.9 next to it. Online games over
-days get the kit's own screen on next.8's online games on the server; the
+with `@diffenderfer-games/world` 2.0.0-next.9 next to it. Online games
+get the kit's own screen on next.8's online games on the server; the
 world and a game's own room (next.9) are on; game tables in the world (W2)
 and in-game presence (W3) stay off (coming).
 
 - **turns** 1.2: the rules types and RNG come from the zod-free
   `@diffenderfer-games/hub/turns-rules` (`kit/turns/rules.ts`, what a rules
   module imports; `checkTurnRules` stays in the index for tests). The kit's
-  screen for online games over days (`kit/turns/screen.ts`,
+  screen for online games (`kit/turns/screen.ts`,
   `kit/turns/status.ts`): the status line ("Your turn"; "Ann is playing", or
   "Waiting for Ann…" only when her seat's `connected` is `false`), seats with
   faces, Start, Copy the link, Remind them, **Let the computer play for Ann**
@@ -24,8 +30,9 @@ and in-game presence (W3) stay off (coming).
   the game's own `game.turns.quickChat` phrases. A move out of turn
   (`mayActNow`) is offered as `board.canMove`.
 - **boot** 1.2: a definition's `turns` hook (`draw(ctx, el, board)`,
-  `create`) with `game.turns` declared turns it on: the title's Play over
-  days (the computer, a link, anyone), Your games and the title's Continue
+  `create`) with `game.turns` declared turns it on: the title's **Play
+  online** (the computer, a link, anyone; first among the online buttons, and a
+  live room beside it is **Play now**), Your games and the title's Continue
   rows open online games on the kit's screen (`openTurns`), an invite link
   (`?hub_turn_link=`) takes the seat at boot (`TurnsFlow`,
   `kit/boot/turns-flow.ts`). Without it nothing changes.
@@ -52,8 +59,8 @@ and in-game presence (W3) stay off (coming).
   quick-chat, "Waiting for…", the hand-over, the end, Your games) and
   `world.test.ts` (the hub serves the game's room and a Tiled-made one);
   `planned` keeps only world tables and the canvas adapters; the online suite picks
-  "play now" in the Invite to play picker (a game with `game.turns` and modes can
-  start on "Over days").
+  "Play now" in the Invite to play picker (a game with `game.turns` starts on its
+  online game, the default way to play online).
 - **scripts** 1.2: `build:rules` skips a game without rules (`npm run build`
   runs it after vite); `new-game --no-turns` (also drops `game.turns` and
   the template's `turns` shot) and `--no-world`, and `--title` names the
@@ -72,7 +79,7 @@ and in-game presence (W3) stay off (coming).
 2. Online rules: import the types from `../../kit/turns/rules.ts`. In
    package.json set `"build": "vite build && node scripts/kit/build-rules.ts"`
    (and `game.build` back to `npm run build`).
-3. To use the kit's screen for online games over days: add a `turns` hook
+3. To use the kit's screen for online games: add a `turns` hook
    (copy the template's `src/game/turns/board.ts`) to the definition. A game
    with its own screen keeps it and gives no hook. Drop any refresh timer of
    your own: the client catches up by itself.
@@ -84,7 +91,7 @@ and in-game presence (W3) stay off (coming).
 ## 1.1 (2026-10-15)
 
 The hub client is pinned at **2.0.0-next.7** (what diffenderfer.games runs).
-Saved games, online games over days and avatars are live and switched on;
+Saved games, online games and avatars are live and switched on;
 the world stays off (coming in next.9).
 
 - **core** 1.1: `HubLike` takes `hub.saved`, `hub.turns`, `hub.avatar` and

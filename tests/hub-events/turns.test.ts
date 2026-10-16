@@ -1,4 +1,4 @@
-// Online games over days on the kit's screen (multiplayer.md §16.3): the title's Play over days, Your games,
+// Online games the hub runs on the kit's screen (multiplayer.md §16.3): the title's Play online, Your games,
 // invite links, whose move it is, who is there (seat.connected), the hand-over at handOverAt, chat with the
 // game's own quick-chat phrases (game.turns.quickChat), the end and the rematch. FakeHub, the stub game's board.
 import { describe, expect, it } from 'vitest';
@@ -18,8 +18,8 @@ async function opened(id = 'tg-9'): Promise<{ g: Booted; game: FakeTurnGame }> {
   return { g, game };
 }
 
-describe('online games over days (kit/turns screen)', () => {
-  it('the title offers Play over days; the computer makes a started game on the turns screen', async () => {
+describe('online games the hub runs (kit/turns screen)', () => {
+  it('the title offers Play online; the computer makes a started game on the turns screen', async () => {
     const g = await bootGame();
     expect(MANIFEST.turns).toBe(true); // the template declares game.turns
     g.press('turns-new');

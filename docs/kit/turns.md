@@ -2,10 +2,13 @@
 
 Source: `src/kit/turns/` and `src/kit/boot/turns-flow.ts` (KIT: copy byte-identical; change it in the template first).
 
-Online games played over days: the hub runs the game's own rules on its
-server, so players move whenever they like and get a "your turn" alert in
-between. Players see **an online game** ("Online with Sam · your turn"), never
-"turn game". Live since hub client 2.0.0-next.6; this kit points at it as it
+Online games: the hub runs the game's own rules on its
+server, and players get a "your turn" alert when they are away. Players see
+**an online game** ("Online with Sam · your turn"), never "turn game" or
+**"over days"**: a game may finish in minutes or take days, which isn't known in
+advance. With `game.turns` it is **the default way to play online**: the title's
+button is **Play online**, and a live room beside it (`multiplayer`) is **Play now**.
+Live since hub client 2.0.0-next.6; this kit points at it as it
 is in **next.9**: online games on the server with the `turns-rules` entry,
 who is there (`connected`, `canLetComputerPlay()`), moves out of turn
 (`mayAct`/`autoReact`), the game's own quick-chat (`game.turns.quickChat`),
@@ -88,8 +91,8 @@ nothing).
 The kit draws everything around the board (`kit/turns/screen.ts`, on the
 `turns` screen):
 
-- **The title's Play over days** (`turns-new`, "An online game, one move at a
-  time") asks who to play with: the computer (`turns-computer`: made with
+- **The title's Play online** (`turns-new`, "With friends, a link or anyone"; first among the online
+  buttons) asks who to play with: the computer (`turns-computer`: made with
   `bots` and started at once), a friend with a link (`turns-link`: the link
   shows while the game waits, with Copy the link), or anyone (`turns-anyone`:
   open seats in the hub's Play online).
@@ -205,7 +208,7 @@ checkTurnRules(rules, { seats: [2, 3], games: 30, plant: (s, seat, marker) => hi
   `canLetComputerPlay` follows the client's; the rules entry's RNG.
 - `tests/game/turns.test.ts`: the example rules pass `checkTurnRules` at 2 and
   3 seats, refuse bad moves with a short code, and use kid-word labels.
-- `tests/hub-events/turns.test.ts`: the title's Play over days, Your games,
+- `tests/hub-events/turns.test.ts`: the title's Play online, Your games,
   an invite link, moves from the board, "is playing" / "Waiting for…", the
   hand-over at `handOverAt` with nothing fetched while waiting, chat with the
   game's phrases, the end, Rematch, Back; no button for a game without the hook.

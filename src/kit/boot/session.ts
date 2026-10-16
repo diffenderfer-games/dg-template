@@ -324,7 +324,7 @@ export class Session<P extends JsonObject, R extends JsonObject> {
     this.showLoading();
   }
 
-  /** An online game over days opens (kit/turns): the game in progress is saved, a daily paused, a race or room left. */
+  /** An online game the hub runs opens (kit/turns): the game in progress is saved, a daily paused, a race or room left. */
   enterTurns(): void {
     this.saveForLater(true);
     this.leaveSpecial();
@@ -358,7 +358,7 @@ export class Session<P extends JsonObject, R extends JsonObject> {
     }
   }
 
-  /** Back to the title, from anywhere (an online game over days stops following; the hub keeps it). */
+  /** Back to the title, from anywhere (an online game the hub runs stops following; the hub keeps it). */
   toTitle(): void {
     this.saveForLater(true);
     this.leaveSpecial();

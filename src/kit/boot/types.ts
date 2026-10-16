@@ -131,7 +131,7 @@ export type RaceHooks<R extends JsonObject> = {
   params?(): RaceParams;
 };
 
-/** What the game's board gets in an online game played over days (kit/turns). */
+/** What the game's board gets in an online game the hub runs (kit/turns). */
 export type TurnBoard = {
   /** The game as this player sees it: the rules' `view(state, mySeat)` (null in the lobby). Validate it. */
   readonly view: GamePayload | null;
@@ -144,9 +144,9 @@ export type TurnBoard = {
 };
 
 /**
- * Online games played over days (needs `game.turns` in package.json and the
+ * Online games the hub runs (needs `game.turns` in package.json and the
  * rules module src/game/turns/rules.ts; docs/kit/turns.md). The kit does the
- * rest: the title's Play over days, the lobby, whose move it is, who is
+ * rest: the title's Play online, the lobby, whose move it is, who is
  * there, the hand-over to the computer, chat with `game.turns.quickChat`,
  * Your games, invite links, the rematch.
  */
@@ -204,7 +204,7 @@ export type GameDefinition<P extends JsonObject, R extends JsonObject> = {
   race?: RaceHooks<R>;
   /** Online play in hub rooms: `onlineGame({ ... })` from src/game/online.ts. */
   online?: OnlineGame;
-  /** Online games played over days, run by the hub from src/game/turns/rules.ts (src/game/turns/board.ts). */
+  /** Online games, run by the hub from src/game/turns/rules.ts (src/game/turns/board.ts). */
   turns?: TurnsHooks<P, R>;
   avatar?: AvatarHooks;
   audio?: AudioHooks;

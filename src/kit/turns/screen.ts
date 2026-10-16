@@ -1,5 +1,5 @@
 /**
- * kit/turns: the screen of an online game played over days (lobby, play, the end), built from kit/ui.
+ * kit/turns: the screen of an online game the hub runs (lobby, play, the end), built from kit/ui.
  * Source: dg-template src/kit/turns/ (kit v1.0). Copy byte-identical; change it in the template first.
  * Docs: docs/kit/turns.md § "The screen"
  *

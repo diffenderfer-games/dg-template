@@ -145,7 +145,7 @@ Skipped until W2 or W3:
 - Row 60 (`worldW3`): a reaction reaches the `onReaction` hook, and not when quiet.
 - Row 61 (`worldW3`): `setRoster` is called once per roster change.
 - Row 63 (`worldW2`): Quick match shows only when the hub has it, and routes like an invite.
-- `tests/hub/kit/planned.test.ts` (`worldW2`): three players sit at a table and land in one room; a table opens an online game over days.
+- `tests/hub/kit/planned.test.ts` (`worldW2`): three players sit at a table and land in one room; a table opens an online game the hub runs.
 - The `table-launch` shot.
 
 ## Hub API used

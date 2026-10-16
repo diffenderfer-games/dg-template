@@ -1560,9 +1560,13 @@ online this way, retiring their room code; rooms stay for realtime play and
 races. Moves out of turn (Uno's jump-in, catching a forgotten "UNO") work
 too: see `mayAct` (§16.2).
 
-**Wording.** "Turn game" is an internal term. Players see **an online game**:
+**Wording.** "Turn game" and "over days" are internal terms. Players see **an online game**:
 "Online with Sam · your turn", "Sam's turn", "Waiting for a player". Never
-"turn game", "instance" or "run" in your UI.
+"turn game", "instance", "run" or **"over days"** in your UI (no "Play over days",
+"(over days)" or "at your own pace"): an online game may finish in minutes or take
+days, which isn't known in advance. When your game has `game.turns`, its online game
+is **the default way to play online**: label its button plainly ("Play online", or
+your mode names). A live room, if you keep one, may be called **Play now**.
 
 **Why the hub runs the rules.** The full state (the deck, every hand, the
 secret solution) lives only on the hub; each player receives
@@ -1771,8 +1775,9 @@ the hub holds the game.
   with that friend's seat held (`createTurnGame` with `invite`, `autoStart`, and
   `players[0]` seats, at least two; the same start as Play online's **New online
   game**), takes the inviter to it, and the friend gets the usual invite alert.
-  A game with live `multiplayer` too is listed once, with **Play now** and
-  **Over days** to choose from (each mode is its own choice). `GET /games`
+  A game with live `multiplayer` too is listed once, with the online game
+  first and selected (labelled **Online game**, or by your `turns.modes` titles),
+  then **Play now** (or "Play now: <mode>") for the live room. `GET /games`
   carries `turns: { players, modes }` for it.
 - **Invites go to friends only**; a link lets anyone with it take a seat
   (it stops working once the seats are full or the game starts); an **open-seat

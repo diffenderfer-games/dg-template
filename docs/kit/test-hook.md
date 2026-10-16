@@ -51,7 +51,7 @@ From a browser test: `await page.evaluate(() => window.__game?.solveNow?.())`. T
 | `installGameHook(...)` (`kit/boot/test-hook.ts`) | What `defineGame` uses to build the two halves from the session |
 | `KIT_VERSION` (`kit/boot`) | The kit version the hook reports (`'1.0'`) |
 
-Screens reported by `screen()` include `title`, `play`, `pause`, `result`, `lobby` and `turns` (an online game over days; its root carries `data-phase`, `data-kind` and `data-seq`).
+Screens reported by `screen()` include `title`, `play`, `pause`, `result`, `lobby` and `turns` (an online game the hub runs; its root carries `data-phase`, `data-kind` and `data-seq`).
 
 ## Tests
 

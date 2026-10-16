@@ -9,7 +9,7 @@ and how it looks.
 
 It is built against the hub client that diffenderfer.games runs,
 `@diffenderfer-games/hub` **2.0.0-next.9** (pinned exactly), with online
-games over days on the kit's own screen and the game's room in the hub's
+online games the hub runs on the kit's own screen and the game's room in the hub's
 world (`@diffenderfer-games/world`, `dg-world`). Coming, and not in it yet:
 game tables in the world.
 

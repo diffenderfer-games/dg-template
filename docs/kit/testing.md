@@ -49,7 +49,7 @@ fake.auth(null); // hub:auth (log out)
 | `fakeClock(start?)`, `FakeClock` | Hand-driven clock |
 | `fakeStorage`, `throwingStorage` | Storage fakes |
 | `FakeOverlay`, `FakeInput`, `FakeDaily`, `FakeProgress`, `FakeResume`, `FakeRace`, `FakeRooms`, `FakeRoom`, `FakeMp`, `FakeSocial`, `FakePresence`, `FakeNotify`, `FakeMenu` | The parts of the fake |
-| `FakeSaved`, `FakeTurns`, `FakeTurnGame`, `FakeAvatar` | Your games, online games over days, avatars (`savedEntry`, `turnSummary`, `fakeAvatarRef` build their shapes) |
+| `FakeSaved`, `FakeTurns`, `FakeTurnGame`, `FakeAvatar` | Your games, online games the hub runs, avatars (`savedEntry`, `turnSummary`, `fakeAvatarRef` build their shapes) |
 | `fakePlayer`, `fakeSeat`, `fakeRoomInfo`, `fakeHubError`, `fakeAudioContext` | Builders |
 | `HUB_PHASES`, `HubPhase`, `shipped(...)`, `waitsOn(...)` | The hub-phase list |
 | `simulate`, `seedRange`, `formatReport`, `SimSpec`, `SimReport` | The sim (`kit/testing/sim.ts`, imported by path, not from the index) |
@@ -97,7 +97,7 @@ planned('savedGames01')('row 56: hub.saved opens a daily in progress', async () 
 
 For node tests: `{ skip: shipped('worldW2') ? false : waitsOn('worldW2') }`. When the hub publishes a phase, a kit minor version flips its entry to `true` and the tests run. `HUB_PHASES` is a constant, not an environment variable: nothing reads an env of that name.
 
-### Online games over days: checkTurnRules
+### Online games the hub runs: checkTurnRules
 
 The rules module's conformance test is the hub's own kit (`checkTurnRules`,
 re-exported by kit/turns; multiplayer.md [§16.7](../multiplayer.md#167-testing)).
@@ -150,7 +150,7 @@ e2e('a new game starts', e, async (t) => {
 });
 ```
 
-The kit's suites are `tests/hub/kit/`: `pause`, `progress` (saves, Continue, daily), `race`, `online`, `saved` (a day in progress from the title, credited to its day), `avatar` (the title bust, the designer, lobby faces), `turns` (online games over days in two browsers: a link game, live moves, quick-chat, "Waiting for…", the hand-over, the end, Your games; skipped without `game.turns`), `world` (the hub serves the game's own room and a Tiled-made one; skipped without `game.world`), `planned` (all skipped: the canvas adapters, world tables), and `fake-parity` (FakeHub gives the same logs as the real hub). `env({ env: { HUB_LIMITS_JSON } })` shortens the hub's limits for a file (the turns suite hands over after 1.5 s); `env({ apps })` links more games. `api(player)` is that player's REST client (`get`, `post`, `put` under `/_api`); `today(-1)` is yesterday's daily day.
+The kit's suites are `tests/hub/kit/`: `pause`, `progress` (saves, Continue, daily), `race`, `online`, `saved` (a day in progress from the title, credited to its day), `avatar` (the title bust, the designer, lobby faces), `turns` (online games the hub runs in two browsers: a link game, live moves, quick-chat, "Waiting for…", the hand-over, the end, Your games; skipped without `game.turns`), `world` (the hub serves the game's own room and a Tiled-made one; skipped without `game.world`), `planned` (all skipped: the canvas adapters, world tables), and `fake-parity` (FakeHub gives the same logs as the real hub). `env({ env: { HUB_LIMITS_JSON } })` shortens the hub's limits for a file (the turns suite hands over after 1.5 s); `env({ apps })` links more games. `api(player)` is that player's REST client (`get`, `post`, `put` under `/_api`); `today(-1)` is yesterday's daily day.
 
 ## Tests
 

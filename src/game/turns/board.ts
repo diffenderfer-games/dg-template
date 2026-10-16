@@ -1,11 +1,11 @@
 /**
- * The board of the online game played over days: "take the last coin". (GAME: yours to edit.)
+ * The board of the online game the hub runs: "take the last coin". (GAME: yours to edit.)
  *
  * The hub runs the rules (rules.ts) on its server; this page only draws the
  * view it is sent and offers the moves. The kit draws everything around it:
  * whose move it is, who is there, the hand-over to the computer, chat, the
  * rematch (docs/kit/turns.md). Delete this file and the `turns` lines in
- * hooks.ts (new-game --no-turns does) for a game without online games over days.
+ * hooks.ts (new-game --no-turns does) for a game without online games the hub runs.
  */
 import type { TurnsHooks } from '../../kit/boot/index.ts';
 import { h } from '../../kit/ui/dom.ts';

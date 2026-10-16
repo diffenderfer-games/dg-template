@@ -38,13 +38,18 @@ async function startMatch(a: Player, b: Player): Promise<string> {
 }
 
 /**
- * In the hub's Invite to play picker, choose playing now (the first way listed: live modes come before
- * "Over days"). A game that also declares game.turns gets both, and the picker can start on "Over days".
+ * In the hub's Invite to play picker, choose playing now. A game that also declares game.turns gets
+ * both: the online game first and picked (the default way to play online), then the live room as
+ * "Play now" (or "Play now: <mode>"). An older hub listed the live modes first, then "Over days".
  */
 async function inviteLive(p: Player): Promise<void> {
   await p.find(`${L}.so-dialog .so-dtitle`, 'Invite to play');
-  const seg = await p.page.$(`${L}.so-dialog .so-seg button`);
-  if (seg !== null) await seg.click();
+  const segs = await p.page.$$(`${L}.so-dialog .so-seg button`);
+  const texts = await Promise.all(segs.map((seg) => seg.evaluate((e) => e.textContent ?? '')));
+  const live = texts.findIndex((text) => text.startsWith('Play now'));
+  const older = texts.findIndex((text) => !/over days/i.test(text));
+  const pick = segs[live >= 0 ? live : older];
+  if (pick !== undefined) await pick.click();
   await p.click(`${L}.so-dialog .so-row button`, 'Invite');
 }
 

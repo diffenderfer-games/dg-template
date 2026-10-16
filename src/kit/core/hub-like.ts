@@ -89,7 +89,7 @@ export type ResumeLike = Pick<HubResume, 'requested' | 'blockedBy' | 'save' | 'f
 export type SavedLike = Pick<HubSaved, 'opened' | 'list' | 'onOpen' | 'open' | 'discard' | 'on'>;
 
 /**
- * An open online game played over days (multiplayer.md §16.3), as the kit uses
+ * An open online game the hub runs (multiplayer.md §16.3), as the kit uses
  * it: who is there (`summary.seats[].connected`, `canLetComputerPlay()`),
  * moves out of turn (`mayActNow`), chat and the rematch. `rematch` gives
  * back a `TurnGameLike`, so a fake can stand in for the client's class.
@@ -171,7 +171,7 @@ export type HubLike = {
   readonly notify: Pick<HubNotifyApi, 'setQuiet'>;
   /** "Your games": daily challenges in progress, the saved game, online games. */
   readonly saved: SavedLike;
-  /** Online games played over days, run by the hub from the game's rules. */
+  /** Online games, run by the hub from the game's rules. */
   readonly turns: TurnsLike;
   /** Players' avatars and the designer. */
   readonly avatar: AvatarLike;

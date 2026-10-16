@@ -46,7 +46,7 @@ the kit calls it: [docs/kit/hooks.md](docs/kit/hooks.md).
 | `src/game/controls.ts` | Keys, gamepad, touch |
 | `src/game/render/`, `screens/` | Drawing, the title / HUD / result |
 | `src/game/daily.ts`, `race.ts`, `online.ts` | Optional modes |
-| `src/game/turns/rules.ts`, `board.ts` | Online games over days: the rules the hub runs, the board |
+| `src/game/turns/rules.ts`, `board.ts` | Online games: the rules the hub runs, the board |
 | `src/game/test-hook.ts` | Extra `window.__game` drivers |
 
 ## How to check it

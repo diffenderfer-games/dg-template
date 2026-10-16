@@ -16,7 +16,7 @@ import { ROOT } from './lib/paths.ts';
 const entry = join(ROOT, 'src', 'game', 'turns', 'rules.ts');
 const out = join(ROOT, 'dist-rules', 'rules.mjs');
 if (!existsSync(entry)) {
-  console.log('build:rules: no src/game/turns/rules.ts (this game plays no online games over days)');
+  console.log('build:rules: no src/game/turns/rules.ts (this game plays no online games the hub runs)');
   process.exit(0);
 }
 mkdirSync(join(ROOT, 'dist-rules'), { recursive: true });

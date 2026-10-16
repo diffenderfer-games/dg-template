@@ -1,4 +1,4 @@
-// KIT suite (games with game.turns): online games over days on a real hub, on the kit's screen. A link game:
+// KIT suite (games with game.turns): online games the hub runs on a real hub, on the kit's screen. A link game:
 // Ann makes it, Bob takes the seat from the link, Ann starts; moves arrive live; Bob's quick-chat phrase (the
 // game's own, game.turns.quickChat) reaches Ann; Bob closes his page and Ann sees "Waiting for Bob…", then
 // "Let the computer play for Bob" once handOverAt comes, and the computer plays his seat to the end.

@@ -8,7 +8,7 @@
  * - A rejected message keeps the draft and shows the hub's hint, with a
  *   countdown when it says when to try again.
  * - `chatMode`: `on` (text box + quick chips), `quick` (chips only), `off` (hidden).
- * - One panel for a room and for an online game over days (a `ChatPort`
+ * - One panel for a room and for an online game the hub runs (a `ChatPort`
  *   each: `roomChat(room)`, kit/turns' `turnChat(game)`), with the game's
  *   own quick-chat phrases after the hub's.
  */
@@ -39,7 +39,7 @@ export function gamePhrases(slug: string, phrases: readonly string[]): QuickPhra
 /** A delivered line: who said it and the words the hub delivered. */
 export type ChatLineIn = { from: number; text: string };
 
-/** Where a chat panel sends and hears lines (a room, an online game over days). */
+/** Where a chat panel sends and hears lines (a room, an online game the hub runs). */
 export type ChatPort = {
   /** Send free text; resolves with the delivered text (maybe softened), rejects with the hub's refusal. */
   chat(text: string): Promise<string>;

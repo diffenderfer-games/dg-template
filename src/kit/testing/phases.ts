@@ -6,7 +6,7 @@
  * Every test of a planned hub API is written now and skipped with one of
  * these reasons. When the hub publishes a phase, the kit's next minor version
  * flips its entry to `true` and the tests run (docs/kit/CHANGELOG.md).
- * Saved games, online games over days and avatars shipped in client
+ * Saved games, online games the hub runs and avatars shipped in client
  * 2.0.0-next.6 (avatar fixes in next.7; online games on the server, presence,
  * moves out of turn and the buzz in next.8). The world shipped in next.9: the
  * live world (W0) and a game's own room (`game.world`, the W4 map files);

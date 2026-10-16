@@ -90,7 +90,7 @@ export function defineGame<P extends JsonObject, R extends JsonObject>(
   const resume = createResume(hub, game.run, { activity, clock });
   const today = (): string => dayKey(clock.now());
 
-  // Online games over days: the game draws the board (`turns`) and declares `game.turns` (package.json).
+  // Online games the hub runs: the game draws the board (`turns`) and declares `game.turns` (package.json).
   const turnsOn = game.turns !== undefined && MANIFEST.turns;
   let turns: TurnsFlow | null = null;
   const saved = createSaved(
@@ -98,7 +98,7 @@ export function defineGame<P extends JsonObject, R extends JsonObject>(
     {
       continueRun: () => void session.continueSaved(),
       resumeDaily: (id) => void hub.daily.resume(id),
-      // Online games over days open on the kit's screen when the game plays them (else the hub reloads with ?hub_open=).
+      // Online games the hub runs open on the kit's screen when the game plays them (else the hub reloads with ?hub_open=).
       ...(turnsOn ? { openTurns: (id: string) => void turns?.open(id) } : {}),
     },
     () => void session.refreshContinue(),
@@ -152,7 +152,7 @@ export function defineGame<P extends JsonObject, R extends JsonObject>(
           join: (room, _l, spectate) => online.joinRoom(room, spectate),
           currentRoom: () => online.currentRoom(),
         });
-  // 2b. online games over days (opened from Your games, a link or the title)
+  // 2b. online games the hub runs (opened from Your games, a link or the title)
   if (turnsOn && game.turns !== undefined) {
     const hooks = game.turns;
     turns = new TurnsFlow({

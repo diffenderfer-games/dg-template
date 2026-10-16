@@ -48,7 +48,7 @@ Hub (a real hub, signed-in players): `intro`, `hub-menu`, `daily-start`,
 hub's designer), `your-games` (the title's Continue rows: the saved game and
 yesterday's daily in progress). Skipped until game tables in the world ship
 (world W2), saying so on the sheet: `table-launch`. The template's own
-`turns` scenario (`scripts/shots.config.ts`) shows an online game over days
+`turns` scenario (`scripts/shots.config.ts`) shows an online game the hub runs
 against the computer; `new-game --no-turns` removes it.
 
 ## Writing a scenario

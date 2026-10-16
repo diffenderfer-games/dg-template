@@ -6,7 +6,7 @@
  * Only the world's tables and in-game presence are left (world.md §3, W2/W3:
  * launch.table, quickMatch, setRoster), still coming: the world itself and a
  * game's own room shipped in hub client next.9 without them. Saved games,
- * online games over days and avatars are live and come from the client's own
+ * online games the hub runs and avatars are live and come from the client's own
  * types (core/hub-like.ts). The kit uses each shim only behind a feature check
  * (`hub.mp.quickMatch !== undefined`), and its tests are skipped with the hub
  * phase that unblocks them (kit/testing/phases.ts). When the hub publishes

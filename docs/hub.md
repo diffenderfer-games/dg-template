@@ -1530,6 +1530,10 @@ How it works:
   again**. To reword without re-announcing, use `{ "id": "short-key", "text": "…" }`
   (id: letters, digits, `_ . : -`, up to 64 chars); its text can then change freely.
   Typos you fix in a plain string will show as a new note, so use an id for long-lived notes you may edit.
+  To reword a plain string that is **already published** without announcing it again, replace it with
+  `{ "id": "h:<hash>", "text": "…" }`, where `<hash>` is the first 16 hex characters of the sha1 of the
+  old text, lowercased, spacing collapsed and trailing punctuation dropped (the hub's `changeKey`):
+  the note keeps its key and its date, and only its text changes.
 - **Removing** a note from the list stops it showing (it stays in the database,
   and keeps its date if you put it back). Order doesn't matter, but appending
   keeps the file readable. Up to 200 notes are read, 280 characters each.

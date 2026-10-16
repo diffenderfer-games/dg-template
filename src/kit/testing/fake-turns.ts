@@ -1,5 +1,5 @@
 /**
- * kit/testing: online games played over days (`hub.turns`, `TurnGame`).
+ * kit/testing: online games the hub runs (`hub.turns`, `TurnGame`).
  * Source: dg-template src/kit/testing/ (kit v1.0). Copy byte-identical; change it in the template first.
  * Docs: docs/kit/testing.md
  *

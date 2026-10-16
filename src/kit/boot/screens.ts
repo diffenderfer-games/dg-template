@@ -21,7 +21,7 @@ export type ScreenActions = {
   race: () => void;
   raceBrowse: () => void;
   online: () => void;
-  /** Play over days: an online game the hub runs (kit/turns). */
+  /** Play online: an online game the hub runs (kit/turns), the default way to play online. */
   turns: () => void;
   settings: () => void;
   howTo: () => void;
@@ -43,7 +43,7 @@ export type TitleOptions = {
   dailyDone: boolean;
   race: boolean;
   online: boolean;
-  /** The game plays online games over days (`game.turns` and a `turns` hook). */
+  /** The game plays online games the hub runs (`game.turns` and a `turns` hook). */
   turns?: boolean;
   /** The hub's social runtime failed to load (hub:rt-failed): online play is off for now. */
   onlineDown?: boolean;
@@ -70,14 +70,16 @@ export function titleScreen(o: TitleOptions, a: ScreenActions): HTMLElement {
     menu.appendChild(button(t('race'), a.race, { testid: 'race' }));
     menu.appendChild(button(t('raceBrowse'), a.raceBrowse, { testid: 'race-browse' }));
   }
-  if (o.online) {
-    const sub = o.onlineDown === true ? t('onlineNeedsConnection') : undefined;
-    menu.appendChild(button(t('online'), a.online, { testid: 'online', disabled: o.onlineDown === true, sub }));
-    if (o.quickMatch === true) menu.appendChild(button(t('quickMatch'), a.quickMatch, { testid: 'quick-match' }));
-  }
+  // An online game the hub runs is the default way to play online ("Play online"); a live room beside it is "Play now".
   if (o.turns === true) {
     const sub = o.onlineDown === true ? t('onlineNeedsConnection') : t('turnsNewSub');
     menu.appendChild(button(t('turnsNew'), a.turns, { testid: 'turns-new', disabled: o.onlineDown === true, sub }));
+  }
+  if (o.online) {
+    const sub = o.onlineDown === true ? t('onlineNeedsConnection') : undefined;
+    const label = o.turns === true ? t('playNow') : t('online');
+    menu.appendChild(button(label, a.online, { testid: 'online', disabled: o.onlineDown === true, sub }));
+    if (o.quickMatch === true) menu.appendChild(button(t('quickMatch'), a.quickMatch, { testid: 'quick-match' }));
   }
   menu.appendChild(button(t('settings'), a.settings, { testid: 'settings' }));
   menu.appendChild(button(t('howTo'), a.howTo, { testid: 'howto' }));

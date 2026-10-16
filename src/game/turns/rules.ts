@@ -1,5 +1,5 @@
 /**
- * The rules module the hub runs on its server for online games over days (multiplayer.md §16.2). (GAME: yours to edit.)
+ * The rules module the hub runs on its server for its online games (multiplayer.md §16.2). (GAME: yours to edit.)
  *
  * Pure: no DOM, no hub, no Math.random, no Date, no imports at all after
  * bundling (`npm run build:rules`, part of `npm run build` → dist-rules/rules.mjs; the hub loads its

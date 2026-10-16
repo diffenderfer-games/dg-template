@@ -1,10 +1,10 @@
 /**
- * kit/boot: online games played over days inside the session (open, make, join, play, the end), on kit/turns.
+ * kit/boot: online games the hub runs inside the session (open, make, join, play, the end), on kit/turns.
  * Source: dg-template src/kit/boot/ (kit v1.0). Copy byte-identical; change it in the template first.
  * Docs: docs/kit/turns.md § "The screen"
  *
  * multiplayer.md §16.3. A game comes from Your games (`hub.saved.opened`,
- * `onOpen`), an invite link (`hub.turns.link`) or the title's Play over days
+ * `onOpen`), an invite link (`hub.turns.link`) or the title's Play online
  * (the computer, a link, anyone). The page follows it live through the
  * game's own events (`move`, `turn`, `ended`, `chat`): the client already
  * catches up after a gap or a quiet spell, so the kit never polls. The only
@@ -39,7 +39,7 @@ export type TurnsFlowHost = {
 /** How a new game seats its other players. */
 export type TurnsWho = 'computer' | 'link' | 'anyone';
 
-/** An online game over days as a chat port (free text answers the hub's delivered line). */
+/** An online game the hub runs as a chat port (free text answers the hub's delivered line). */
 export function turnChat(game: Pick<TurnGameLike, 'say' | 'on'>): ChatPort {
   return {
     chat: async (text) => (await game.say({ text })).text,
@@ -48,7 +48,7 @@ export function turnChat(game: Pick<TurnGameLike, 'say' | 'on'>): ChatPort {
   };
 }
 
-/** Online games over days for one page. */
+/** Online games the hub runs for one page. */
 export class TurnsFlow {
   private current: TurnGameLike | null = null;
   private screen: TurnScreen | null = null;
@@ -109,7 +109,7 @@ export class TurnsFlow {
     });
   }
 
-  /** The title's Play over days: who to play with. */
+  /** The title's Play online: who to play with. */
   choose(): void {
     openModal({
       title: t('turnsWho'),

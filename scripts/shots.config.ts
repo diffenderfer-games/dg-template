@@ -23,7 +23,7 @@ export const scenarios: Scenario[] = [
   {
     name: 'turns',
     target: 'hub',
-    checks: 'an online game over days with the computer: whose move it is, the seats, the pile, the takes, chat',
+    checks: 'an online game the hub runs with the computer: whose move it is, the seats, the pile, the takes, chat',
     run: async (c) => {
       await c.open();
       await c.press('turns-new');

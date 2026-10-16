@@ -29,7 +29,7 @@ void test(
 );
 
 void test(
-  'turns/table: a table in the world opens an online game over days, with no host step',
+  'turns/table: a table in the world opens an online game the hub runs, with no host step',
   { skip: skip('worldW2') },
   () => {
     // Plan (world.md §3.4, saved-games phase 3): two players sit at a duel table; the join launch opens the

@@ -5,7 +5,7 @@
  *
  * package.json is the one place a game declares its quick-chat phrases
  * (`game.multiplayer.quickChat`, `game.turns.quickChat`) and whether it plays
- * online games over days (`game.turns`). Vite inlines only the `game` key
+ * online games the hub runs (`game.turns`). Vite inlines only the `game` key
  * (a named JSON import), and the block is read as untrusted JSON, so a game
  * without one of these keys still typechecks. Not re-exported from the core
  * index: Node scripts can't import JSON without an import attribute.
@@ -21,9 +21,9 @@ function phrases(block: unknown): string[] {
 
 /** What the kit reads from a `game` block. */
 export type ManifestFacts = {
-  /** `game.turns` is declared: the hub runs this game's rules (online games over days). */
+  /** `game.turns` is declared: the hub runs this game's rules (its online games). */
   turns: boolean;
-  /** `game.turns.quickChat`: the game's own phrases in its online games over days. */
+  /** `game.turns.quickChat`: the game's own phrases in its online games. */
   turnsQuickChat: string[];
   /** `game.multiplayer.quickChat`: the game's own phrases in its rooms. */
   roomQuickChat: string[];
