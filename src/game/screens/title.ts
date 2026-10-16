@@ -11,7 +11,7 @@ import { HUD } from '../strings.ts';
 export function title(ctx: GameContext<Profile, Run>, el: HTMLElement, _info: TitleInfo): void {
   const best = h('p.kit-tagline', { 'data-testid': 'title-best' }, HUD.best(ctx.profile.data.best));
   el.querySelector('.kit-menu')?.before(best);
-  titleDemo(ctx.hub, el); // new-game:avatar  (the player's bust + Edit; shows once the hub has avatars)
+  titleDemo(ctx.hub, el); // new-game:avatar  (the player's bust + Edit avatar, bottom-left)
   const off = ctx.profile.onChange((p) => {
     if (!best.isConnected) return off();
     best.textContent = HUD.best(p.best);

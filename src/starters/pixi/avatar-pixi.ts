@@ -1,30 +1,37 @@
 /**
- * PixiJS starter: players' faces on the canvas (avatars.md §3.8, `@diffenderfer-games/hub/avatar/pixi`).
- * (STARTER. Waits on avatars phase 4: until the pinned hub client has the Pixi
- * adapter, draw faces in the DOM with kit/avatar `face()` / `seatBadge()`.)
+ * PixiJS starter: players' faces on the canvas, with the hub's typed Pixi adapter (hub.md "PixiJS").
+ * (STARTER: `new-game --renderer pixi` copies this folder to src/game/render/.)
  *
- * The hub's adapter takes the Pixi namespace as an argument (the hub has no
- * Pixi dependency) and draws with paths, never `arc()`. Once it ships:
+ * The adapter takes pixi's own classes (the hub has no pixi dependency) and
+ * gives back pixi's own `Sprite`, so faces go into a `Container` with no
+ * cast. It draws with paths, never `arc()`. For DOM UI (lobby seats, results)
+ * use kit/avatar `face()` / `seatBadge()` instead.
  *
- *   import * as PIXI from 'pixi.js';
- *   import { pixiAvatar } from '@diffenderfer-games/hub/avatar/pixi';
- *   const face = pixiAvatar(PIXI, hub.avatar.from(seat), { size: 64 });
- *   layer.addChild(face.view);  // each frame: face.update(nowMs)
+ *   const faces = await seatFaces(ctx.hub, room.info.seats);   // RoomSeat carries `look`
+ *   for (const f of faces) layer.addChild(f.view);
+ *   app.ticker.add(() => faces.forEach((f) => f.update(performance.now())));
+ *   hub.avatar.on('change', ({ userId, ref }) => facesByUser.get(userId)?.setLook(ref.code));
  */
-import type { Container } from 'pixi.js';
+import { pixiAvatar, type PixiAvatar } from '@diffenderfer-games/hub/avatar/pixi';
+import { animator } from '@diffenderfer-games/hub/avatar';
+import { Container, Rectangle, Sprite, Texture } from 'pixi.js';
+import { avatarRenderer } from '../../kit/avatar/index.ts';
+import type { HubLike } from '../../kit/core/index.ts';
 
-/** What the hub's Pixi adapter returns (avatars.md §6). */
-export type PixiAvatar = { view: Container; update(nowMs: number): void; setLook(look: string): void; destroy(): void };
+/** The named imports the adapter needs (or pass `import * as PIXI from 'pixi.js'`). */
+const PIXI_FOR_AVATARS = { Container, Rectangle, Sprite, Texture };
 
-/** The adapter's entry, as the hub will publish it. */
-export type PixiAvatarAdapter = (pixi: object, look: string, o?: { size?: number }) => PixiAvatar;
+/** A seat as rooms, races and online games carry it. */
+export type FaceSeat = { userId: number | null; look: string };
 
-/** Place faces for seats with the adapter, once the hub ships it (null before). */
-export function seatFaces(
-  adapter: PixiAvatarAdapter | null,
-  pixi: object,
-  looks: readonly string[],
+/** A live face per seat (blinking and idling), once the hub's renderer has its art. */
+export async function seatFaces(
+  hub: Pick<HubLike, 'avatar'>,
+  seats: readonly FaceSeat[],
   size = 64,
-): PixiAvatar[] {
-  return adapter === null ? [] : looks.map((look) => adapter(pixi, look, { size }));
+): Promise<PixiAvatar<Sprite>[]> {
+  await avatarRenderer(hub);
+  return seats.map((s) =>
+    pixiAvatar(PIXI_FOR_AVATARS, s.look, { size, animator: animator(s.look, { seed: s.userId ?? s.look }) }),
+  );
 }

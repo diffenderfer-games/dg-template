@@ -3,15 +3,18 @@
  * Source: dg-template src/kit/avatar/ (kit v1.0). Copy byte-identical; change it in the template first.
  * Docs: docs/kit/avatar.md
  *
- * Planned hub API (avatars.md §6, §11; phases 0–2, the Pixi/three adapters
- * in phase 4). The hub draws faces (`<dg-avatar>`, render.svg, the animator);
- * the kit only places them. Rules: show players' avatars wherever you show
- * their names; never draw your own faces for real players; a character game's
- * hero isn't the player's face. Until the pinned client has `hub.avatar`,
- * every helper falls back to an initial in a circle and the demo stays hidden.
+ * hub.md "Avatars". The hub draws every face (`<dg-avatar>`, render.svg, the
+ * animator, the Pixi and three.js adapters); the kit only places them.
+ * `<dg-avatar>` is the hub renderer's element: `avatarRenderer(hub)` loads
+ * it once (`hub.avatar.load()` + `defineAvatarElement()`), and every helper
+ * here calls it, so an element made before the renderer is ready upgrades
+ * when it is. Rules: show players' avatars wherever you show their names;
+ * never draw your own faces for real players; a character game's hero isn't
+ * the player's face; a hidden player (`look: ''`) shows the silhouette.
  */
+import type { AvatarModule, AvatarRef } from '@diffenderfer-games/hub';
+import type { Animator } from '@diffenderfer-games/hub/avatar';
 import type { HubLike } from '../core/hub-like.ts';
-import type { AvatarRef } from '../core/planned.ts';
 import { t } from '../core/strings.ts';
 import { button } from '../ui/controls.ts';
 import { h } from '../ui/dom.ts';
@@ -22,37 +25,70 @@ export type * from './types.ts';
 /** A player as names come with them (room seats, racers, invites). */
 export type Who = { userId?: number; name: string; look?: string; hidden?: boolean };
 
-/** The hub's custom element for a face (registered by the hub's avatar module). */
+/** The hub renderer's custom element for a face. */
 const TAG = 'dg-avatar';
 
-/** A face: `<dg-avatar>` with the player's look, or the fallback initial. */
-export function face(hub: Pick<HubLike, 'avatar'>, who: Who, size = 40): HTMLElement {
-  const ref: AvatarRef | null =
-    hub.avatar && who.hidden !== true
-      ? hub.avatar.from({
+/** `<dg-avatar>` once the renderer has upgraded it: its `animator` plays feelings. */
+type AvatarElement = HTMLElement & { readonly animator: Pick<Animator, 'feel'> };
+
+const loaded = new WeakMap<object, Promise<Pick<AvatarModule, 'defineAvatarElement'> | null>>();
+
+/**
+ * Load the hub's renderer (its art) and register `<dg-avatar>`, once per hub.
+ * Resolves null if it can't load (offline before the first visit): faces
+ * then stay empty boxes of the right size.
+ */
+export function avatarRenderer(
+  hub: Pick<HubLike, 'avatar'>,
+): Promise<Pick<AvatarModule, 'defineAvatarElement'> | null> {
+  let p = loaded.get(hub.avatar);
+  if (p === undefined) {
+    p = hub.avatar.load().then(
+      (mod) => {
+        mod.defineAvatarElement();
+        return mod;
+      },
+      () => null,
+    );
+    loaded.set(hub.avatar, p);
+  }
+  return p;
+}
+
+/** A `<dg-avatar>` for a ref (sized, so the layout doesn't jump when it renders). */
+function avatarElement(hub: Pick<HubLike, 'avatar'>, ref: AvatarRef, size: number, o: FaceOptions): HTMLElement {
+  void avatarRenderer(hub);
+  const el = document.createElement(TAG);
+  el.setAttribute('look', ref.hidden ? '' : ref.code);
+  el.setAttribute('size', String(size));
+  if (o.frame) el.setAttribute('frame', o.frame);
+  if (o.animate === true) el.setAttribute('animate', '');
+  if (o.title !== undefined) el.setAttribute('title', o.title);
+  el.style.width = el.style.height = `${size}px`;
+  el.dataset.face = ref.hidden || ref.code === '' ? 'silhouette' : 'avatar';
+  return el;
+}
+
+/** How a face is drawn. */
+export type FaceOptions = {
+  /** `head` (a badge, the default), `bust` or `full`. */
+  frame?: 'head' | 'bust' | 'full';
+  /** Blink and idle (and play feelings with `showFeel`). Live faces cost a frame each: keep it to about 12. */
+  animate?: boolean;
+  /** The accessible name, only where the face stands alone ("Sam's avatar"); next to a name it is decorative. */
+  title?: string;
+};
+
+/** A face: `<dg-avatar>` with the player's look (the silhouette for a hidden player). Decorative beside a name. */
+export function face(hub: Pick<HubLike, 'avatar'>, who: Who, size = 40, o: FaceOptions = {}): HTMLElement {
+  const ref =
+    who.hidden === true
+      ? hub.avatar.from({ look: '' })
+      : hub.avatar.from({
           ...(who.look === undefined ? {} : { look: who.look }),
           ...(who.userId === undefined ? {} : { userId: who.userId }),
-        })
-      : null;
-  if (ref !== null && !ref.hidden) {
-    const el = document.createElement(TAG);
-    el.setAttribute('look', ref.code);
-    el.setAttribute('size', String(size));
-    el.setAttribute('title', who.name);
-    el.dataset.face = 'avatar';
-    return el;
-  }
-  // The silhouette for a hidden player, an initial otherwise (no hub avatars yet).
-  const initial = who.hidden === true ? '' : (who.name.trim()[0] ?? '?').toUpperCase();
-  return h(
-    'span.kit-face',
-    {
-      'data-face': who.hidden === true ? 'silhouette' : 'initial',
-      'aria-hidden': 'true',
-      style: { width: `${size}px`, height: `${size}px` },
-    },
-    initial,
-  );
+        });
+  return avatarElement(hub, ref, size, o);
 }
 
 /** A face and a name that opens the player card (multiplayer.md §11). */
@@ -72,7 +108,7 @@ export function nameAndFace(hub: Pick<HubLike, 'avatar' | 'social'>, who: Who, s
   return h('span.kit-who', {}, face(hub, who, size), name);
 }
 
-/** A seat badge: a face with a name plate (avatars.md §11 seatBadge). */
+/** A seat badge: a live face with a name plate (avatars.md §11 seatBadge). */
 export function seatBadge(
   hub: Pick<HubLike, 'avatar'>,
   who: Who,
@@ -81,7 +117,7 @@ export function seatBadge(
   return h(
     'div.kit-seat-badge',
     { 'data-user': who.userId ?? '' },
-    face(hub, who, o.size ?? 56),
+    face(hub, who, o.size ?? 56, { animate: true }),
     o.nameplate === false ? null : h('span.kit-nameplate', {}, who.name),
   );
 }
@@ -103,7 +139,7 @@ export function lookAtActive(badges: readonly HTMLElement[], active: number | nu
   }
 }
 
-/** Game events → feelings on a seat's face (avatars.md §3.7 `anim.feel`). */
+/** Game events → feelings on a seat's face (hub.md "Expressions and gaze": `anim.feel`). */
 export function feelOn<E extends string>(
   map: Readonly<Record<E, Feel>>,
   show: (seat: number, feel: Feel) => void,
@@ -119,49 +155,72 @@ export function resultFaces(
   for (const r of results) show(r.seat, r.won ? 'win' : 'lose');
 }
 
-/** Show a feeling on a `<dg-avatar>` (the hub's element plays it). */
-export function showFeel(badge: HTMLElement, feel: Feel): void {
-  badge.querySelector(TAG)?.setAttribute('feel', feel);
+/** Has the renderer upgraded this element (so it has an animator)? */
+function isAvatarElement(el: Element): el is AvatarElement {
+  return el instanceof HTMLElement && 'animator' in el;
 }
 
-/** A stable face for a computer player (`hub.avatar.bot`), or null before the hub has avatars. */
-export function botLook(hub: Pick<HubLike, 'avatar'>, seed: string): AvatarRef | null {
-  return hub.avatar?.bot(seed) ?? null;
+/**
+ * Show a feeling on a badge's face with the element's own animator
+ * (`animator.feel`); the face animates from then on. False before the
+ * renderer has upgraded the element.
+ */
+export function showFeel(badge: HTMLElement, feel: Feel): boolean {
+  const el = badge.matches(TAG) ? badge : badge.querySelector(TAG);
+  if (el === null || !isAvatarElement(el)) return false;
+  el.setAttribute('animate', '');
+  el.animator.feel(feel);
+  return true;
+}
+
+/** A stable face for a computer player (`hub.avatar.bot`). */
+export function botLook(hub: Pick<HubLike, 'avatar'>, seed: string): AvatarRef {
+  return hub.avatar.bot(seed);
 }
 
 /**
  * The title-screen demo (avatars.md §11, on by default): the player's bust in
- * a corner, blinking and looking at the pointer, with an Edit button that
- * opens the hub's designer; it re-renders when the look changes. Returns the
- * remover; does nothing until the hub has avatars.
+ * a corner, blinking and looking at the pointer, with an "Edit avatar" button
+ * that opens the hub's designer; it re-renders when their avatar changes
+ * (`change` with their user id). Returns the remover.
  */
-export function titleDemo(hub: Pick<HubLike, 'avatar'>, screen: HTMLElement): () => void {
+export function titleDemo(hub: Pick<HubLike, 'avatar' | 'userId'>, screen: HTMLElement): () => void {
   const avatar = hub.avatar;
-  if (!avatar) return () => undefined;
-  const corner = h('div.kit-corner.kit-avatar-demo', {
-    'data-testid': 'avatar-demo',
-    style: { bottom: 'var(--kit-bottom)', left: '16px' },
-  });
-  const bust = document.createElement(TAG);
-  bust.setAttribute('size', '96');
-  bust.setAttribute('animate', '');
-  corner.append(
+  const mine = avatar.mineSync() ?? avatar.from({ look: '' });
+  const bust = avatarElement(hub, mine, 96, { frame: 'bust', animate: true, title: t('yourAvatar') });
+  const corner = h(
+    'div.kit-corner.kit-avatar-demo',
+    { 'data-testid': 'avatar-demo', style: { bottom: 'var(--kit-bottom)', left: '16px' } },
     bust,
-    button(t('edit'), () => void avatar.openDesigner({ reason: 'game' }), { testid: 'avatar-edit' }),
+    button(t('editAvatar'), () => void avatar.openDesigner({ reason: 'game' }), { testid: 'avatar-edit' }),
   );
   screen.append(corner);
-  const show = (ref: AvatarRef): void => bust.setAttribute('look', ref.code);
+  const show = (ref: AvatarRef): void => {
+    bust.setAttribute('look', ref.code);
+    bust.dataset.face = ref.code === '' ? 'silhouette' : 'avatar';
+  };
   void avatar.mine().then(show);
+  let off = (): void => undefined;
+  const remove = (): void => {
+    removeEventListener('pointermove', onMove);
+    off();
+    corner.remove();
+  };
+  /** The title redraws often: a demo whose screen is gone cleans itself up. */
+  const alive = (): boolean => {
+    if (corner.isConnected) return true;
+    remove();
+    return false;
+  };
   const onMove = (e: PointerEvent): void => {
+    if (!alive()) return;
     const r = bust.getBoundingClientRect();
     bust.setAttribute('look-x', String(Math.max(-1, Math.min(1, (e.clientX - r.left - r.width / 2) / 300))));
     bust.setAttribute('look-y', String(Math.max(-1, Math.min(1, (e.clientY - r.top - r.height / 2) / 300))));
   };
   addEventListener('pointermove', onMove);
-  const off = avatar.on('change', () => void avatar.mine().then(show));
-  return () => {
-    removeEventListener('pointermove', onMove);
-    off();
-    corner.remove();
-  };
+  off = avatar.on('change', ({ userId, ref }) => {
+    if (alive() && userId === hub.userId()) show(ref);
+  });
+  return remove;
 }

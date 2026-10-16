@@ -3,9 +3,10 @@
  * Source: dg-template src/kit/avatar/ (kit v1.0). Copy byte-identical; change it in the template first.
  * Docs: docs/kit/avatar.md
  */
+import type { Feeling } from '@diffenderfer-games/hub/avatar';
 
-/** avatars.md §3.7: the semantic feelings a face can show. */
-export type Feel = 'win' | 'lose' | 'bigPlay' | 'victim' | 'waiting' | 'yourTurn' | 'idle';
+/** The feelings a face can show (the animator's `feel()`, hub.md "Expressions and gaze"). */
+export type Feel = Feeling;
 
 /** The game's avatar hooks (src/game/avatar.ts). */
 export type AvatarHooks = {

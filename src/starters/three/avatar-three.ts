@@ -1,25 +1,37 @@
 /**
- * three.js starter: players' faces as sprites (avatars.md §3.8, `@diffenderfer-games/hub/avatar/three`).
- * (STARTER. Waits on avatars phase 4: until then, show faces in the DOM with kit/avatar.)
+ * three.js starter: players' faces as sprites, with the hub's typed three.js adapter (hub.md "three.js").
+ * (STARTER: `new-game --renderer three` copies this folder to src/game/render/.)
  *
- * Once it ships:
+ * The adapter takes three's own classes (the hub has no three dependency)
+ * and gives back three's own `Sprite`, ready for `scene.add`. For DOM UI
+ * (lobby seats, results) use kit/avatar `face()` / `seatBadge()` instead.
  *
- *   import * as THREE from 'three';
- *   import { avatarSprite } from '@diffenderfer-games/hub/avatar/three';
- *   const sprite = avatarSprite(THREE, hub.avatar.from(seat), { size: 128 });
- *   sprite.position.set(x, 1.6, z); scene.add(sprite);
+ *   const faces = await seatSprites(ctx.hub, room.info.seats);
+ *   faces.forEach((f, i) => { f.sprite.position.set(i - 1, 1.6, 0); scene.add(f.sprite); });
+ *   each frame: faces.forEach((f) => f.avatar.update(performance.now()));
  */
-import type { Sprite } from 'three';
+import { avatarSprite, type ThreeAvatarTexture } from '@diffenderfer-games/hub/avatar/three';
+import { CanvasTexture, SRGBColorSpace, Sprite, SpriteMaterial } from 'three';
+import { avatarRenderer } from '../../kit/avatar/index.ts';
+import type { HubLike } from '../../kit/core/index.ts';
 
-/** The adapter's entry, as the hub will publish it (avatars.md §6). */
-export type ThreeAvatarAdapter = (three: object, look: string, o?: { size?: number }) => Sprite;
+/** The named imports the adapter needs (or pass `import * as THREE from 'three'`). */
+const THREE_FOR_AVATARS = { CanvasTexture, SpriteMaterial, Sprite, SRGBColorSpace };
 
-/** Sprites for seats with the adapter, once the hub ships it (none before). */
-export function seatSprites(
-  adapter: ThreeAvatarAdapter | null,
-  three: object,
-  looks: readonly string[],
-  size = 128,
-): Sprite[] {
-  return adapter === null ? [] : looks.map((look) => adapter(three, look, { size }));
+/** A seat as rooms, races and online games carry it. */
+export type FaceSeat = { look: string };
+
+/** A face sprite and its texture (three's own classes). */
+export type SeatSprite = { readonly sprite: Sprite; readonly avatar: ThreeAvatarTexture<CanvasTexture<unknown>> };
+
+/** A billboard face per seat, `height` world units tall. Redraw with `avatar.update(t)` (at most 30 fps). */
+export async function seatSprites(
+  hub: Pick<HubLike, 'avatar'>,
+  seats: readonly FaceSeat[],
+  o: { size?: number; height?: number } = {},
+): Promise<SeatSprite[]> {
+  await avatarRenderer(hub);
+  return seats.map((s) =>
+    avatarSprite(THREE_FOR_AVATARS, s.look, { frame: 'head', size: o.size ?? 128, height: o.height ?? 0.4 }),
+  );
 }
