@@ -1017,6 +1017,13 @@ A started day is a **saved game** of its own (see [Saved games](#saved-games)):
   its progress is kept.
 - The calendar marks days in progress with ◐, also on days older than the
   window ("Still in progress: Oct 2"), and so does the game sheet's Daily tab.
+- **Start over (the menu's calendar):** tapping a ◐ day inside the window
+  offers Continue or Start over. Start over asks first, discards the day's
+  saved game (`hub.daily.discard()` when it is the day being played, else
+  `hub.saved.discard(id)`) and starts it again, so the game's `play` gets the
+  **same day with `saved: null`**, possibly while that day is on screen:
+  `play` must reset the board, not assume a different day. Days older than
+  the window keep Continue only (a discarded old day can't be started again).
 - Up to 60 days per game can be in progress (409 `too_many_dailies` past it).
 - Offline, a day can be started (it gets a device-only id), saved and won; it
   lands on the hub as the one saved game for that day when the connection is
