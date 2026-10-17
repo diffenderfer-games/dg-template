@@ -235,14 +235,15 @@ literals:
 
 `game.image` is a path relative to the project root (NOT to `serveDir`).
 It must resolve inside the project. Served separately from the app at
-`/_tiles/<slug>` for the catalog page. Missing/broken images are non-fatal —
-the card just renders without a thumbnail.
+`/_tiles/<slug>` for the catalog page, where the cover **is** the card: make it
+**800x420** (40:21, shown whole, never cropped) with the game's title in the art.
+Missing/broken images are non-fatal — the card shows the title on a gradient.
 
 ---
 
 ## Author + description display
 
-The card shows `pkg.author` (string or `{name, ...}` object — name is
+The card's hover details show `pkg.author` (string or `{name, ...}` object — name is
 extracted) and `game.description || pkg.description`.
 
 ---

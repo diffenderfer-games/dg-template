@@ -1475,13 +1475,20 @@ is ignored (with a warning) by the host.
 
 The home page (served by dg-host, scripted by `/_hub/home.js`):
 
-- **Cards**: plays, how many are playing (*3 playing* on the cover, led by a
-  green person when signed-in players are among them and a grey one for guests;
-  counts only, hidden at 0), today's daily badge as its own button beside the
-  "⋯" (gold to play, a tap goes to today's daily; green with a check when done;
-  nothing without dailies), a top-left pill only when the game isn't live
-  (*Offline*, *Updating* during a deploy, *Starting* while its server
-  restarts), and a "⋯" button.
+- **Cards**: the cover is the card, shown whole at 40:21, so make `game.image`
+  **800x420** with the game's title in the art (other shapes are cover-fit
+  around the centre; a game without one gets its title on a gradient). Over the
+  cover: the play count bottom-left, today's daily badge bottom-right as its own
+  button (gold to play, a tap goes to today's daily; green with a check when
+  done; nothing without dailies), the "⋯" button top-right, how many are
+  playing as a rounded label centred on the top edge (*3 playing*, led by a
+  green person when signed-in players are among them and a grey one for
+  guests; counts only, hidden at 0), and a top-left pill only when the game
+  isn't live (*Offline*, *Updating* during a deploy, *Starting* while its
+  server restarts). On a computer, hovering (or tabbing to) a card fades in a
+  dark layer with the title, author, description, ages and labels; phones show
+  just the covers, in one column, and "⋯" has the details. A tap on the cover
+  plays.
 - **Game sheet** ("⋯"; full screen on phones, a slide-out on wider screens): *Play*
   (play, the ages and labels, star, "tell me when people want to play"), *Leaderboards*, *Daily* (the
   menu's calendar), *Races* (the player's record) and *Stats*; tabs a game doesn't
