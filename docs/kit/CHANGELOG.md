@@ -4,6 +4,17 @@ KIT doc. One entry per kit version; per module inside. A **major** version
 means a hook's signature changed: the entry says how to move a game over.
 `npm run kit:sync` prints the entries newer than a game's `kit.json`.
 
+## 1.11 (2026-10-17)
+
+The cover is the hub's card size.
+
+- **scripts 1.14:** `npm run cover` shoots at the new `cover` size (800 × 420, 40:21, the shape the
+  hub shows whole) instead of `desk` (1280 × 800, which the card cropped). `kit:sync` replaces
+  the game's `scripts/kit/` copy; re-run `npm run cover` to remake `cover.png`. `ui-check` skips
+  the `cover` size.
+- **core 1.6:** `KIT_VERSION` 1.11.
+- **docs 1.13:** screenshots.md lists the `cover` size.
+
 ## 1.10 (2026-10-17)
 
 Game ages (hub client and contract **2.0.0-next.13**): say who the game is for.

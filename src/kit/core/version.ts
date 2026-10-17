@@ -5,4 +5,4 @@
  */
 
 /** The kit's version: `major.minor`. A major means a hook signature changed (see the CHANGELOG). */
-export const KIT_VERSION = '1.10';
+export const KIT_VERSION = '1.11';

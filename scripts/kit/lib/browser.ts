@@ -7,9 +7,10 @@ import puppeteer, { type Browser, type Page } from 'puppeteer-core';
 import { CHROME } from './paths.ts';
 import { CHROME_TAG, forget, remember } from './procs.ts';
 
-/** Screenshot sizes (phone is a touch device at DPR 2). */
+/** Screenshot sizes (cover is the hub's card shape, 40:21; phone is a touch device at DPR 2). */
 export const SIZES = {
   desk: { width: 1280, height: 800 },
+  cover: { width: 800, height: 420 },
   phone: { width: 390, height: 844, deviceScaleFactor: 2, isMobile: true, hasTouch: true },
   'phone-land': { width: 844, height: 390, deviceScaleFactor: 2, isMobile: true, hasTouch: true, isLandscape: true },
   tablet: { width: 820, height: 1180, deviceScaleFactor: 2, isMobile: true, hasTouch: true },

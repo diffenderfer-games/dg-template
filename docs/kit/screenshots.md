@@ -34,6 +34,7 @@ scenarios (`npm run cover` leaves a one-shot sheet behind it).
 | Size | Viewport |
 |---|---|
 | `desk` | 1280 × 800 |
+| `cover` | 800 × 420 (the hub's card shape; only `npm run cover` uses it) |
 | `phone` | 390 × 844, touch, DPR 2 |
 | `phone-land` | 844 × 390, touch |
 | `tablet` | 820 × 1180, touch |
@@ -92,8 +93,8 @@ The context gives `open(query?)`, `drive(path, ...args)`, `screen(name)`,
 
 ## Cover
 
-`npm run cover` takes the `cover` scenario at desktop size and copies it to
-`cover.png`; point `game.image` at it.
+`npm run cover` takes the `cover` scenario at 800 × 420 (the hub's 40:21 card, shown whole) and
+copies it to `cover.png`; point `game.image` at it.
 
 The kit's `cover` plays `autoplay` for 2.5 s: fine for an action game, a poor tile for a
 word or card game. Make your own: exclude the kit's and add a `cover` scenario that sets

@@ -43,7 +43,7 @@ const served = await serveDist(join(ROOT, 'dist'), slugOf());
 const browser = await launch();
 let bad = 0;
 try {
-  for (const size of Object.keys(SIZES).filter((k): k is SizeName => k in SIZES)) {
+  for (const size of Object.keys(SIZES).filter((k): k is SizeName => k in SIZES && k !== 'cover')) {
     const page = await browser.newPage();
     await page.evaluateOnNewDocument(() => Reflect.set(window, '__HUB_TEST__', {}));
     await sizePage(page, size);
