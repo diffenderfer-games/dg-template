@@ -1123,7 +1123,9 @@ waiting on the player's move, and the window groups them as players think of
 them: **Your turn**, **Daily challenges**, **Saved games**, **Online games**.
 Each row has the game's main button (Resume, Play or Open) and, behind "⋯",
 Discard (daily and saved games), or Mute, Nudge and Leave (online games),
-asking first where it can't be undone.
+asking first where it can't be undone. A game's card on the home page also
+gets a ▶️ resume button for its saved game (see "Cards" in
+[Labels, ages and the home page](#labels-ages-and-the-home-page)).
 
 Saved games are private: a daily or a saved run is its owner's alone; an
 online game is visible to its seated players only (and admins, logged).
@@ -1487,8 +1489,14 @@ The home page (served by dg-host, scripted by `/_hub/home.js`):
   around the centre; a game without one gets its title on a gradient). Over the
   cover: the play count bottom-left, today's daily badge bottom-right as its own
   button (gold to play, a tap goes to today's daily; green with a check when
-  done; nothing without dailies), the "⋯" button top-right, how many are
-  playing as a rounded label centred on the top edge (*3 playing*, led by a
+  done; nothing without dailies), a round ▶️ resume button when the player has
+  a saved game there (directly above the daily badge, or in its bottom-right
+  spot for a game without dailies; *Resume: Level 4 of 10*, the save's progress
+  label; a tap opens it exactly as the Resume window's Resume does, with
+  `?hub_resume=1&hub_open=…`; it picks the game's newest saved game, else a daily
+  challenge in progress from an earlier day, leaving today's to the daily badge
+  and online games to the Resume card; hidden with nothing saved), the "⋯"
+  button top-right, how many are playing as a rounded label centred on the top edge (*3 playing*, led by a
   green person when signed-in players are among them and a grey one for
   guests; counts only, hidden at 0), and a top-left pill only when the game
   isn't live (*Offline*, *Updating* during a deploy, *Starting* while its
