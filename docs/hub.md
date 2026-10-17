@@ -1486,7 +1486,9 @@ The home page (served by dg-host, scripted by `/_hub/home.js`):
 
 - **Cards**: the cover is the card, shown whole at 40:21, so make `game.image`
   **800x420** with the game's title in the art (other shapes are cover-fit
-  around the centre; a game without one gets its title on a gradient). Over the
+  around the centre; a game without one gets its title on a gradient). The
+  card loads a smaller WebP copy of it, not the original (see **Cover copies**
+  below), and covers past the first rows load lazily. Over the
   cover: the play count bottom-left, today's daily badge bottom-right as its own
   button (gold to play, a tap goes to today's daily; green with a check when
   done; nothing without dailies), a round ▶️ resume button when the player has
@@ -1504,6 +1506,25 @@ The home page (served by dg-host, scripted by `/_hub/home.js`):
   dark layer with the title, author, description, ages and labels; phones show
   just the covers, in one column, and "⋯" has the details. A tap on the cover
   plays.
+- **Cover copies**: dg-host keeps WebP copies of every cover at 320, 480, 720
+  and 960 px wide (quality 80; never wider than the original: wider sizes
+  share one copy at the original's width), made when the game is brought up at
+  boot and on each `/_host/rebuild/<slug>`, in `data/cover-cache/<slug>/<hash>-<width>.webp`
+  (`<hash>` is the cover's content hash, so a new cover makes new copies and the
+  old ones are removed; games that are gone are pruned at boot; backups skip it,
+  it is remade from the covers). `/_tiles/<slug>?w=<width>` serves the copy when
+  the browser takes WebP and the copy is smaller, else the original;
+  `&v=<hash>` (the home page's cards and game sheet; the tile carries it as
+  `data-cover-v`) makes it cacheable for a year (`immutable`), and without it
+  (saved games, the world) it is revalidated each load (ETag, a 304 when
+  unchanged). Plain `/_tiles/<slug>`
+  is still the original (the apple-touch-icon, `og:image` and the web
+  manifest use it). Cards pick a copy with `srcset`/`sizes` (desktop 480, or
+  960 at 2x; phones 720 at 2x, the 960 copy at 3x); the game sheet, saved games and the world
+  (door plates, signs, the cover bubble) use the 320 px copy. The 800x420 PNG
+  covers (300-600 KB) come out at about 7-20 KB (320), 10-22 KB (480), 16-37 KB
+  (720) and 18-43 KB (800). If the image library (`sharp`) can't load, or a
+  cover fails to convert, the original is served: a tile never breaks.
 - **Game sheet** ("⋯"; full screen on phones, a slide-out on wider screens): *Play*
   (play, the ages and labels, star, "tell me when people want to play"), *Leaderboards*, *Daily* (the
   menu's calendar), *Races* (the player's record) and *Stats*; tabs a game doesn't

@@ -238,6 +238,10 @@ It must resolve inside the project. Served separately from the app at
 `/_tiles/<slug>` for the catalog page, where the cover **is** the card: make it
 **800x420** (40:21, shown whole, never cropped) with the game's title in the art.
 Missing/broken images are non-fatal — the card shows the title on a gradient.
+The host keeps smaller WebP copies of it for the cards, the sheet, saved games
+and the world (`/_tiles/<slug>?w=<width>`, remade when the cover changes; see
+`docs/hub.md` "Cover copies"), so ship the PNG at full quality: players download
+the copies, not the original.
 
 ---
 
