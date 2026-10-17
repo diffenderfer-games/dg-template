@@ -21,6 +21,9 @@ const e = skip ? env() : env({ env: { HUB_LIMITS_JSON: JSON.stringify({ turnHand
 
 type Shown = { phase: string; kind: string; seq: number; status: string };
 
+/** The status line says this, or this plus the kit's " · you may move now" (a game with moves out of turn: mayAct). */
+const says = (status: string, text: string): boolean => status === text || status.startsWith(`${text} · `);
+
 /** The turns screen as the player sees it (its data attributes and status line). */
 const shown = (p: Player): Promise<Shown> =>
   p.page.evaluate(() => {
@@ -89,7 +92,7 @@ e2e(
     );
     await ann.tid('turns-start');
     await see(ann, 'her turn', (s) => s.kind === 'mine');
-    await see(bob, `"${ann.name} is playing"`, (s) => s.status === `${ann.name} is playing`);
+    await see(bob, `"${ann.name} is playing"`, (s) => says(s.status, `${ann.name} is playing`));
 
     await moveWhileMine(ann);
     await see(bob, "Ann's moves, live", (s) => s.seq >= 1 && s.kind === 'mine');
@@ -107,7 +110,7 @@ e2e(
     }
 
     await bob.page.close(); // his only page: he isn't connected any more
-    await see(ann, `"Waiting for ${bob.name}…"`, (s) => s.status === `Waiting for ${bob.name}…`);
+    await see(ann, `"Waiting for ${bob.name}…"`, (s) => says(s.status, `Waiting for ${bob.name}…`));
     await ann.find('[data-testid="turns-hand-over"]', `Let the computer play for ${bob.name}`, { timeout: 20_000 });
     await ann.tid('turns-hand-over');
     await see(ann, 'the computer moved for Bob', (s) => s.seq >= 2 && (s.kind === 'mine' || s.phase === 'ended'));

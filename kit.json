@@ -164,7 +164,7 @@
       }
     },
     "hub-suites": {
-      "version": "1.9",
+      "version": "1.10",
       "files": {
         "tests/hub/_kit.ts": "f6b006b30bff9c1ca11bc443ec9a0ec90da2197ff06780e126d96ac32c2c826b",
         "tests/hub/kit/avatar.test.ts": "d0a2a20c521c512741d285376d1f16a7a3ee651a9ef07e2853669d87007605a0",
@@ -176,7 +176,7 @@
         "tests/hub/kit/progress.test.ts": "3d034d10b726bb64fd0ad0106cb78a8abaf487b58cbaef6531c16da5fc865bcf",
         "tests/hub/kit/race.test.ts": "e6cb6e61d3513ba8f9b05ddc9a04d0332c3223baddc848003f4970d9748cc797",
         "tests/hub/kit/saved.test.ts": "d7fb57822a17f1759ee4957f353267fec0606934947c4b3abbf527d7f8e731d8",
-        "tests/hub/kit/turns.test.ts": "b1631c2d7628d9568f76c8c05cfd7cd670670543b9e78c9d2764eb2b8dfedcb4",
+        "tests/hub/kit/turns.test.ts": "c247e78ca577317b60d762f1ea1d4638664d1bf3a09a233f23fb9b0ab085e9d6",
         "tests/hub/kit/world.test.ts": "8123fb2ce8e8a12a0f9a1ece988fdd6a1cb732f764ee4eca09cec879c798ea53"
       }
     },
@@ -285,7 +285,7 @@
       }
     },
     "scripts": {
-      "version": "1.11",
+      "version": "1.12",
       "files": {
         "scripts/kit/build-rules.ts": "532e7f69691e24ec758d281f6e3597c5dfa0738a8bf9182ac17bb424e02d67e1",
         "scripts/kit/check.ts": "6ce6101fb32634766206a648f33959288c1da6fd1ecc8b646129ca806066feba",
@@ -302,7 +302,7 @@
         "scripts/kit/lib/json-file.ts": "dbf7615f262a4cfaed24444d157ce3a1eb43c38139abf22910b5de63fc39fabc",
         "scripts/kit/lib/kit-manifest.ts": "3dd9b442e44bf0f265bdbd3f78332ebce23cf7a058ef6cfc00bea39d1121916d",
         "scripts/kit/lib/kit-skips.ts": "64c564f5bcd174f422c955b23ba42b51c6c7ea8b0e525f371890f24486aa7b67",
-        "scripts/kit/lib/modules.ts": "e70b5fae7811b70c18a0fcd80c08176ac0e79c3595c9d92e53b11a39ecd3ed07",
+        "scripts/kit/lib/modules.ts": "2db6bfc346e5504f704c70464438a01539f83ecc3c3923760ed513bef3445d37",
         "scripts/kit/lib/paths.ts": "eff533c813a780dae8389146613b04f627ffa275d46045c98b30bad5149ab9be",
         "scripts/kit/lib/ports.ts": "acac054c2d53fbc5f28858a1a96948799f6664a713f129dd94e9ba1ebd335273",
         "scripts/kit/lib/procs.ts": "092866a7f4f02faf47b7b7c6280ff7152b3ba66fe3c505ec52b36089b0609b10",
