@@ -21,7 +21,7 @@ The long version is [docs/getting-started.md](docs/getting-started.md).
 
 1. In this repo: `npm run create -- <slug> --title "My Game" --renderer pixi` (or `three`, or `none`; `--no-online`, `--no-turns`… for features it won't have). Pick the final name first.
 2. In the new folder (`../<slug>`): `npm run dev`, `npm run check` (it passes as created).
-3. Fill the `game` block in `package.json` (title, description, labels, features, `embed.size`): `src/game/config.ts` lists the labels and what they decide.
+3. Fill the `game` block in `package.json` (title, description, labels, `ages`, features, `embed.size`): `src/game/config.ts` lists the labels and what they decide.
 4. Write `src/game/state.ts` and `src/game/rules.ts`.
 5. Map controls in `src/game/controls.ts`.
 6. Draw it: `src/game/render/` and `src/game/screens/` ([docs/kit/look.md](docs/kit/look.md)).

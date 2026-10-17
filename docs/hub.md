@@ -1440,7 +1440,7 @@ await hub.setFavorite('tetrablox', false);         // unstar → { games }
 `setFavorite` needs a connection. Only registered games can be starred (404
 otherwise). The menu draws the star buttons, so most games never call these.
 
-## Labels and the home page
+## Labels, ages and the home page
 
 List what kind of game yours is in `game.labels`, from a fixed vocabulary (the
 contract exports it as `GAME_LABELS`, display names in `GAME_LABEL_TITLES`):
@@ -1461,6 +1461,18 @@ error; the home page ignores it. The home page's filter bar offers every label a
 least one game uses: any label within a group matches, and every group picked
 must match (*Puzzle* or *Word*, and *Phone*).
 
+Say who the game is for in `game.ages`, in years: `{ "min": 6 }` for 6 and up (most
+games), or `{ "min": 2, "max": 9 }` when it has an upper end. `min` is 2 or more and
+`max`, when given, is at least `min` (the contract's `GameAges`). The game sheet
+shows it (*Ages 6+*, *Ages 2–9*) and the filter bar's **Age** box shows only the games
+whose range holds the age typed. A game without `game.ages` is left out of an age
+filter, so `hub-doctor` warns until you add it; a bad range fails `hub-doctor` and
+is ignored (with a warning) by the host.
+
+```json
+"game": { "type": "static", "serveDir": "dist", "labels": ["puzzle", "2d"], "ages": { "min": 6 } }
+```
+
 The home page (served by dg-host, scripted by `/_hub/home.js`):
 
 - **Cards**: plays, how many are playing (*3 playing* on the cover, led by a
@@ -1471,12 +1483,12 @@ The home page (served by dg-host, scripted by `/_hub/home.js`):
   (*Offline*, *Updating* during a deploy, *Starting* while its server
   restarts), and a "⋯" button.
 - **Game sheet** ("⋯"; full screen on phones, a slide-out on wider screens): *Play*
-  (play, star, "tell me when people want to play"), *Leaderboards*, *Daily* (the
+  (play, the ages and labels, star, "tell me when people want to play"), *Leaderboards*, *Daily* (the
   menu's calendar), *Races* (the player's record) and *Stats*; tabs a game doesn't
   support are hidden.
 - **Filter bar**: one line with a pill per active choice; it opens to sort (most
   played, playing now, A–Z), *Starred*, *Daily to play* (today's challenge not done
-  yet), labels and authors. Saved in `localStorage` (`dg:catalog-filters`).
+  yet), an age, labels and authors. Saved in `localStorage` (`dg:catalog-filters`).
 - **Random**: jumps into a random game among those the filters show (any game that
   is up when none match).
 - **Footer**: GitHub, About (what the site is and how it keeps kids safe) and the

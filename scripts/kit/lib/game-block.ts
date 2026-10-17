@@ -5,6 +5,7 @@
  *
  * - `changes`: kid language (no jargon, no violent words), at most 280 characters;
  * - `labels`: only the hub's vocabulary;
+ * - `ages`: `{ min }` or `{ min, max }`, whole years, `min` 2 or more, `max` at least `min`;
  * - boards: every board the game's code uses is declared in `leaderboards`;
  * - `world`: the live `game.world` shape (a map file or a generated room).
  */
@@ -40,6 +41,30 @@ export function checkLabels(labels: JsonValue | undefined): string[] {
   return arr(labels)
     .filter((l): l is string => typeof l === 'string' && !known.has(l))
     .map((l) => `labels: "${l}" is not one of ${GAME_LABELS.join(', ')}`);
+}
+
+/** The youngest `ages.min` the hub takes (hub-contract's `MIN_GAME_AGE`). */
+const MIN_AGE = 2;
+
+/** Problems with `game.ages` (hub.md "Labels, ages and the home page"); a missing one is `kit-check`'s warning, not a problem. */
+export function checkAges(ages: JsonValue | undefined): string[] {
+  if (ages === undefined) return [];
+  const range = rec(ages);
+  const isAge = (n: JsonValue | undefined): n is number =>
+    typeof n === 'number' && Number.isInteger(n) && n >= MIN_AGE && n <= 99;
+  if (!range) return ['ages: { "min": 6 } or { "min": 2, "max": 9 }'];
+  const problems: string[] = [];
+  const extra = Object.keys(range).filter((k) => k !== 'min' && k !== 'max');
+  if (extra.length > 0) problems.push(`ages: only "min" and "max" (not ${extra.join(', ')})`);
+  if (!isAge(range.min)) problems.push(`ages.min: a whole number of years from ${String(MIN_AGE)} to 99`);
+  if (range.max !== undefined) {
+    if (!isAge(range.max))
+      problems.push(
+        `ages.max: a whole number of years from ${String(MIN_AGE)} to 99, or leave it out for no upper limit`,
+      );
+    else if (isAge(range.min) && range.max < range.min) problems.push('ages.max: at least ages.min');
+  }
+  return problems;
 }
 
 /** Boards used in code but not declared in `game.leaderboards`. */

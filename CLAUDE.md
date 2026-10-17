@@ -74,7 +74,7 @@ Stop what you start (`npm run clean:procs`).
 - The hub suites pass (`npm run test:hub`), including online ones if the game is online.
 - The contact sheet looks right at phone and desktop sizes.
 - It plays with a keyboard, a gamepad and on a touch screen.
-- `game.title`, `description`, `labels` describe it; a `cover.png` (`npm run cover`).
+- `game.title`, `description`, `labels`, `ages` describe it; a `cover.png` (`npm run cover`).
 - Music, if any, plays from a worker without gaps on a phone.
 
 ## Conventions

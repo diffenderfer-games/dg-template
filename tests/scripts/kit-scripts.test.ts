@@ -2,7 +2,7 @@ import { mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { checkBoards, checkChanges, checkLabels, checkWorld } from '../../scripts/kit/lib/game-block.ts';
+import { checkAges, checkBoards, checkChanges, checkLabels, checkWorld } from '../../scripts/kit/lib/game-block.ts';
 import {
   compareVersions,
   driftedFiles,
@@ -61,6 +61,17 @@ describe('kit:check: the game block', () => {
   it('labels come from the hub vocabulary', () => {
     expect(checkLabels(['arcade', '2d', 'phone'])).toEqual([]);
     expect(checkLabels(['shooter'])[0]).toMatch(/shooter/);
+  });
+
+  it('ages are { min } or { min, max }, from 2, max no lower than min', () => {
+    expect(checkAges(undefined)).toEqual([]);
+    expect(checkAges({ min: 6 })).toEqual([]);
+    expect(checkAges({ min: 2, max: 9 })).toEqual([]);
+    expect(checkAges({ min: 1 })[0]).toMatch(/^ages.min/);
+    expect(checkAges({ min: 6, max: 4 })).toEqual(['ages.max: at least ages.min']);
+    expect(checkAges({ min: 6.5 })[0]).toMatch(/^ages.min/);
+    expect(checkAges({ min: 6, upTo: 9 })[0]).toMatch(/upTo/);
+    expect(checkAges('6+')[0]).toMatch(/^ages:/);
   });
 
   it('every board used in code is declared', () => {

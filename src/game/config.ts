@@ -25,7 +25,10 @@ export const BOARDS = {
 /*
  * package.json's `game` block (JSON takes no comments, so its notes live here; `npm run todo` lists them):
  *
- * TODO(game): `game.labels`, only from the hub's fixed list (hub.md "Labels and the home page"):
+ * TODO(game): `game.ages`, who the game is for in years: `{ "min": 6 }` (6 and up, most games) or `{ "min": 2, "max": 9 }`;
+ *   `min` 2 or more (hub.md "Labels, ages and the home page"). The game's sheet on the home page shows it ("Ages 6+")
+ *   and the home page's age filter shows the game only for ages in its range (a game without it is left out).
+ * TODO(game): `game.labels`, only from the hub's fixed list (hub.md "Labels, ages and the home page"):
  *   genre `cards` `board` `puzzle` `arcade` `platformer` `real-time-strategy` `physics` `typing` `word` `sports` `racing`;
  *   look `2d` `3d`; plays on `phone` `controller` `desktop`; players `single-player` `multiplayer`.
  *   They filter the catalog, and the genre labels decide which rooms of the hub's world play the game (every

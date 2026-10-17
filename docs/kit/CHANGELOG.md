@@ -4,6 +4,19 @@ KIT doc. One entry per kit version; per module inside. A **major** version
 means a hook's signature changed: the entry says how to move a game over.
 `npm run kit:sync` prints the entries newer than a game's `kit.json`.
 
+## 1.10 (2026-10-17)
+
+Game ages (hub client and contract **2.0.0-next.13**): say who the game is for.
+
+- **package.json:** `game.ages`, `{ "min": 6 }` (6 and up) or `{ "min": 2, "max": 9 }`; `min` is
+  2 or more and `max`, when given, at least `min` (hub.md "Labels, ages and the home page").
+  The home page shows it on the game's sheet (*Ages 6+*) and its age filter leaves out a game
+  that doesn't give it. A game that moves to kit 1.10 adds it (`src/game/config.ts`'s TODO).
+- **scripts 1.13:** `kit:check` fails a bad `game.ages` (`checkAges`) and warns when it is
+  missing; hub-doctor next.13 does the same.
+- **core 1.5:** `KIT_VERSION` 1.10.
+- **docs 1.12:** getting-started's game block step lists `ages`.
+
 ## 1.9 (2026-10-17)
 
 Online games: invite friends from the lobby, and the creator takes a player out.

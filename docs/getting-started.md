@@ -53,7 +53,9 @@ instead, which letterboxes the arena.
 ## Step 4. The `game` block
 
 In `package.json`: `title`, `description` (one plain sentence), `labels` (the
-catalog filter: see [HANDOFF.md](../HANDOFF.md)), and the features you keep:
+catalog filter: see [HANDOFF.md](../HANDOFF.md)), `ages` (who it is for:
+`{ "min": 6 }` for 6 and up, or `{ "min": 2, "max": 9 }`; `min` 2 or more; the home
+page's age filter reads it), and the features you keep:
 `resumable`, `dailyChallenges`, `leaderboards`, `race`, `multiplayer`, `turns`
 (online games the hub runs), `world` (your room in the hub's world:
 [kit/world.md](kit/world.md)), `embed` (its size in the box over the world:

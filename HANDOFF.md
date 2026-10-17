@@ -48,6 +48,7 @@ app sees requests as if mounted at root — **but** the browser still sees
   "serveDir": "dist",
   "image": "cover.png",
   "description": "...",
+  "ages": { "min": 6 },
   "hidden": false
 }
 ```
@@ -60,6 +61,7 @@ app sees requests as if mounted at root — **but** the browser still sees
 | `build`       | no       | Runs once at boot if source changed                         |
 | `image`       | no       | Tile image, path relative to project root                   |
 | `description` | no       | Falls back to `pkg.description`                             |
+| `ages`        | yes*     | Who it is for: `{ "min": 6 }` (6 and up) or `{ "min": 2, "max": 9 }`; `min` 2+. Shown on the game sheet and used by the home page's age filter (*`hub-doctor` warns without it) |
 | `hidden`      | no       | `true` skips this app from the catalog                      |
 | `hub`         | no       | `false` opts out of the shared hub menu/SDK injection       |
 | `menuPosition`| no       | Hub menu corner: `top-left` (default)/`top-right`/`bottom-left`/`bottom-right` |
@@ -82,6 +84,7 @@ app sees requests as if mounted at root — **but** the browser still sees
   "healthPath": "/",
   "image": "cover.png",
   "description": "...",
+  "ages": { "min": 6 },
   "hidden": false
 }
 ```
@@ -95,6 +98,7 @@ app sees requests as if mounted at root — **but** the browser still sees
 | `healthPath`  | no       | Default `"/"`; must answer with status < 500                |
 | `image`       | no       | Tile image, path relative to project root                   |
 | `description` | no       | Falls back to `pkg.description`                             |
+| `ages`        | yes*     | Who it is for (see static table)                            |
 | `hidden`      | no       | `true` skips this app from the catalog                      |
 | `hub`         | no       | `false` opts out of the shared hub menu/SDK injection       |
 | `menuPosition`| no       | Hub menu corner (see static table)                          |
