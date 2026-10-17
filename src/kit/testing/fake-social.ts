@@ -10,6 +10,7 @@
  */
 import type {
   ChatMode,
+  FriendEntry,
   InviteLink,
   JoinInfoEvent,
   Launch,
@@ -118,8 +119,16 @@ export class FakeSocial implements SocialLike {
     this.log = log;
   }
 
+  /** The player's friends (`friends()`). */
+  friendList: FriendEntry[] = [];
+
   openInvite(options?: OpenInviteOptions): void {
     this.log.record('social.openInvite', options);
+  }
+
+  friends(): Promise<FriendEntry[]> {
+    this.log.record('social.friends');
+    return Promise.resolve(this.friendList.map((f) => ({ ...f })));
   }
 
   openNotify(options?: { game?: string }): void {

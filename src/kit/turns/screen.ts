@@ -28,6 +28,10 @@ export type TurnScreenActions = {
   leave: () => void;
   back: () => void;
   player: (userId: number) => void;
+  /** Invite friends to the free seats (the lobby). */
+  invite: () => void;
+  /** The creator takes the player in a seat out. */
+  remove: (seat: number, name: string) => void;
 };
 
 /** The screen and its redraw. */
@@ -37,6 +41,8 @@ export type TurnScreen = {
   readonly board: HTMLElement;
   /** Redraw for the game as it is now (`now` decides the hand-over button). */
   update(game: TurnGameLike, now: number): void;
+  /** Put another chat panel in (the chat mode changed: a friend joined, a guest sat down). */
+  setChat(chat: HTMLElement | null): void;
 };
 
 /** Build the screen. `face` draws a seat's avatar; `chat` is the chat panel (or null). */
@@ -49,7 +55,8 @@ export function turnsScreen(
   const board = h('div.kit-turn-board', { 'data-testid': 'turn-board' });
   const link = h('p.kit-tagline.kit-turn-link', { 'data-testid': 'turn-link' });
   const menu = h('div.kit-menu');
-  const el = h('div.kit-dim.kit-turns', {}, h('h2.kit-title', {}, o.title), status, seats, link, board, menu, o.chat);
+  let chatEl = o.chat;
+  const el = h('div.kit-dim.kit-turns', {}, h('h2.kit-title', {}, o.title), status, seats, link, board, menu, chatEl);
   let seatsKey = '';
   let menuKey = '';
 
@@ -62,7 +69,19 @@ export function turnsScreen(
       s.name,
     );
   };
-  const seatRow = (s: TurnSeat, due: boolean): HTMLElement =>
+  const removeButton = (s: TurnSeat): HTMLElement =>
+    h(
+      'button.kit-btn.kit-seat-remove',
+      {
+        type: 'button',
+        'data-nav': true,
+        'data-testid': `turns-remove-${s.seat}`,
+        'aria-label': `${t('turnsRemove')}: ${s.name}`,
+        onclick: () => a.remove(s.seat, s.name),
+      },
+      t('turnsRemove'),
+    );
+  const seatRow = (s: TurnSeat, due: boolean, removable: boolean): HTMLElement =>
     h(
       'li.kit-seat',
       {
@@ -73,11 +92,18 @@ export function turnsScreen(
       },
       s.status === 'joined' ? o.face(s) : null,
       seatName(s),
+      removable ? removeButton(s) : null,
     );
 
   return {
     el,
     board,
+    setChat(chat) {
+      if (chatEl !== null && chat !== null) chatEl.replaceWith(chat);
+      else if (chatEl !== null) chatEl.remove();
+      else if (chat !== null) el.append(chat);
+      chatEl = chat;
+    },
     update(game, now) {
       const { summary } = game;
       const st = turnStatus(game);
@@ -86,23 +112,34 @@ export function turnsScreen(
       el.dataset.kind = st.kind;
       el.dataset.seq = String(summary.seq);
       const shareable = summary.phase === 'lobby' ? game.link : null;
+      // The link itself isn't shown (a long address is no help): Share the invite link hands it on. It stays in the DOM for tests.
       link.textContent = shareable ?? '';
-      link.hidden = shareable === null;
+      link.hidden = true;
 
       const due = new Set(dueOthers(summary, game.mySeat).map((s) => s.seat));
       if (summary.isMyTurn && game.mySeat !== null) due.add(game.mySeat);
+      // The creator may take another player out (hub client next.12+): in the lobby (seated or invited), or in play.
+      const removable = (s: TurnSeat): boolean =>
+        summary.isMine &&
+        game.kick !== undefined &&
+        !s.isMe &&
+        s.userId !== null &&
+        ((summary.phase === 'lobby' && (s.status === 'joined' || s.status === 'invited')) ||
+          (summary.phase === 'playing' && s.status === 'joined'));
       const nextSeats = JSON.stringify(
-        summary.seats.map((s) => [s.seat, s.name, s.status, s.connected, s.look, due.has(s.seat)]),
+        summary.seats.map((s) => [s.seat, s.name, s.status, s.connected, s.look, due.has(s.seat), removable(s)]),
       );
       if (nextSeats !== seatsKey) {
         seatsKey = nextSeats;
-        seats.replaceChildren(...summary.seats.map((s) => seatRow(s, due.has(s.seat))));
+        seats.replaceChildren(...summary.seats.map((s) => seatRow(s, due.has(s.seat), removable(s))));
       }
 
       const seated = game.mySeat !== null;
       const buttons: [string, () => HTMLElement][] = [];
       if (summary.phase === 'lobby' && summary.isMine)
         buttons.push(['start', () => button(t('turnsStart'), a.start, { cls: 'kit-primary', testid: 'turns-start' })]);
+      if (summary.phase === 'lobby' && seated && summary.seats.some((s) => s.status === 'open'))
+        buttons.push(['invite', () => button(t('turnsInvite'), a.invite, { testid: 'turns-invite' })]);
       if (summary.phase === 'lobby' && game.link !== null)
         buttons.push(['link', () => button(t('turnsCopyLink'), a.copyLink, { testid: 'turns-copy-link' })]);
       if (summary.phase === 'playing' && !summary.isMyTurn && seated)

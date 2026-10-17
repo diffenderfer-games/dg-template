@@ -88,6 +88,14 @@ html[data-controls="touch"] #ui[data-screen="play"] .kit-toasts { bottom: auto; 
 .kit-seat[data-connected="false"] { opacity: 0.6; }
 .kit-seat .kit-tagline { margin: 0 0 0 auto; font-size: 13px; }
 .kit-seat[data-due="true"] { box-shadow: inset 0 0 0 2px var(--kit-accent); }
+.kit-seat > .kit-seat-remove { margin-left: auto; min-height: 40px; padding: 4px 12px; font-size: 14px; }
+.kit-share { display: flex; flex-direction: column; gap: 8px; }
+.kit-share-field { width: 100%; box-sizing: border-box; min-height: 44px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.2);
+  background: rgba(0,0,0,0.3); color: var(--kit-fg); padding: 0 10px; font: 15px var(--kit-font); }
+.kit-friends { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.kit-friend { display: flex; align-items: center; gap: 10px; min-height: 48px; }
+.kit-friend-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.kit-friend > .kit-btn { min-height: 40px; padding: 4px 14px; }
 /* An online game the hub runs (kit/turns): status, seats, the game's board, buttons, chat; scrolls on a phone. */
 .kit-turns { overflow-y: auto; justify-content: flex-start; padding-top: max(var(--kit-top, 16px), 72px); padding-bottom: 24px; }
 .kit-turn-status { font-size: 18px; font-weight: 700; min-height: 1.4em; }

@@ -141,6 +141,12 @@ export type TurnBoard = {
   readonly canMove: boolean;
   /** Make a move; a refused one shows the hub's words and the board stays as it was. */
   move(move: GamePayload): Promise<void>;
+  /**
+   * The creator takes the player in `seat` out, after the kit's confirm (a
+   * board that draws its own seats offers it); null when this player can't:
+   * not the creator, their own seat, or a client without `kick`.
+   */
+  readonly remove: ((seat: number) => void) | null;
 };
 
 /**

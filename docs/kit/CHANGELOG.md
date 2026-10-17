@@ -4,6 +4,27 @@ KIT doc. One entry per kit version; per module inside. A **major** version
 means a hook's signature changed: the entry says how to move a game over.
 `npm run kit:sync` prints the entries newer than a game's `kit.json`.
 
+## 1.9 (2026-10-17)
+
+Online games: invite friends from the lobby, and the creator takes a player out.
+
+- **turns 1.6, boot 1.8:** the lobby's **Invite friends** (`turns-invite`) lists the
+  player's friends not seated yet, each with Invite (`game.invite`). The creator's
+  **Remove** on another player's seat (`turns-remove-<seat>`, after a confirm) takes them
+  out with `game.kick(seat)`: a lobby seat opens up again; in play the computer takes the
+  seat. `TurnBoard.remove(seat)` does the same for a board that draws its own seats. Remove needs hub client next.12 (`kick`); it hides on older clients.
+- **turns 1.6, boot 1.8:** the chat panel follows the hub's `chatMode`: when it changes (a friend
+  sits down and free text opens, a guest joins and it closes) the panel is rebuilt with the
+  earlier lines (`TurnScreen.setChat`). It used to keep the mode the screen opened with.
+- **core 1.4:** `TurnGameLike` has `invite` and an optional `kick`; `SocialLike` has
+  `friends`. New strings: `turnsInvite*`, `turnsNoFriends`, `turnsNoSeats`, `turnsRemove*`.
+- **testing 1.9:** `FakeSocial.friendList` / `friends()`; `FakeTurnGame.invite()` and `kick()`.
+- **hub-events 1.7, docs 1.11, scripts 1.11:** tests and turns.md for the above.
+- **ui 1.4:** `shareLink` (kit/ui/share.ts): the share sheet, else the clipboard, else a dialog
+  to copy the link by hand, as the hub's share buttons do. The lobby's link button is now **Share
+  the invite link** and the raw link line is hidden (its text stays in `turn-link` for tests). Also
+  the seat's Remove button and the friend list's rows.
+
 ## 1.8 (2026-10-16)
 
 The world (hub client **2.0.0-next.11**, `@diffenderfer-games/world` too): games play in a

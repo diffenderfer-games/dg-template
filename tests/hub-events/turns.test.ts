@@ -3,6 +3,7 @@
 // game's own quick-chat phrases (game.turns.quickChat), the end and the rematch. FakeHub, a toy board (_support/toys.ts).
 import { expect, it } from 'vitest';
 import { MANIFEST } from '../../src/kit/core/manifest.ts';
+import type { TurnBoard } from '../../src/kit/boot/index.ts';
 import type { FakeTurnGame } from '../../src/kit/testing/index.ts';
 import { bootGame, describeIf, HAS, type Booted } from './_support/harness.ts';
 import { toyTurns } from './_support/toys.ts';
@@ -130,5 +131,125 @@ describeIf(HAS.turns, 'this game declares no game.turns')('online games the hub 
     expect(has(g, 'turns-new')).toBe(false);
     expect(g.fake.log.count('turns.open')).toBe(0);
     expect(g.hook.screen()).toBe('title');
+  });
+});
+
+describeIf(HAS.turns, 'this game declares no game.turns')('the lobby: inviting friends, taking a player out', () => {
+  const lobby = (game: FakeTurnGame, isMine = true): void =>
+    game.turnChanged({
+      phase: 'lobby',
+      isMine,
+      isMyTurn: false,
+      toAct: [],
+      seats: [
+        { seat: 0, userId: 1, name: 'Player1', avatar: '', look: '', status: 'joined', isMe: isMine },
+        { seat: 1, userId: 2, name: 'Sam', avatar: '', look: '', status: 'joined', isMe: !isMine },
+        { seat: 2, userId: null, name: '', avatar: '', look: '', status: 'open', isMe: false },
+      ],
+    });
+
+  it('Invite friends lists the friends not seated yet; Invite holds a seat for one', async () => {
+    const { g, game } = await opened();
+    g.fake.social.friendList = [
+      {
+        id: 2,
+        username: 'Sam',
+        avatar: '',
+        look: '',
+        guest: false,
+        presence: null,
+        notifyOnline: false,
+        since: 0,
+        lastSeenAt: 0,
+      },
+      {
+        id: 5,
+        username: 'Ann',
+        avatar: '',
+        look: '',
+        guest: false,
+        presence: null,
+        notifyOnline: false,
+        since: 0,
+        lastSeenAt: 0,
+      },
+    ];
+    lobby(game);
+    await g.settle();
+    g.press('turns-invite');
+    await g.settle();
+    expect(has(g, 'turns-invite-2')).toBe(false); // already seated
+    g.press('turns-invite-5');
+    await g.settle();
+    expect(g.fake.log.last('turns.invite')?.args[0]).toEqual([5]);
+    expect(game.summary.seats[2]).toMatchObject({ status: 'invited', userId: 5 });
+  });
+
+  it('the creator takes a player out after confirming; nobody else sees Remove', async () => {
+    const { g, game } = await opened();
+    lobby(game);
+    await g.settle();
+    expect(has(g, 'turns-remove-0')).toBe(false); // never their own seat
+    g.press('turns-remove-1');
+    await g.settle();
+    g.press('confirm-yes');
+    await g.settle();
+    expect(g.fake.log.last('turns.kick')?.args[0]).toBe(1);
+    expect(game.summary.seats[1]).toMatchObject({ status: 'open' });
+
+    lobby(game, false);
+    await g.settle();
+    expect(has(g, 'turns-remove-0')).toBe(false);
+    expect(has(g, 'turns-remove-1')).toBe(false);
+  });
+});
+
+describeIf(HAS.turns, 'this game declares no game.turns')('a board with its own seats: remove', () => {
+  it("the board's remove (the creator's) asks first, then takes the player out", async () => {
+    const seen: { board: TurnBoard | null } = { board: null };
+    const g = await boot({
+      before: (f) => (f.saved.opened = { id: 'tg-r', kind: 'turns' }),
+      patch: {
+        turns: {
+          ...toyTurns,
+          draw: (ctx, el, b) => {
+            seen.board = b;
+            toyTurns.draw(ctx, el, b);
+          },
+        },
+      },
+    });
+    await g.settle();
+    const game = g.fake.turns.games.get('tg-r');
+    if (!game) throw new Error('not opened');
+    game.turnChanged({ isMine: true });
+    await g.settle();
+    const remove = seen.board?.remove ?? null;
+    expect(remove).not.toBe(null);
+    remove?.(1);
+    await g.settle();
+    g.press('confirm-yes');
+    await g.settle();
+    expect(g.fake.log.last('turns.kick')?.args[0]).toBe(1);
+    game.turnChanged({ isMine: false });
+    await g.settle();
+    expect(seen.board?.remove).toBe(null);
+  });
+});
+
+describeIf(HAS.turns, 'this game declares no game.turns')('chat follows who sits there', () => {
+  it('the text box appears once the hub allows free text (a friend sat down), with the earlier lines kept', async () => {
+    const { g, game } = await opened();
+    game.chatMode = 'quick';
+    game.turnChanged({});
+    await g.settle();
+    expect(has(g, 'chat-input')).toBe(false);
+    game.chatFrom({ from: 2, at: 0, text: 'hello', quick: 'hi' });
+    await g.settle();
+    game.chatMode = 'on';
+    game.turnChanged({});
+    await g.settle();
+    expect(has(g, 'chat-input')).toBe(true);
+    expect(g.ui.querySelectorAll('[data-testid="chat"]').length).toBe(1);
   });
 });

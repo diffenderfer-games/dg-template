@@ -29,6 +29,10 @@ does all of that. Your game only:
   players friend, message, block and report.
 - **Free text is only for mutual friends.** Everyone else gets quick-chat phrases and
   emotes. The hub decides; your UI follows `room.info.chatMode` / `hub.social.chatMode()`.
+  The operator's admin switch **Typing with non-friends** (off by default) opens free
+  text in game chats (online games, rooms, game servers) to players who aren't friends,
+  still moderated; guests and parent-locked accounts keep quick-chat, and DMs, parties
+  and the world stay friends-only. Follow `chatMode` and it just works.
 - **Register `hub.mp.onLaunch` at boot** (within 8 s) if your game has `game.multiplayer`.
 - **Call `hub.mp.setBusy(true)` during a live online match**, and `false` after it.
 - **Leaving never ends the match while a human remains.** When a seat goes `away`, your
@@ -1723,7 +1727,8 @@ catch (error) { if (error.code === 'illegal') shake(error.rule); }   // 403 not_
 | `nudge()` | Remind whoever must move (once a day) |
 | `setNotify('on' \| 'off')` | This game's "your turn" alerts |
 | `rematch()` | An ended game: a new one with the first game's settings (mode, options, seats, bots, deadline, open seats, a link). Every player still playing gets a seat: friends are invited, anyone else's seat is kept open for them (no invite between strangers), the computer's seats are the computer's again, and it **starts by itself once everyone is back**. The first press makes it; every other player's `rematch()` takes their seat in it, so all end up in one game |
-| `invite(userIds)` | More friends, while seats are free |
+| `invite(userIds)` | More friends, while seats are free (any seated player, before the start) |
+| `kick(seat)` | Creator: take a player out. Before the start their seat opens up again (an invite is withdrawn); once started, the computer plays the seat for the rest of the game, as when a player leaves (no coming back). 403 `not_host`; 409 for the creator's own seat or one nobody holds |
 | `share({ link?, public? })` | Creator, before the start: add an invite link (then read `link`) or list the open seats for anyone |
 | `canLetComputerPlay(now?)` | Whether `letComputerPlay()` may work now: another player is due and either the turn's `deadline` passed, or `summary.handOverAt` passed and a due player isn't `connected`. Show "Let the computer play for Ann" only then; check again on each `turn` event and when `handOverAt` comes. `false` in a tournament match and with a hub too old to say |
 | `letComputerPlay()` | The turn's deadline passed (or that player is suspended): the computer plays it. Otherwise, when the player due has been due 2 minutes and isn't connected at all, the computer plays their seat for the rest of the game, until they open it again (§16.5). Never in a tournament match (409 `not_supported`) |
@@ -1784,7 +1789,8 @@ the hub holds the game.
   game** (`public: true`) is listed in Play online for anyone. Nobody sits with
   someone they blocked or who blocked them.
 - **Chat** is moderated free text only when everyone seated is a friend of
-  everyone; strangers in an open-seat game get quick-chat and emotes only.
+  everyone (or the admin switch **Typing with non-friends** is on and nobody
+  seated is a guest or parent-locked); otherwise quick-chat and emotes only.
   Every line is reportable (`kind: 'turn_chat'`). Moves and progress labels
   are game-written, never typed.
 - Caps: 30 games going per player (10 per game), 10 new games a day, 120 moves

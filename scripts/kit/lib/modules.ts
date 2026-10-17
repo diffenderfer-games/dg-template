@@ -23,8 +23,8 @@ function srcModule(name: string, version = '1.0'): KitModuleDef {
 
 /** Every module. */
 export const KIT_MODULES: Record<string, KitModuleDef> = {
-  core: srcModule('core', '1.3'),
-  testing: srcModule('testing', '1.8'),
+  core: srcModule('core', '1.4'),
+  testing: srcModule('testing', '1.9'),
   rng: srcModule('rng'),
   'daily-puzzle': srcModule('daily-puzzle'),
   save: srcModule('save', '1.1'),
@@ -33,11 +33,11 @@ export const KIT_MODULES: Record<string, KitModuleDef> = {
   pause: srcModule('pause', '1.2'),
   scores: srcModule('scores', '1.1'),
   'test-hook': srcModule('test-hook', '1.2'),
-  boot: srcModule('boot', '1.7'),
+  boot: srcModule('boot', '1.8'),
   input: srcModule('input', '1.3'),
   layout: srcModule('layout', '1.3'),
   loop: srcModule('loop', '1.1'),
-  ui: srcModule('ui', '1.3'),
+  ui: srcModule('ui', '1.4'),
   'settings-ui': srcModule('settings-ui'),
   race: srcModule('race', '1.1'),
   online: srcModule('online', '1.2'),
@@ -45,12 +45,12 @@ export const KIT_MODULES: Record<string, KitModuleDef> = {
   haptics: srcModule('haptics'),
   server: srcModule('server', '1.2'),
   saved: srcModule('saved', '1.3'),
-  turns: srcModule('turns', '1.5'),
+  turns: srcModule('turns', '1.6'),
   avatar: srcModule('avatar', '1.5'),
   world: srcModule('world', '1.5'),
-  'hub-events': { version: '1.6', paths: ['tests/hub-events'] },
+  'hub-events': { version: '1.7', paths: ['tests/hub-events'] },
   'hub-suites': { version: '1.9', paths: ['tests/hub/_kit.ts', 'tests/hub/kit'] },
-  scripts: { version: '1.10', paths: ['scripts/kit', 'tests/scripts'] },
+  scripts: { version: '1.11', paths: ['scripts/kit', 'tests/scripts'] },
   ci: { version: '1.0', paths: ['.github/workflows/deploy.yml'] },
   config: {
     version: '1.1',
@@ -64,7 +64,7 @@ export const KIT_MODULES: Record<string, KitModuleDef> = {
     ],
   },
   docs: {
-    version: '1.10',
+    version: '1.11',
     paths: [
       'docs/kit/look.md',
       'docs/kit/look',

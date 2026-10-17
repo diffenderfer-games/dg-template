@@ -72,6 +72,14 @@ Continue row's label, "Done today"). Buttons in `.kit-menu` slide in one after a
 - During touch play the toast stack moves from the bottom to just under the HUD (`top: var(--kit-top) + 56px`), because the on-screen controls own the bottom. This applies when `html[data-controls="touch"]` is set or the pointer is coarse, and only on the `play` screen. On other screens and on desktop the stack sits at the bottom.
 - Kinds: `info`, `good`, `warn`. Toasts are `role="status"` in an `aria-live="polite"` stack.
 
+## Sharing a link
+
+`shareLink({ url, title, text? })` (kit/ui/share.ts) hands a link on the way the hub's own
+share buttons do: the browser's share sheet (`navigator.share`; closing it ends there), else
+the clipboard with a "Link copied" toast, else a dialog with the link in a read-only,
+preselected field and a Copy button (never `window.prompt`). The online lobby's
+**Share the invite link** (`turns-copy-link`) uses it; the raw link isn't shown.
+
 ## Checking the layout
 
 `npm run ui:check` (`scripts/kit/ui-check.ts`) builds the game (skip with `--no-build`), serves `dist/`, and opens it in headless Chrome at four sizes: desktop 1280 by 800, phone 390 by 844, phone landscape 844 by 390, tablet 820 by 1180. On each size it shows the title, the play screen (`__game.newGame`) and the pause screen (`__game.pause`) and checks:

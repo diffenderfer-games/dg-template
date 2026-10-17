@@ -112,6 +112,14 @@ The kit draws everything around the board (`kit/turns/screen.ts`, on the
   ready." At the end: "You won!", "Nice try!" or "It's a draw."
 - **The seats** (`turn-seats`): faces, names that open the player card, the
   due seat outlined, an absent player dimmed.
+- **The lobby**: Invite friends (`turns-invite`, any seated player while a seat
+  is open): the player's friends not seated yet (`hub.social.friends()`), each
+  with Invite (`turns-invite-<userId>`, `game.invite`). The creator's **Remove**
+  on another player's seat (`turns-remove-<seat>`, after a confirm): in the
+  lobby the seat opens up again (an invite is withdrawn); in a started game the
+  computer plays the seat (`game.kick`, hub client next.12+; Remove shows only
+  when the client has it). A board that draws its own seats offers the same
+  through `board.remove(seat)` (null when this player may not).
 - **The buttons**: Start (`turns-start`, the creator in the lobby), Remind
   them (`turns-nudge`, once a day in the UI), **Let the computer play for
   Ann** (`turns-hand-over`, shown only while the client's
@@ -120,7 +128,8 @@ The kit draws everything around the board (`kit/turns/screen.ts`, on the
   (`turns-back`: the hub keeps the game).
 - **Chat**: the hub's quick-chat chips, then the game's own
   (`game.turns.quickChat`, sent as `g:<slug>:<i>`), and a text box only
-  between friends (`chatMode`); hidden when chat is off.
+  between friends (`chatMode`); hidden when chat is off. The panel follows
+  `chatMode` as players come and go (rebuilt with the earlier lines).
 
 **No polling.** The screen follows the game's own live events (`move`,
 `turn`, `ended`, `chat`); the client catches up after a gap or a quiet spell

@@ -10,4 +10,5 @@ export * from './juice.ts';
 export * from './modal.ts';
 export * from './root.ts';
 export * from './screens.ts';
+export * from './share.ts';
 export * from './toast.ts';

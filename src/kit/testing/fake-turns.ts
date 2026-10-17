@@ -101,6 +101,33 @@ export class FakeTurnGame implements TurnGameLike {
     return Promise.resolve();
   }
 
+  /** Friends' seats are held: an open seat each becomes `invited`. */
+  invite(userIds: readonly number[]): Promise<void> {
+    this.log.record('turns.invite', [...userIds]);
+    const seats = [...this.summary.seats];
+    for (const userId of userIds) {
+      const open = seats.findIndex((s) => s.status === 'open');
+      if (open < 0) break;
+      const seat = seats[open];
+      if (seat) seats[open] = { ...seat, userId, name: `Friend${String(userId)}`, status: 'invited', isMe: false };
+    }
+    this.summary = { ...this.summary, seats };
+    return Promise.resolve();
+  }
+
+  /** The creator takes a player out: a lobby seat opens up, a started game's goes to the computer. */
+  kick(seat: number): Promise<void> {
+    this.log.record('turns.kick', seat);
+    const lobby = this.summary.phase === 'lobby';
+    this.summary = {
+      ...this.summary,
+      seats: this.summary.seats.map((s) =>
+        s.seat !== seat ? s : lobby ? { ...s, userId: null, name: '', status: 'open' } : { ...s, status: 'bot' },
+      ),
+    };
+    return Promise.resolve();
+  }
+
   nudge(): Promise<void> {
     this.log.record('turns.nudge');
     return Promise.resolve();

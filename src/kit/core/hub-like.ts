@@ -116,7 +116,12 @@ export type TurnGameLike = Pick<
   | 'letComputerPlay'
   | 'close'
   | 'on'
-> & { rematch(): Promise<TurnGameLike> };
+  | 'invite'
+> & {
+  rematch(): Promise<TurnGameLike>;
+  /** Creator: take a player out (hub client next.12+; absent on older clients, so the kit offers it only when there). */
+  kick?(seat: number): Promise<void>;
+};
 
 /** `hub.turns` (multiplayer.md §16.3). Its games are `TurnGameLike`, so a fake can stand in. */
 export type TurnsLike = {
@@ -152,7 +157,7 @@ export type MpLike = Pick<
 export type RoomsLike = Pick<HubRoomsApi, 'create' | 'join' | 'reclaim'>;
 
 /** Friends, player cards, chat modes. */
-export type SocialLike = Pick<HubSocialApi, 'openInvite' | 'openNotify' | 'openPlayer' | 'chatMode' | 'on'>;
+export type SocialLike = Pick<HubSocialApi, 'openInvite' | 'openNotify' | 'openPlayer' | 'chatMode' | 'on' | 'friends'>;
 
 /** Everything the kit uses from the hub client. */
 export type HubLike = {

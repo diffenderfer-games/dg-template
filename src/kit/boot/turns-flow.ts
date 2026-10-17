@@ -22,7 +22,10 @@ import { errText } from '../online/errors.ts';
 import { nudger } from '../turns/index.ts';
 import { turnsScreen, type TurnScreen } from '../turns/screen.ts';
 import { nextCheckIn } from '../turns/status.ts';
+import { button } from '../ui/controls.ts';
+import { h } from '../ui/dom.ts';
 import { confirm, openModal } from '../ui/modal.ts';
+import { shareLink } from '../ui/share.ts';
 import type { Screens } from '../ui/screens.ts';
 import { toast } from '../ui/toast.ts';
 import type { TurnBoard, TurnsHooks } from './types.ts';
@@ -55,6 +58,8 @@ export class TurnsFlow {
   private offs: (() => void)[] = [];
   private recheck: Cancel | null = null;
   private nudge: (() => boolean) | null = null;
+  private chatMode: string | null = null;
+  private chatOffs: (() => void)[] = [];
   private readonly o: {
     hub: HubLike;
     hooks: Pick<TurnsHooks<JsonObject, JsonObject>, 'create' | 'testMove'> & {
@@ -136,6 +141,9 @@ export class TurnsFlow {
     this.offs = [];
     this.recheck?.();
     this.recheck = null;
+    for (const off of this.chatOffs) off();
+    this.chatOffs = [];
+    this.chatMode = null;
     this.current?.close();
     this.current = null;
     this.screen = null;
@@ -153,19 +161,33 @@ export class TurnsFlow {
     }
   }
 
+  /** The chat panel for the game's chat mode now (its live lines are unsubscribed when it is replaced). */
+  private makeChat(game: TurnGameLike, names: () => Map<number, string>): HTMLElement | null {
+    for (const off of this.chatOffs) off();
+    this.chatOffs = [];
+    this.chatMode = game.chatMode;
+    if (game.chatMode === 'off') return null;
+    const port: ChatPort = {
+      ...turnChat(game),
+      on: (_event, cb) => {
+        const off = game.on('chat', (line) => cb(line));
+        this.chatOffs.push(off);
+        return off;
+      },
+    };
+    return chatPanel(port, game.chatMode, (id) => names().get(id) ?? '?', {
+      extra: gamePhrases(this.o.slug, this.o.quickChat),
+      earlier: game.chat,
+    });
+  }
+
   private enter(game: TurnGameLike): void {
     this.close();
     this.current = game;
     this.nudge = nudger(game, () => this.o.clock.now());
     const names = (): Map<number, string> =>
       new Map(game.summary.seats.flatMap((s) => (s.userId === null ? [] : [[s.userId, s.name] as const])));
-    const chat =
-      game.chatMode === 'off'
-        ? null
-        : chatPanel(turnChat(game), game.chatMode, (id) => names().get(id) ?? '?', {
-            extra: gamePhrases(this.o.slug, this.o.quickChat),
-            earlier: game.chat,
-          });
+    const chat = this.makeChat(game, names);
     const screen = turnsScreen(
       {
         title: t('turnsTitle'),
@@ -189,6 +211,8 @@ export class TurnsFlow {
           ),
         back: () => this.o.host.toTitle(),
         player: (userId) => this.o.hub.social.openPlayer({ userId }),
+        invite: () => this.inviteFriends(game),
+        remove: (seat, name) => this.askRemove(game, seat, name),
       },
     );
     this.screen = screen;
@@ -207,6 +231,14 @@ export class TurnsFlow {
       mySeat: game.mySeat,
       canMove: game.summary.phase === 'playing' && (game.summary.isMyTurn || game.mayActNow),
       move: (move) => this.act(() => game.move(move)),
+      remove:
+        game.summary.isMine && game.kick !== undefined
+          ? (seat) => {
+              const s = game.summary.seats.find((x) => x.seat === seat);
+              if (s && !s.isMe && s.userId !== null && (s.status === 'joined' || s.status === 'invited'))
+                this.askRemove(game, seat, s.name);
+            }
+          : null,
     };
   }
 
@@ -229,6 +261,12 @@ export class TurnsFlow {
     if (game === null || screen === null) return;
     const now = this.o.clock.now();
     screen.update(game, now);
+    // The chat mode follows who sits there (free text once everyone seated is a mutual friend).
+    if (game.chatMode !== this.chatMode) {
+      const names = (): Map<number, string> =>
+        new Map(game.summary.seats.flatMap((s) => (s.userId === null ? [] : [[s.userId, s.name] as const])));
+      screen.setChat(this.makeChat(game, names));
+    }
     this.o.hooks.draw(screen.board, this.board(game));
     this.recheck?.();
     const wait = nextCheckIn(game.summary, now);
@@ -249,14 +287,67 @@ export class TurnsFlow {
     );
   }
 
-  private copyLink(game: TurnGameLike): void {
-    const link = game.link;
-    if (link === null) return;
-    const clip = typeof navigator === 'undefined' ? undefined : navigator.clipboard;
-    if (clip === undefined) return void toast(link);
+  /** Confirm, then take the player in `seat` out (`game.kick`). */
+  private askRemove(game: TurnGameLike, seat: number, name: string): void {
     fireAndForget(
-      clip.writeText(link).then(() => toast(t('turnsLinkCopied'))),
-      () => toast(link),
+      confirm({
+        title: t('turnsRemoveTitle', { name }),
+        body: game.summary.phase === 'lobby' ? t('turnsRemoveLobby') : t('turnsRemovePlaying'),
+        yes: t('turnsRemoveYes'),
+        no: t('stay'),
+      }).then((yes) => {
+        if (yes && game.kick !== undefined) void this.act(() => game.kick?.(seat) ?? Promise.resolve());
+      }),
     );
+  }
+
+  /** Invite friends: the player's friends not already seated, each with an Invite button (`game.invite`). */
+  private inviteFriends(game: TurnGameLike): void {
+    const list = h('ul.kit-friends', { 'data-testid': 'turns-friends' }, h('li.kit-tagline', {}, '…'));
+    openModal({
+      title: t('turnsInviteTitle'),
+      testid: 'turns-invite-sheet',
+      body: list,
+      buttons: [{ label: t('back'), testid: 'turns-invite-back' }],
+    });
+    fireAndForget(
+      this.o.hub.social.friends().then((friends) => {
+        const seated = new Set(game.summary.seats.flatMap((s) => (s.userId === null ? [] : [s.userId])));
+        const free = friends.filter((f) => !seated.has(f.id) && !f.guest);
+        if (free.length === 0) return void list.replaceChildren(h('li.kit-tagline', {}, t('turnsNoFriends')));
+        list.replaceChildren(
+          ...free.map((f) => {
+            const go = button(
+              t('turnsInviteOne'),
+              () => {
+                go.disabled = true;
+                void this.act(() => game.invite([f.id])).then(() => {
+                  const label = go.querySelector('.kit-btn-label');
+                  if (label) label.textContent = t('turnsInvited');
+                  if (!game.summary.seats.some((s) => s.status === 'open')) toast(t('turnsNoSeats'));
+                });
+              },
+              { testid: `turns-invite-${f.id}` },
+            );
+            return h(
+              'li.kit-friend',
+              {},
+              face(this.o.hub, { name: f.username, look: f.look, userId: f.id }, 32),
+              h('span.kit-friend-name', {}, f.username),
+              go,
+            );
+          }),
+        );
+      }),
+      (e) => list.replaceChildren(h('li.kit-tagline', {}, errText(e))),
+    );
+  }
+
+  /** Share the invite link: the share sheet, else the clipboard, else a dialog to copy it by hand (kit/ui share). */
+  private copyLink(game: TurnGameLike): void {
+    const url = game.link;
+    if (url === null) return;
+    const title = typeof document === 'undefined' || document.title === '' ? t('turnsTitle') : document.title;
+    fireAndForget(shareLink({ url, title, text: t('turnsShareText') }));
   }
 }

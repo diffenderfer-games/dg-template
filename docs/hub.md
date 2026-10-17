@@ -81,8 +81,8 @@ your game, this game's leaderboards, and a list to jump to other games. It also
 records a `play` event on load and periodic `heartbeat`s while the tab is
 visible (this drives the analytics numbers), and loads a **gamepad adapter** so
 controllers work everywhere (see [Controller & arcade support](#controller--arcade-support)).
-When your game (or the hub) has shipped changes the player hasn't seen, a
-compact **What's new** card appears near the top of the drawer (see
+The drawer's header has a ✨ **What's new** button, with a count while your game
+(or the hub) has shipped changes the player hasn't seen (see
 [What's new](#whats-new-gamechanges)).
 
 Because it's in a Shadow DOM with `all: initial`, it won't collide with your
@@ -1494,7 +1494,7 @@ the hub passes to `notifyGameSubscribers(slug, opening)` (tournaments).
 Players see what changed since they last looked: a compact **What's new**
 button on the home page with a count (it opens the notes, grouped by game, in a
 modal with a **Mark all as seen** button) and, in every
-game's menu, a compact **What's new** card with a count (it opens the list).
+game's menu, the ✨ **What's new** button in the drawer's header, with a count (it opens the list).
 The menu button gets a small cyan dot while anything is unseen. Nothing to wire
 up in code: you only keep a list in `package.json`.
 
@@ -2445,7 +2445,7 @@ Anything else gets a 404. Use `hub-server.mjs` rather than calling these by hand
 - `POST /admin/filter/test` `{text, surface}` → `{result, forms}` · `GET|POST|DELETE /admin/filter/terms` `{term, list:'block'|'phrase'|'allow'|'soften', replacement?}`
 - `GET  /admin/users?q=` · `GET /admin/users/:id` · `POST /admin/users/:id/suspend` `{duration:'24h'|'7d'|'30d'|'perm', reason}` · `/unsuspend` `{restoreMessages}` · `/mute` `{duration}` · `/unmute` · `/rename` `{username?, force?}`
 - `GET  /admin/suggestions?status=` · `POST /admin/suggestions/:id` `{status?, adminNote?}`
-- `GET|PUT /admin/switches` `{chat?:'on'|'quick'|'off', dms?, friendRequests?}` (can only be stricter than `HUB_CHAT`)
+- `GET|PUT /admin/switches` `{chat?:'on'|'quick'|'off', dms?, friendRequests?, strangerText?, aiEngine?}` (`chat` can only be stricter than `HUB_CHAT`; `strangerText`, off by default, lets players who aren't friends type in game chats: online games, rooms, game servers; never guests or parent-locked accounts)
 - `POST /admin/username-scan` → `{hits:[{id, username, reason}]}`
 - `GET  /admin/backups` → `{backups:[{name, kind:'backup'|'safety'|'upload', size, createdAt}], inventory, pendingRestore}` · `POST /admin/backups` → `{backup, files}` (takes one; logged) · `POST /admin/backups/:name/preview` → the dry run (changes nothing) · `POST /admin/backups/:name/restore` `{confirm:'RESTORE'}` → `{ok, safetyBackup, restarting}` (logged; both servers restart). The archives move outside `/_api`: `GET /_admin/backups/<name>` downloads one and `POST /_admin/backups/upload` (the raw `.tar.gz` body) stores one, admins only. See `DEPLOY.md` §11a.
 
