@@ -7,7 +7,7 @@
   "author": "your name here",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && node scripts/kit/build-rules.ts",
+    "build": "vite build && node scripts/kit/build-rules.ts && node scripts/kit/build-live.ts",
     "preview": "vite preview --strictPort",
     "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.node.json",
     "test": "vitest run --project kit --project hub-events --project game",
@@ -27,6 +27,7 @@
     "create": "node scripts/kit/create.ts",
     "first-deploy": "node scripts/kit/first-deploy.ts",
     "build:rules": "node scripts/kit/build-rules.ts",
+    "build:live": "node scripts/kit/build-live.ts",
     "world:check": "node scripts/kit/world.ts check",
     "world:generate": "node scripts/kit/world.ts generate",
     "world:tiled": "node scripts/kit/world.ts tiled",
@@ -126,7 +127,7 @@
     "changes": []
   },
   "dependencies": {
-    "@diffenderfer-games/hub": "2.0.0-next.13",
+    "@diffenderfer-games/hub": "2.0.0-next.14",
     "pixi.js": "^8.6.0",
     "three": "^0.186.1"
   },

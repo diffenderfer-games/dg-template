@@ -4,6 +4,20 @@ KIT doc. One entry per kit version; per module inside. A **major** version
 means a hook's signature changed: the entry says how to move a game over.
 `npm run kit:sync` prints the entries newer than a game's `kit.json`.
 
+## 1.13 (2026-10-18)
+
+Live (realtime) games: racing first, shooters later (the hub's docs/plans/live.md).
+
+- **live 1.0:** new module. A game writes a pure fixed-step sim (`src/game/live/sim.ts`,
+  an empty stub until it does) and declares `game.live`; the hub's live server runs it
+  and the page runs the same sim to predict (`joinLive`). `dmath` (bfme's deterministic
+  sin/cos/atan2) and `checkLiveSimRuns` for tests. [live.md](live.md).
+- **scripts 1.17:** `npm run build:live` (part of `npm run build` once `game.live` is declared).
+- **config 1.2:** lint keeps `Math.random` and `Date` out of `src/game/live/`.
+- **docs 1.16:** the kit map lists live.
+- **core 1.8:** `KIT_VERSION` 1.13.
+- Needs hub client **2.0.0-next.14** (`./live-sim`, `./live`).
+
 ## 1.12 (2026-10-18)
 
 The owner's recurring review feedback, written down. Docs only: no code changes.
@@ -48,7 +62,7 @@ Game ages (hub client and contract **2.0.0-next.13**): say who the game is for.
 
 - **package.json:** `game.ages`, `{ "min": 6 }` (6 and up) or `{ "min": 2, "max": 9 }`; `min` is
   2 or more and `max`, when given, at least `min` (hub.md "Labels, ages and the home page").
-  The home page shows it on the game's sheet (*Ages 6+*) and its age filter leaves out a game
+  The home page shows it on the game's sheet (_Ages 6+_) and its age filter leaves out a game
   that doesn't give it. A game that moves to kit 1.10 adds it (`src/game/config.ts`'s TODO).
 - **scripts 1.13:** `kit:check` fails a bad `game.ages` (`checkAges`) and warns when it is
   missing; hub-doctor next.13 does the same.
@@ -187,7 +201,7 @@ To move a game over:
    `config` module).
 2. Give the definition the test contract
    ([testing.md](testing.md#what-the-kits-tests-need-from-your-game)): `addScore: (run, n) =>
-   void (run.score += n)` beside `snap` (whose `score` the suites read), and, with
+void (run.score += n)` beside `snap` (whose `score` the suites read), and, with
    `game.turns`, `turns.testMove(board)` (a legal move, or null). Drop an
    `extra.addCoins`-style driver the kit's tests used to need.
 3. Put back the kit tests you deleted or moved (`kit:sync` restores them; delete the

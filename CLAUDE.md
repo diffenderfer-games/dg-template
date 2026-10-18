@@ -51,7 +51,7 @@ reports what to fix. Fix what it finds, then hand over.
 - `author` in `package.json` is the maker's first name only (`Phil`, `Nicole`, `Ian`, `Mackenzie`, `Mason`): [docs/kit/review.md](docs/kit/review.md#the-packagejson).
 - Invite links go through `shareLink` (share sheet, clipboard, dialog); never print the raw link: [docs/kit/ui.md](docs/kit/ui.md#sharing-a-link).
 - In an online game the hub runs, the computer never takes a dropped player's seat: [docs/kit/playing-together.md](docs/kit/playing-together.md#computer-players-online).
-- Rules are pure and seeded: no `Math.random`, no `Date` in `src/game/rules.ts` ([docs/kit/rng.md](docs/kit/rng.md)).
+- Rules are pure and seeded: no `Math.random`, no `Date` in `src/game/rules.ts` ([docs/kit/rng.md](docs/kit/rng.md)). A live sim (`src/game/live/sim.ts`) too, and its trig comes from `dmath` ([docs/kit/live.md](docs/kit/live.md)).
 - A line in `game.changes` for each change a player would notice: [docs/kit/whats-new.md](docs/kit/whats-new.md).
 
 ## How to build it
@@ -67,6 +67,7 @@ the kit calls it: [docs/kit/hooks.md](docs/kit/hooks.md).
 | `src/game/render/`, `screens/` | Drawing, the title / HUD / result |
 | `src/game/daily.ts`, `race.ts`, `online.ts` | Optional modes |
 | `src/game/turns/rules.ts`, `board.ts` | Online games: the rules the hub runs, the board |
+| `src/game/live/sim.ts` | Live (realtime) games: the fixed-step sim the hub runs and the page predicts with |
 | `src/game/test-hook.ts` | Extra `window.__game` drivers |
 
 ## How to check it

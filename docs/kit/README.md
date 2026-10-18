@@ -7,11 +7,11 @@ plan), so a game builds alone and an agent can read every line.
 
 ## Three kinds of file
 
-| Kind | Where | Who changes it |
-|---|---|---|
-| **KIT** | `src/kit/`, `scripts/kit/`, `.claude/agents/` (the `game-review` agent), `tests/kit/`, `tests/hub-events/`, `tests/hub/_kit.ts`, `tests/hub/kit/`, `tests/scripts/`, `docs/kit/`, `docs/getting-started.md`, `docs/repo-setup.md`, configs (`eslint.config.ts`, `vitest.config.ts`, `tsconfig.base.json`, Prettier, `.gitattributes`), the deploy workflow | The template only. In a game, `npm run kit:check` fails if one differs. |
-| **GAME** | `src/game/`, `tests/game/`, `tests/kit-skips.json`, `scripts/shots.config.ts`, `scripts/sim.ts`, `docs/game.md`, `README.md`, `CLAUDE.md`, `index.html`, `package.json` | The game. Files carry `(GAME: yours to edit.)` in their header. |
-| **SYNCED** | `HANDOFF.md`, `docs/hub.md`, `docs/multiplayer.md`, `server/hub-server.mjs` | The hub. `npm run sync-docs` / `npm run sync-hub-server` copy them; never edit. |
+| Kind       | Where                                                                                                                                                                                                                                                                                                                                                      | Who changes it                                                                  |
+| ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| **KIT**    | `src/kit/`, `scripts/kit/`, `.claude/agents/` (the `game-review` agent), `tests/kit/`, `tests/hub-events/`, `tests/hub/_kit.ts`, `tests/hub/kit/`, `tests/scripts/`, `docs/kit/`, `docs/getting-started.md`, `docs/repo-setup.md`, configs (`eslint.config.ts`, `vitest.config.ts`, `tsconfig.base.json`, Prettier, `.gitattributes`), the deploy workflow | The template only. In a game, `npm run kit:check` fails if one differs.         |
+| **GAME**   | `src/game/`, `tests/game/`, `tests/kit-skips.json`, `scripts/shots.config.ts`, `scripts/sim.ts`, `docs/game.md`, `README.md`, `CLAUDE.md`, `index.html`, `package.json`                                                                                                                                                                                    | The game. Files carry `(GAME: yours to edit.)` in their header.                 |
+| **SYNCED** | `HANDOFF.md`, `docs/hub.md`, `docs/multiplayer.md`, `server/hub-server.mjs`                                                                                                                                                                                                                                                                                | The hub. `npm run sync-docs` / `npm run sync-hub-server` copy them; never edit. |
 
 A game that needs different kit behaviour writes it in `src/game/` (a hook, or
 a wrapper) instead of editing `src/kit/`. If the kit should change for
@@ -26,33 +26,34 @@ need only a short test contract from the game:
 
 ## Modules
 
-| Module | Does | Doc |
-|---|---|---|
-| core | JSON types, the activity model, strings, logging, the hub's narrow types | [core.md](core.md) |
-| testing | FakeHub, fake clock/storage, the hub-phase list, the sim | [testing.md](testing.md) |
-| rng | The seeded RNG every rule uses | [rng.md](rng.md) |
-| daily-puzzle | A short, solver-checked daily | [daily-puzzle.md](daily-puzzle.md) |
-| save | The profile: versioned, merged, offline-safe | [save.md](save.md) |
-| resume | The game in progress: Continue, late-load guard | [resume.md](resume.md) |
-| daily | The daily challenge flow (`hub.daily`) | [daily.md](daily.md) |
-| pause | Pause on hub UI, the pause screen | [pause.md](pause.md) |
-| scores | Boards and stats with the mode rules | [scores.md](scores.md) |
-| test-hook | `window.__game` | [test-hook.md](test-hook.md) |
-| boot | `defineGame`: wires everything | [boot.md](boot.md) |
-| input | Controls, menu navigation, hints | [input.md](input.md) |
-| layout | The safe region for gameplay | [layout.md](layout.md) |
-| loop | Fixed-step loop | [loop.md](loop.md) |
-| ui | Screens, modals, toasts | [ui.md](ui.md) |
-| settings-ui | The settings sheet | [settings-ui.md](settings-ui.md) |
-| race | Races (`hub.race`) | [race.md](race.md) |
-| online | Hub rooms: lobby, match, chat | [online.md](online.md) |
-| audio | Music in a worker, SFX | [audio.md](audio.md) |
-| haptics | Vibration | [haptics.md](haptics.md) |
-| server | Own-server games | [server.md](server.md) |
-| saved | "Your games": the title's Continue rows, days in progress | [saved.md](saved.md) |
-| turns | Online games: the hub runs the game's rules; the kit's screen | [turns.md](turns.md) |
-| avatar | Players' faces, the canvas adapters | [avatar.md](avatar.md) |
-| world | The game's own room in the hub's world (`game.world`, `dg-world`), in Adventure Mode at `/world/game.<slug>`; playing in the box over the world (`game.embed`, Esc, the overlay checklist); rooms by labels; online tables and Quick match coming | [world.md](world.md) |
+| Module       | Does                                                                                                                                                                                                                                              | Doc                                |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------- |
+| core         | JSON types, the activity model, strings, logging, the hub's narrow types                                                                                                                                                                          | [core.md](core.md)                 |
+| testing      | FakeHub, fake clock/storage, the hub-phase list, the sim                                                                                                                                                                                          | [testing.md](testing.md)           |
+| rng          | The seeded RNG every rule uses                                                                                                                                                                                                                    | [rng.md](rng.md)                   |
+| daily-puzzle | A short, solver-checked daily                                                                                                                                                                                                                     | [daily-puzzle.md](daily-puzzle.md) |
+| save         | The profile: versioned, merged, offline-safe                                                                                                                                                                                                      | [save.md](save.md)                 |
+| resume       | The game in progress: Continue, late-load guard                                                                                                                                                                                                   | [resume.md](resume.md)             |
+| daily        | The daily challenge flow (`hub.daily`)                                                                                                                                                                                                            | [daily.md](daily.md)               |
+| pause        | Pause on hub UI, the pause screen                                                                                                                                                                                                                 | [pause.md](pause.md)               |
+| scores       | Boards and stats with the mode rules                                                                                                                                                                                                              | [scores.md](scores.md)             |
+| test-hook    | `window.__game`                                                                                                                                                                                                                                   | [test-hook.md](test-hook.md)       |
+| boot         | `defineGame`: wires everything                                                                                                                                                                                                                    | [boot.md](boot.md)                 |
+| input        | Controls, menu navigation, hints                                                                                                                                                                                                                  | [input.md](input.md)               |
+| layout       | The safe region for gameplay                                                                                                                                                                                                                      | [layout.md](layout.md)             |
+| loop         | Fixed-step loop                                                                                                                                                                                                                                   | [loop.md](loop.md)                 |
+| ui           | Screens, modals, toasts                                                                                                                                                                                                                           | [ui.md](ui.md)                     |
+| settings-ui  | The settings sheet                                                                                                                                                                                                                                | [settings-ui.md](settings-ui.md)   |
+| race         | Races (`hub.race`)                                                                                                                                                                                                                                | [race.md](race.md)                 |
+| online       | Hub rooms: lobby, match, chat                                                                                                                                                                                                                     | [online.md](online.md)             |
+| audio        | Music in a worker, SFX                                                                                                                                                                                                                            | [audio.md](audio.md)               |
+| haptics      | Vibration                                                                                                                                                                                                                                         | [haptics.md](haptics.md)           |
+| server       | Own-server games                                                                                                                                                                                                                                  | [server.md](server.md)             |
+| saved        | "Your games": the title's Continue rows, days in progress                                                                                                                                                                                         | [saved.md](saved.md)               |
+| turns        | Online games: the hub runs the game's rules; the kit's screen                                                                                                                                                                                     | [turns.md](turns.md)               |
+| live         | Live (realtime) games: the sim the hub runs and the page predicts with, `joinLive`, deterministic math                                                                                                                                            | [live.md](live.md)                 |
+| avatar       | Players' faces, the canvas adapters                                                                                                                                                                                                               | [avatar.md](avatar.md)             |
+| world        | The game's own room in the hub's world (`game.world`, `dg-world`), in Adventure Mode at `/world/game.<slug>`; playing in the box over the world (`game.embed`, Esc, the overlay checklist); rooms by labels; online tables and Quick match coming | [world.md](world.md)               |
 
 Also: [look.md](look.md) (what every game's UI and motion must be),
 [polish.md](polish.md) (the owner's checklist for every screen),
