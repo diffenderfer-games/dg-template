@@ -1,10 +1,12 @@
 /**
- * `npm run create -- <slug> [--title "My Game"] [--renderer pixi|three|none] [--no-daily] [--no-race] [--no-online] [--no-turns] [--no-world] [--no-avatar] [--dir ..] [--no-commit]`
+ * `npm run create -- <slug> [--title "My Game"] [--renderer pixi|three|none] [--no-daily] [--no-race] [--no-online] [--no-turns] [--no-world] [--no-avatar] [--dir ..] [--no-commit] [--no-pull]`
  * Source: dg-template scripts/kit/ (kit v1.4). Copy byte-identical; change it in the template first.
  * Docs: docs/getting-started.md § "Step 1"
  *
  * In the template only: makes a new game's folder beside it (`../<slug>`),
- * ready to build. It copies the template's last commit (HEAD), never the
+ * ready to build. First it fast-forwards the template from its remote (`git pull --ff-only`;
+ * a failure, like being offline or a diverged branch, only warns; `--no-pull` skips it), so a
+ * new game starts on the latest template. It copies the template's last commit (HEAD), never the
  * working tree, so another session's unfinished changes stay out; runs
  * `npm run new-game` there with the same flags (which runs `npm install`);
  * then `git init` and a first commit. No questions asked: an agent can run it.
@@ -47,6 +49,17 @@ if (existsSync(dest)) fail(`${dest} already exists: pick another slug, or remove
 const git = (cwd: string, ...a: string[]): string => execFileSync('git', a, { cwd, encoding: 'utf8' });
 if (git(ROOT, 'status', '--porcelain').trim() !== '')
   console.warn('! dg-template has uncommitted changes: they are not copied (the new game starts from HEAD)');
+
+// 0. the latest template (best effort: never blocks making the game)
+if (!args.includes('--no-pull')) {
+  try {
+    git(ROOT, 'pull', '--ff-only', '--quiet');
+    console.log('dg-template is on the latest.');
+  } catch (e) {
+    const why = e instanceof Error ? (e.message.split('\n')[0] ?? '') : String(e);
+    console.warn(`! could not pull the latest dg-template (${why}): using the local HEAD`);
+  }
+}
 
 // 1. the template's last commit, without its history
 console.log(`Creating ${dest} from dg-template ${git(ROOT, 'rev-parse', '--short', 'HEAD').trim()}…`);

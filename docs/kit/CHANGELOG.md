@@ -8,12 +8,13 @@ means a hook's signature changed: the entry says how to move a game over.
 
 The cover is the hub's card size.
 
-- **scripts 1.14:** `npm run cover` shoots at the new `cover` size (800 × 420, 40:21, the shape the
+- **scripts 1.15:** `npm run cover` shoots at the new `cover` size (800 × 420, 40:21, the shape the
   hub shows whole) instead of `desk` (1280 × 800, which the card cropped). `kit:sync` replaces
   the game's `scripts/kit/` copy; re-run `npm run cover` to remake `cover.png`. `ui-check` skips
-  the `cover` size.
+  the `cover` size. `npm run create` (and so `tools/New-Game.ps1`) first runs `git pull --ff-only` in
+  dg-template, so a new game starts on the latest template; a failure only warns, `--no-pull` skips it.
 - **core 1.6:** `KIT_VERSION` 1.11.
-- **docs 1.13:** screenshots.md lists the `cover` size.
+- **docs 1.14:** screenshots.md lists the `cover` size; getting-started.md says `create` pulls first.
 
 ## 1.10 (2026-10-17)
 

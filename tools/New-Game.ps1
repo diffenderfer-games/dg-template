@@ -11,7 +11,8 @@
 
   The folder (the slug) is the name in lowercase with dashes: pick the final
   name first, it is also the repo and the URL. The copy is the template's last
-  commit (HEAD); uncommitted changes in dg-template are not copied.
+  commit (HEAD); uncommitted changes in dg-template are not copied. It first pulls the latest
+  dg-template (fast-forward only; offline or diverged just warns).
 #>
 param(
     [string]$Name,

@@ -15,7 +15,8 @@ repo and the URL (renaming later means a new folder). In `dg-template`:
 npm run create -- word-pop --title "Word Pop" --renderer none --no-online --no-turns
 ```
 
-It copies the template's last commit (never uncommitted changes) to
+It first pulls the latest template (`git pull --ff-only`; offline or diverged only warns,
+`--no-pull` skips it), then copies its last commit (never uncommitted changes) to
 `../word-pop`, runs `new-game` there (step 3) and `npm install`, and makes the
 first commit. On Windows, `tools/New-Game.ps1` does the same and adds a desktop
 shortcut ([repo-setup.md](repo-setup.md)).
