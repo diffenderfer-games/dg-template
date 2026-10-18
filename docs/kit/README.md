@@ -9,7 +9,7 @@ plan), so a game builds alone and an agent can read every line.
 
 | Kind | Where | Who changes it |
 |---|---|---|
-| **KIT** | `src/kit/`, `scripts/kit/`, `tests/kit/`, `tests/hub-events/`, `tests/hub/_kit.ts`, `tests/hub/kit/`, `tests/scripts/`, `docs/kit/`, `docs/getting-started.md`, `docs/repo-setup.md`, configs (`eslint.config.ts`, `vitest.config.ts`, `tsconfig.base.json`, Prettier, `.gitattributes`), the deploy workflow | The template only. In a game, `npm run kit:check` fails if one differs. |
+| **KIT** | `src/kit/`, `scripts/kit/`, `.claude/agents/` (the `game-review` agent), `tests/kit/`, `tests/hub-events/`, `tests/hub/_kit.ts`, `tests/hub/kit/`, `tests/scripts/`, `docs/kit/`, `docs/getting-started.md`, `docs/repo-setup.md`, configs (`eslint.config.ts`, `vitest.config.ts`, `tsconfig.base.json`, Prettier, `.gitattributes`), the deploy workflow | The template only. In a game, `npm run kit:check` fails if one differs. |
 | **GAME** | `src/game/`, `tests/game/`, `tests/kit-skips.json`, `scripts/shots.config.ts`, `scripts/sim.ts`, `docs/game.md`, `README.md`, `CLAUDE.md`, `index.html`, `package.json` | The game. Files carry `(GAME: yours to edit.)` in their header. |
 | **SYNCED** | `HANDOFF.md`, `docs/hub.md`, `docs/multiplayer.md`, `server/hub-server.mjs` | The hub. `npm run sync-docs` / `npm run sync-hub-server` copy them; never edit. |
 
@@ -55,7 +55,11 @@ need only a short test contract from the game:
 | world | The game's own room in the hub's world (`game.world`, `dg-world`), in Adventure Mode at `/world/game.<slug>`; playing in the box over the world (`game.embed`, Esc, the overlay checklist); rooms by labels; online tables and Quick match coming | [world.md](world.md) |
 
 Also: [look.md](look.md) (what every game's UI and motion must be),
-[hooks.md](hooks.md) (every hook), [screenshots.md](screenshots.md),
+[polish.md](polish.md) (the owner's checklist for every screen),
+[covers.md](covers.md) (the catalog cover), [card-games.md](card-games.md),
+[playing-together.md](playing-together.md) (lobbies, computer seats, online
+feel), [review.md](review.md) (handing a game to the owner, improving the
+template), [hooks.md](hooks.md) (every hook), [screenshots.md](screenshots.md),
 [whats-new.md](whats-new.md), [CHANGELOG.md](CHANGELOG.md).
 
 ## Hub phases

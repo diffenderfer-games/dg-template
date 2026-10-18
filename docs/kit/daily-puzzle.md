@@ -6,6 +6,9 @@ Source: `src/kit/daily-puzzle/` (KIT: copy byte-identical; change it in the temp
 Plain TypeScript for a **short, solver-checked daily**: a slice of the game, set
 up from the day's seed, with only one or two winning lines (Pop Four's
 "win in N" is the model; the host's `docs/plans/daily-puzzles.md` is the plan).
+Use it whenever a whole game would be long or left to chance (card games,
+most board games): the daily is then a **mini challenge**, a short scenario
+with one or a few ways to win, not a full game ([card-games.md](card-games.md#the-daily)).
 It isn't a package and doesn't import the hub: **copy the folder** into your
 game and plug in your engine.
 

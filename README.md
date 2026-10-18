@@ -39,6 +39,10 @@ The long version is [docs/getting-started.md](docs/getting-started.md).
 | [docs/getting-started.md](docs/getting-started.md) | The 10 steps in full |
 | [docs/kit/README.md](docs/kit/README.md) | The kit's modules, the KIT / GAME / SYNCED rules, keeping up to date |
 | [docs/kit/hooks.md](docs/kit/hooks.md) | Every hook the game fills in |
+| [docs/kit/look.md](docs/kit/look.md), [docs/kit/polish.md](docs/kit/polish.md) | The look every screen must have, and the owner's checklist |
+| [docs/kit/covers.md](docs/kit/covers.md) | What a good cover looks like |
+| [docs/kit/card-games.md](docs/kit/card-games.md), [docs/kit/playing-together.md](docs/kit/playing-together.md) | Card games; lobbies, computer seats and online feel |
+| [docs/kit/review.md](docs/kit/review.md) | Handing a game to the owner; improving the template |
 | [docs/kit/testing.md](docs/kit/testing.md), [docs/kit/screenshots.md](docs/kit/screenshots.md) | Checking your work |
 | [docs/game.md](docs/game.md) | This game's own notes |
 | [HANDOFF.md](HANDOFF.md), [docs/hub.md](docs/hub.md), [docs/multiplayer.md](docs/multiplayer.md) | The hub's rules (synced from the host; never edit) |

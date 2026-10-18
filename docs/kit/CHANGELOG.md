@@ -4,6 +4,32 @@ KIT doc. One entry per kit version; per module inside. A **major** version
 means a hook's signature changed: the entry says how to move a game over.
 `npm run kit:sync` prints the entries newer than a game's `kit.json`.
 
+## 1.12 (2026-10-18)
+
+The owner's recurring review feedback, written down. Docs only: no code changes.
+
+- **docs 1.15:** new docs. [polish.md](polish.md) is the owner's checklist for every screen:
+  every modal and page juicy, even padding (horizontal at least vertical), aligned buttons,
+  text that fits, phones first, no focus outline on touch, loading states, no flashes,
+  game feel. [covers.md](covers.md) covers the two cover layouts and when to remake one.
+  [card-games.md](card-games.md) covers select then confirm, the hand's order, card faces
+  and the mini daily. [playing-together.md](playing-together.md) covers the lobby, invite
+  links, computer seats online and everyone seeing what happened. [review.md](review.md)
+  covers screenshots and a phone link before pushing, the notify tool, scope, `author`,
+  and improving the template. look.md links them and now says the kit's CSS goes first
+  (`theme.css` wins with plain selectors). screenshots.md and getting-started.md link
+  them too.
+- **agents 1.0 (new module):** `.claude/agents/game-review.md`, a read-only Claude Code agent that
+  shoots the game, checks it against look, polish, covers, card-games and playing-together, and
+  reports findings with the doc rule each breaks. CLAUDE.md says to run it before a hand-over.
+- **turns 1.7, online 1.3, race 1.2:** each doc links playing-together.md.
+- **daily-puzzle 1.1:** the doc says when a daily should be a mini challenge.
+- **scripts 1.16:** the docs module lists the new docs.
+- **core 1.7:** `KIT_VERSION` 1.12.
+- **CLAUDE.md, README.md (GAME, new games only):** "What the owner expects" reading list;
+  rules for `author`, invite links and computer seats; DRY, small files, no `any`; scope;
+  lessons go back into the template.
+
 ## 1.11 (2026-10-17)
 
 The cover is the hub's card size.

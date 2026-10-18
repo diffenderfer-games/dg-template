@@ -2,6 +2,9 @@
 
 Source: `src/kit/turns/` and `src/kit/boot/turns-flow.ts` (KIT: copy byte-identical; change it in the template first).
 
+What playing together must feel like (the lobby, computer seats, everyone
+seeing what happened): [playing-together.md](playing-together.md).
+
 Online games: the hub runs the game's own rules on its
 server, and players get a "your turn" alert when they are away. Players see
 **an online game** ("Online with Sam · your turn"), never "turn game" or
@@ -185,7 +188,7 @@ It throws `checkTurnRules: …` (with the seed) on a game that never ends, an
 empty `toAct` mid-game, a seat that doesn't exist, a state that doesn't
 survive JSON, `Math.random`, an illegal `autoMove` or `autoReact`, a seat
 seeing another seat's planted secret, oversized moves or states, and old
-`fixtures` that need `migrate`. Options are in [testing](testing.md#online-games-over-days-checkturnrules)
+`fixtures` that need `migrate`. Options are in [testing](testing.md#online-games-the-hub-runs-checkturnrules)
 (`plant`, `revealed`, `shuffleHidden`). It returns `{ games, moves, longestGame, outOfTurn }`.
 
 ```ts

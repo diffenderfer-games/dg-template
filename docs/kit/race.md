@@ -4,6 +4,8 @@ Source: `src/kit/race/` (KIT: copy byte-identical; change it in the template fir
 
 `kit/race` is the `hub.race` adapter: a single-player game goes multiplayer by racing. Everyone gets the same game from the same seed, the hub shows a live race HUD, and the first to finish wins. The game writes no lobby, netcode or results screen. A game touches it through the `race` hooks in `src/game/race.ts` and a `game.race` block in `package.json`. `defineGame` does the rest.
 
+What the owner expects of a race and of other ways to play together: [playing-together.md](playing-together.md).
+
 ## What the game does
 
 Declare `game.race` in `package.json` (params, stats, `minMs`; see [docs/multiplayer.md §14.1](../multiplayer.md#141-declare-gamerace)) and export `RaceHooks`:

@@ -23,10 +23,10 @@ function srcModule(name: string, version = '1.0'): KitModuleDef {
 
 /** Every module. */
 export const KIT_MODULES: Record<string, KitModuleDef> = {
-  core: srcModule('core', '1.6'),
+  core: srcModule('core', '1.7'),
   testing: srcModule('testing', '1.9'),
   rng: srcModule('rng'),
-  'daily-puzzle': srcModule('daily-puzzle'),
+  'daily-puzzle': srcModule('daily-puzzle', '1.1'),
   save: srcModule('save', '1.1'),
   resume: srcModule('resume', '1.2'),
   daily: srcModule('daily', '1.2'),
@@ -39,19 +39,20 @@ export const KIT_MODULES: Record<string, KitModuleDef> = {
   loop: srcModule('loop', '1.1'),
   ui: srcModule('ui', '1.4'),
   'settings-ui': srcModule('settings-ui'),
-  race: srcModule('race', '1.1'),
-  online: srcModule('online', '1.2'),
+  race: srcModule('race', '1.2'),
+  online: srcModule('online', '1.3'),
   audio: srcModule('audio', '1.1'),
   haptics: srcModule('haptics'),
   server: srcModule('server', '1.2'),
   saved: srcModule('saved', '1.3'),
-  turns: srcModule('turns', '1.6'),
+  turns: srcModule('turns', '1.7'),
   avatar: srcModule('avatar', '1.5'),
   world: srcModule('world', '1.5'),
   'hub-events': { version: '1.7', paths: ['tests/hub-events'] },
   'hub-suites': { version: '1.10', paths: ['tests/hub/_kit.ts', 'tests/hub/kit'] },
-  scripts: { version: '1.15', paths: ['scripts/kit', 'tests/scripts'] },
+  scripts: { version: '1.16', paths: ['scripts/kit', 'tests/scripts'] },
   ci: { version: '1.0', paths: ['.github/workflows/deploy.yml'] },
+  agents: { version: '1.0', paths: ['.claude/agents'] },
   config: {
     version: '1.1',
     paths: [
@@ -64,7 +65,7 @@ export const KIT_MODULES: Record<string, KitModuleDef> = {
     ],
   },
   docs: {
-    version: '1.14',
+    version: '1.15',
     paths: [
       'docs/kit/look.md',
       'docs/kit/look',
@@ -75,6 +76,11 @@ export const KIT_MODULES: Record<string, KitModuleDef> = {
       'docs/kit/screenshots.md',
       'docs/kit/whats-new.md',
       'docs/kit/hooks.md',
+      'docs/kit/polish.md',
+      'docs/kit/covers.md',
+      'docs/kit/card-games.md',
+      'docs/kit/playing-together.md',
+      'docs/kit/review.md',
     ],
   },
 };

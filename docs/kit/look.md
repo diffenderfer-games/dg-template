@@ -2,7 +2,9 @@
 
 KIT doc. The standard every game's screens, HUD and gameplay feedback must
 meet. Read it before drawing anything; check the contact sheet against §9
-before calling a game done. Reference code and screenshots are in §10.
+before calling a game done. Reference code and screenshots are in §10. The
+details the owner checks on every screen (spacing, text that fits, phones,
+loading states) are [polish.md](polish.md); covers are [covers.md](covers.md).
 
 ## 1. The standard
 
@@ -13,7 +15,9 @@ before calling a game done. Reference code and screenshots are in §10.
 - **Motion is required.** A screen that appears all at once, buttons that sit
   still, or a reward with no feedback is unfinished.
 - **Every screen is dressed:** title, HUD, pause, result, how to play,
-  settings, toasts. The kit's default look (flat grey buttons on near-black,
+  settings, toasts, and every modal and page the game adds (the table setup,
+  online and lobby screens, waiting screens, confirms). A plain modal beside a
+  dressed title is unfinished. The kit's default look (flat grey buttons on near-black,
   plain white headings, no motion) is a scaffold and never ships.
 - **Gameplay answers every action** with motion and sound (§6).
 - Screenshots go to the owner with Read (shown inline), phone and desktop.
@@ -65,7 +69,11 @@ border, radius 20, padding 14–18, the large shadow plus the inset highlight,
   `0 0 0 3px <accent .18>, 0 0 22px <accent .3>`, the icon tile fills with
   `accent` and tilts (`scale(1.12) rotate(-6deg)`), a ◀ pointer appears at the
   right and bounces (0.6 s, alternate), the button lifts 2 px; pressed, it
-  drops 2 px.
+  drops 2 px. Focus shows only for keys and a gamepad; touch and mouse never
+  leave a focus mark, and the browser's own outline never shows
+  ([polish.md §4](polish.md#4-phones-first)).
+- Padding: at least as much horizontal as vertical. Buttons in one menu share
+  a width ([polish.md §2](polish.md#2-spacing-and-alignment)).
 - **Primary** (Play, Resume, Play again): `accent-dark` face, `accent` border
   and glow, a 42 px icon tile filled `accent`, a larger label, and a **sheen**:
   a skewed band of `rgba(255,255,255,.28)` sweeping across every 3.6 s.
@@ -206,8 +214,9 @@ Rules:
   (menu navigation and the kit's tests rely on them).
 - Text the kit's tests read stays readable as text when styled: `title-best`
   and `result-best` hold `Best N` (`<span>Best </span><strong>N</strong>`).
-- The kit's CSS is injected after `theme.css`, so a selector of equal weight
-  loses: write `html:root { --kit-bg: … }` and `html .kit-btn { … }`.
+- The kit's CSS goes first in `<head>`, so `theme.css` wins every tie: plain
+  selectors (`:root { --kit-bg: … }`, `.kit-btn { … }`) are enough
+  ([ui.md](ui.md#styling-the-kits-screens)).
 - Set the kit's variables (`--kit-bg`, `--kit-panel`, `--kit-fg`,
   `--kit-muted`, `--kit-accent`, `--kit-accent-fg`, `--kit-accent-2`,
   `--kit-font`) to the palette too, so anything not restyled still matches.
@@ -227,11 +236,15 @@ Rules:
    area has its panel; sparks are visible.
 4. Play once in a browser (or a scenario): press, get refused, reveal, win,
    lose, pause, open settings. Each one moves and sounds.
+5. Go through [polish.md](polish.md), then hand it over as in
+   [review.md](review.md).
 
 ## 10. References
 
 Code:
 
+- Games the owner points to: the buttons and modals of `../lingo` and
+  `../weston`, the motion of `../bubblepop` and `../weston`.
 - UI style and motion: `../weston/src/ui/ui.css` (title, menu panel, buttons,
   cards, keyframes), `../weston/src/ui/screens.ts` (title and pause builders).
 - The style applied to the kit's screens: `../wordle/src/game/theme.css`,
@@ -249,5 +262,5 @@ Screenshots (`docs/kit/look/`, phone 390 × 844 unless noted):
 | [success.png](look/success.png)                 | a success: bouncing pieces, confetti, reward flying to the HUD, the result card        |
 | [pause.png](look/pause.png)                     | the pause card settled                                                                 |
 | [result.png](look/result.png)                   | the result card                                                                        |
-| [cover.png](look/cover.png)                     | a catalog cover taken mid-celebration (1280 × 800)                                     |
+| [cover.png](look/cover.png)                     | an older cover taken mid-celebration (1280 × 800); covers now follow [covers.md](covers.md) |
 | [reference-title.png](look/reference-title.png) | the original style in a different palette (1280 × 800)                                 |

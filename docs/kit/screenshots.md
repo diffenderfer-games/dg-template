@@ -94,7 +94,8 @@ The context gives `open(query?)`, `drive(path, ...args)`, `screen(name)`,
 ## Cover
 
 `npm run cover` takes the `cover` scenario at 800 × 420 (the hub's 40:21 card, shown whole) and
-copies it to `cover.png`; point `game.image` at it.
+copies it to `cover.png`; point `game.image` at it. What a good cover looks like (the
+layouts, what to leave out, when to remake it): [covers.md](covers.md).
 
 The kit's `cover` plays `autoplay` for 2.5 s: fine for an action game, a poor tile for a
 word or card game. Make your own: exclude the kit's and add a `cover` scenario that sets

@@ -89,7 +89,10 @@ itself: [kit/input.md](kit/input.md#typing-and-word-games).
 
 Read [kit/look.md](kit/look.md) first: the owner's expectations for every
 screen and every animation (the kit's default look is a scaffold, not a
-finished game).
+finished game). Then [kit/polish.md](kit/polish.md), the details the owner
+checks on every screen (spacing, text that fits, phones, loading states). A
+card game also follows [kit/card-games.md](kit/card-games.md); a game played
+together, [kit/playing-together.md](kit/playing-together.md).
 
 - `src/game/render/`: the scene (from the starter you picked).
 - `src/game/screens/`: decorate the kit's title, HUD and result screens. The
@@ -127,7 +130,10 @@ npm run shots:hub    # the hub scenarios
 npm run shots        # phone + desktop screenshots of dist/ (run it last: it rewrites the sheet)
 ```
 
-Then **look at `shots/sheet.png`** (with Read, if you are an agent). Add your
+Then **look at `shots/sheet.png`** (with Read, if you are an agent), and go
+through [kit/polish.md](kit/polish.md). Make the cover as in
+[kit/covers.md](kit/covers.md). Unless you were asked to deploy straight away, show the
+owner the screenshots and a test link for their phone first ([kit/review.md](kit/review.md)). Add your
 own scenes to `scripts/shots.config.ts`. See [kit/testing.md](kit/testing.md)
 and [kit/screenshots.md](kit/screenshots.md).
 

@@ -19,6 +19,21 @@ duty. Read [docs/getting-started.md](docs/getting-started.md), then
 
 Map of the kit: [docs/kit/README.md](docs/kit/README.md).
 
+## What the owner expects
+
+Read these before drawing anything, and again before asking for a review:
+
+- [docs/kit/look.md](docs/kit/look.md): the UI style and motion every screen has.
+- [docs/kit/polish.md](docs/kit/polish.md): the owner's checklist (every modal juicy, even padding, text that fits, phones, loading states, game feel).
+- [docs/kit/covers.md](docs/kit/covers.md): the catalog cover.
+- [docs/kit/card-games.md](docs/kit/card-games.md): card games (select then confirm, the hand, card faces).
+- [docs/kit/playing-together.md](docs/kit/playing-together.md): lobbies, invites, computer seats, everyone seeing what happened.
+- [docs/kit/review.md](docs/kit/review.md): screenshots and a phone link before pushing, the notify tool, scope, improving the template.
+
+Before showing the owner anything or pushing a visual change, run the **`game-review`** agent
+(`.claude/agents/game-review.md`, KIT): it takes the shots, checks them against these docs and
+reports what to fix. Fix what it finds, then hand over.
+
 ## The hard rules
 
 - `base: './'` stays in `vite.config.ts` ([HANDOFF.md](HANDOFF.md) § Path-handling).
@@ -33,6 +48,9 @@ Map of the kit: [docs/kit/README.md](docs/kit/README.md).
 - An own server that writes files on the box declares them in `game.data` so backups take them (`hub-doctor` checks it): [docs/kit/server.md](docs/kit/server.md#backups-gamedata).
 - No violent words in player-facing text ("zap", not "shoot"). Lint checks every string in `src/game/` except generated data in `src/game/data/` (word lists): filter what players see of it yourself.
 - Never say "run" or "turn game" to players.
+- `author` in `package.json` is the maker's first name only (`Phil`, `Nicole`, `Ian`, `Mackenzie`, `Mason`): [docs/kit/review.md](docs/kit/review.md#the-packagejson).
+- Invite links go through `shareLink` (share sheet, clipboard, dialog); never print the raw link: [docs/kit/ui.md](docs/kit/ui.md#sharing-a-link).
+- In an online game the hub runs, the computer never takes a dropped player's seat: [docs/kit/playing-together.md](docs/kit/playing-together.md#computer-players-online).
 - Rules are pure and seeded: no `Math.random`, no `Date` in `src/game/rules.ts` ([docs/kit/rng.md](docs/kit/rng.md)).
 - A line in `game.changes` for each change a player would notice: [docs/kit/whats-new.md](docs/kit/whats-new.md).
 
@@ -69,18 +87,23 @@ Stop what you start (`npm run clean:procs`).
 
 ## Definition of done
 
-- Every screen and animation meets [docs/kit/look.md](docs/kit/look.md) (one UI style and its motion, in the game's own colours; the kit's default look is only a scaffold).
+- Every screen and animation meets [docs/kit/look.md](docs/kit/look.md) (one UI style and its motion, in the game's own colours; the kit's default look is only a scaffold), every modal and page included.
+- It passes [docs/kit/polish.md](docs/kit/polish.md), and [docs/kit/card-games.md](docs/kit/card-games.md) or [docs/kit/playing-together.md](docs/kit/playing-together.md) where they apply.
 - `npm run check` passes (so `kit:check` is clean and `hub-doctor` is happy). Kit tests that don't apply to the game don't block it: features it doesn't declare skip on their own, and any other kit test that doesn't fit is listed with its reason in `tests/kit-skips.json` (never deleted, never edited, never a test of a feature the game has): [docs/kit/testing.md](docs/kit/testing.md#kit-tests-that-dont-apply). Keep the test contract (`snap().score`, `addScore`, `solve`) working.
 - The hub suites pass (`npm run test:hub`), including online ones if the game is online.
 - The contact sheet looks right at phone and desktop sizes.
 - It plays with a keyboard, a gamepad and on a touch screen.
-- `game.title`, `description`, `labels`, `ages` describe it; a `cover.png` (`npm run cover`).
+- `game.title`, `description`, `labels`, `ages` describe it; a `cover.png` (`npm run cover`) that meets [docs/kit/covers.md](docs/kit/covers.md).
+- Unless the owner asked you to deploy straight away, they have seen the screenshots and played it from a phone link first ([docs/kit/review.md](docs/kit/review.md)).
 - Music, if any, plays from a worker without gaps on a phone.
 
 ## Conventions
 
 - Never delete scripts or tests; grow them. A kit test that doesn't apply goes in `tests/kit-skips.json` instead.
-- No type assertions (`as`): lint forbids them. Use `satisfies`, a typed `const`, or a type guard.
+- No type assertions (`as`): lint forbids them. Use `satisfies`, a typed `const`, or a type guard. No `any`, and `unknown` only at a boundary that a guard narrows at once.
+- DRY, small files, and names clear enough to need no comment.
+- Do what was asked; don't add buttons or features nobody asked for ([docs/kit/review.md](docs/kit/review.md#scope)).
+- Lessons that would make the next game easier go into `dg-template` as general guidance, not a history ([docs/kit/review.md](docs/kit/review.md#making-the-next-game-easier)).
 - A procedure longer than one command becomes an `npm run` script (and a line in the docs), not a list of commands to paste.
 - Plans go in `docs/plans/`; the game's notes in `docs/game.md`.
 - Commits that don't change the game get `[skip ci]` (pushes deploy).

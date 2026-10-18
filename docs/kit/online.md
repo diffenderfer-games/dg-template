@@ -4,6 +4,8 @@ Source: `src/kit/online/` (KIT: copy byte-identical; change it in the template f
 
 `kit/online` is online play in hub rooms (no server of your own): the host's browser runs the rules, guests send their input and draw the views the host sends, and the hub relays. It brings the whole flow: launches (invites, Join, Watch, rejoin), the lobby, chat, the match, resilience when a player drops, and friendly errors. A game touches it in one file, `src/game/online.ts`, where it writes the rules as pure functions and hands them to `onlineGame`. The session wiring is in `kit/boot` (`online-flow.ts`).
 
+What playing together must feel like (the lobby, invites, everyone seeing what happened): [playing-together.md](playing-together.md).
+
 ## What the game does
 
 Declare `game.multiplayer` in `package.json` ([docs/multiplayer.md §2](../multiplayer.md#2-the-gamemultiplayer-block)), then write `OnlineHooks<S, V, M>` (state, view, input; all JSON) and pass them through `onlineGame`:
