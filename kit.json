@@ -1,5 +1,5 @@
 {
-  "kitVersion": "1.13",
+  "kitVersion": "1.14",
   "modules": {
     "agents": {
       "version": "1.0",
@@ -64,7 +64,7 @@
       }
     },
     "core": {
-      "version": "1.8",
+      "version": "1.9",
       "files": {
         "docs/kit/core.md": "b5a5730aabe1741269f5ca660dec6f43016e4ed7d80767a44750afa9cbc71103",
         "src/kit/core/activity.ts": "23f686d66feef6a8180f5b8c488222a63ea59d5c2cefb1e88923c61164fff0eb",
@@ -81,7 +81,7 @@
         "src/kit/core/planned.ts": "1a2c2a845a628483b29cafd60b6c7872bae414da3fbcec07642b9d05eb1a497e",
         "src/kit/core/store.ts": "e30b5673a73c64df1446ed156467f2a20f548c465de86c779e21d9cccd008e20",
         "src/kit/core/strings.ts": "b1a39f27d06f59a69386987aba6c1be0480dae6a36af175e1dcd7d0949958c61",
-        "src/kit/core/version.ts": "f874bb1ab7f68d751a374ec15d7e031b2a8731a7d06607eeb8770750b29fe99b",
+        "src/kit/core/version.ts": "fb86210dd138442f6f7e9069cf851ccb158abc65ff538cfea4fe505b7b715f20",
         "src/kit/core/wording.ts": "0c3cf1eb2062f307a9acd6a7aea90f8f954e72db30978ea192bf1a5ae46997b3",
         "tests/kit/core/activity.test.ts": "395c9759a8ea916d53865a6c528c207feeeaf1e51f5079d8c406f9114f81b614",
         "tests/kit/core/async.test.ts": "a445e5d51617e9cdf7e84403d1b854db96ef63905e9fe030f4a13178e68a339a",
@@ -124,10 +124,10 @@
       }
     },
     "docs": {
-      "version": "1.16",
+      "version": "1.17",
       "files": {
         "docs/getting-started.md": "12d6f3fa6bfe207ab8d85cd6342bdefebb102b298134059aee87d9874f8ab340",
-        "docs/kit/CHANGELOG.md": "ecfa1432f9018bf24873443887a856afb45581eedc055da3204aa89da9819603",
+        "docs/kit/CHANGELOG.md": "6daa7243f3e626ad7e255b9c40d2416df13ef4842c171c856391a76893ab76e7",
         "docs/kit/README.md": "af5d13a18c25a6786ad0219563adad86ac4040bf486967223f6bf48e9e2a9ccc",
         "docs/kit/card-games.md": "f29c0144ab9e7869a14dc5328b2e77cd30f74158122fe3dc3d3fa8912358e3ab",
         "docs/kit/covers.md": "e00687c1e2dbde8cbfb1c6b4fa94bc260e671a4b0d7d0fe71199bd76178eaad7",
@@ -144,7 +144,7 @@
         "docs/kit/playing-together.md": "ea451f71fcf0b428a83db8ccb7ad6059602217d87876516ddd1c771299adf66a",
         "docs/kit/polish.md": "31f0905bb3e1c5ee2f9188e0b6be20b3dcd94bf72d4a8b1e8926bece2018a2b1",
         "docs/kit/review.md": "cf5fc83ad65dd09f238bd5975163117ce2225aaef675860f7952e8d86332e286",
-        "docs/kit/screenshots.md": "501803f8d8e32d30f34dafcae541a8147d9bedaf9bb1a230a5427f4774fa36f5",
+        "docs/kit/screenshots.md": "90b4357c0ffec19c258602b1f8fb26d0610d4eda7913f8b7748699630603440a",
         "docs/kit/whats-new.md": "48ace741d2625caf352abc2bdc3472ca1ad8733d2755ff378e63e2d11b0812f7",
         "docs/repo-setup.md": "e924206f2452a4cfc69faaa7769ba2bf3b933d924de721c4f3da77e13deb2d2c"
       }
@@ -305,7 +305,7 @@
       }
     },
     "scripts": {
-      "version": "1.17",
+      "version": "1.18",
       "files": {
         "scripts/kit/build-live.ts": "99727744429e0a938ec078fcfaa31b56fa16ee07cc9a0075ff45fdc55898dad7",
         "scripts/kit/build-rules.ts": "532e7f69691e24ec758d281f6e3597c5dfa0738a8bf9182ac17bb424e02d67e1",
@@ -323,9 +323,9 @@
         "scripts/kit/lib/json-file.ts": "dbf7615f262a4cfaed24444d157ce3a1eb43c38139abf22910b5de63fc39fabc",
         "scripts/kit/lib/kit-manifest.ts": "3dd9b442e44bf0f265bdbd3f78332ebce23cf7a058ef6cfc00bea39d1121916d",
         "scripts/kit/lib/kit-skips.ts": "64c564f5bcd174f422c955b23ba42b51c6c7ea8b0e525f371890f24486aa7b67",
-        "scripts/kit/lib/modules.ts": "90484a712cd81aa04555117193e0953cf6d9ec921eaf3c59dafd90e41d48bd3a",
+        "scripts/kit/lib/modules.ts": "33a85df39efff30ed89940decbe60d483172bb990462361c2e7fd558272bb67d",
         "scripts/kit/lib/paths.ts": "eff533c813a780dae8389146613b04f627ffa275d46045c98b30bad5149ab9be",
-        "scripts/kit/lib/ports.ts": "acac054c2d53fbc5f28858a1a96948799f6664a713f129dd94e9ba1ebd335273",
+        "scripts/kit/lib/ports.ts": "33b1e358794f2e50f8119c958e0ed857d0c6dc7fe5d3708d97486cae16affdad",
         "scripts/kit/lib/procs.ts": "092866a7f4f02faf47b7b7c6280ff7152b3ba66fe3c505ec52b36089b0609b10",
         "scripts/kit/lib/scaffold.ts": "0df9dc54f0ab20cd3a76b28ff328b5facb9ad4af0dc9bd44abd6394e7c801eba",
         "scripts/kit/lib/serve.ts": "cc5fcbe36a1549866e13e707f8e9943366b59c2d23323be63b367df65732a70c",
@@ -347,6 +347,7 @@
         "scripts/kit/world.ts": "ee78070b30aa83690aad5731973d1655a8b5810da81de781100163d205659a5d",
         "tests/scripts/kit-scripts.test.ts": "8c2f180d6afbcda04a642b12ce64ad39b252985d67d3194bc083ac35f30be656",
         "tests/scripts/new-game.test.ts": "538bc28898477c1a4af0871bd910a0990e690b26381cc8c038e41758917105d9",
+        "tests/scripts/ports.test.ts": "cd03f83589c02cb7d71a98917fde44037db230109f166bf3a5331969a8829062",
         "tests/scripts/scaffold.test.ts": "23f44b71603b59ccdb6eebbcb0488cb59a8ba8b85115922fd58242ac81579e28",
         "tests/scripts/shots-lib.test.ts": "8c23597372d65497d81390cc4bfcad8becb15a7db4348d6dc7f5771d54c9d1c4"
       }

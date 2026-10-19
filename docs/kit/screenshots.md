@@ -31,13 +31,13 @@ scenarios (`npm run cover` leaves a one-shot sheet behind it).
 
 ## Sizes
 
-| Size | Viewport |
-|---|---|
-| `desk` | 1280 × 800 |
-| `cover` | 800 × 420 (the hub's card shape; only `npm run cover` uses it) |
-| `phone` | 390 × 844, touch, DPR 2 |
-| `phone-land` | 844 × 390, touch |
-| `tablet` | 820 × 1180, touch |
+| Size         | Viewport                                                       |
+| ------------ | -------------------------------------------------------------- |
+| `desk`       | 1280 × 800                                                     |
+| `cover`      | 800 × 420 (the hub's card shape; only `npm run cover` uses it) |
+| `phone`      | 390 × 844, touch, DPR 2                                        |
+| `phone-land` | 844 × 390, touch                                               |
+| `tablet`     | 820 × 1180, touch                                              |
 
 Default: `phone,desk`.
 
@@ -134,7 +134,9 @@ repo because it sits beside the hub checkout under `GitHub/`.
 
 This machine runs many dev servers. A busy port can serve a different game.
 The scripts listen on port 0 or pick a free block of four ports; `vite preview`
-uses `--strictPort`. Never use 8099 (the main local instance).
+uses `--strictPort`. Never use 8099 (the main local instance). A port counts as
+busy if anything holds it on any address (`::`, `0.0.0.0`, `127.0.0.1`, `::1`),
+so parallel runs and a dev server on `--host` don't collide.
 
 ## Cleaning up
 

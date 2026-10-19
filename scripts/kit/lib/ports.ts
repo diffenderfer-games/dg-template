@@ -5,14 +5,25 @@
  */
 import { createServer } from 'node:net';
 
-/** Is nothing listening on `port` (any address)? */
-export function portFree(port: number): Promise<boolean> {
+/** Can we listen on `port` at `host`? An address family the machine lacks (no IPv6) counts as free. */
+function canListen(port: number, host: string): Promise<boolean> {
   return new Promise((done) => {
     const s = createServer()
-      .once('error', () => done(false))
+      .once('error', (e: NodeJS.ErrnoException) => done(e.code === 'EAFNOSUPPORT' || e.code === 'EADDRNOTAVAIL'))
       .once('listening', () => s.close(() => done(true)));
-    s.listen(port);
+    s.listen(port, host);
   });
+}
+
+/**
+ * Is nothing listening on `port` (any address)? Each address is tried on its own: on Windows a
+ * dual-stack listen succeeds even while another process holds the port on 127.0.0.1 or 0.0.0.0.
+ */
+export async function portFree(port: number): Promise<boolean> {
+  for (const host of ['::', '0.0.0.0', '127.0.0.1', '::1']) {
+    if (!(await canListen(port, host))) return false;
+  }
+  return true;
 }
 
 /**

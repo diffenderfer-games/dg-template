@@ -4,6 +4,14 @@ KIT doc. One entry per kit version; per module inside. A **major** version
 means a hook's signature changed: the entry says how to move a game over.
 `npm run kit:sync` prints the entries newer than a game's `kit.json`.
 
+## 1.14 (2026-10-19)
+
+- **scripts 1.18:** `freeBlock` / `portFree` probe every address on its own (`::`, `0.0.0.0`,
+  `127.0.0.1`, `::1`). On Windows a dual-stack probe succeeded while another process held the
+  port on IPv4 only, so parallel `shots` runs or a dev server on `--host` got "port already in use".
+- **docs 1.17:** screenshots.md § Ports says so.
+- **core 1.9:** `KIT_VERSION` 1.14.
+
 ## 1.13 (2026-10-18)
 
 Live (realtime) games: racing first, shooters later (the hub's docs/plans/live.md).
