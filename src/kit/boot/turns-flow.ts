@@ -5,7 +5,9 @@
  *
  * multiplayer.md §16.3. A game comes from Your games (`hub.saved.opened`,
  * `onOpen`), an invite link (`hub.turns.link`) or the title's Play online
- * (the computer, a link, anyone). The page follows it live through the
+ * (the computer, a link, anyone, a game waiting for a player, a code). Anyone
+ * joins a game that is waiting (`openLobbies`) before it makes one anyone can
+ * join (`public`, `autoStart`). The page follows it live through the
  * game's own events (`move`, `turn`, `ended`, `chat`): the client already
  * catches up after a gap or a quiet spell, so the kit never polls. The only
  * timer is the one that asks `canLetComputerPlay()` again when
@@ -14,6 +16,7 @@
 import { fireAndForget } from '../core/async.ts';
 import type { Cancel, Clock } from '../core/clock.ts';
 import type { HubLike, TurnGameLike } from '../core/hub-like.ts';
+import type { OpenTurnGame } from '@diffenderfer-games/hub';
 import type { JsonObject } from '../core/json.ts';
 import { t } from '../core/strings.ts';
 import { face } from '../avatar/index.ts';
@@ -24,10 +27,11 @@ import { turnsScreen, type TurnScreen } from '../turns/screen.ts';
 import { nextCheckIn } from '../turns/status.ts';
 import { button } from '../ui/controls.ts';
 import { h } from '../ui/dom.ts';
-import { confirm, openModal } from '../ui/modal.ts';
+import { confirm, openModal, type ModalHandle } from '../ui/modal.ts';
 import { shareLink } from '../ui/share.ts';
 import type { Screens } from '../ui/screens.ts';
 import { toast } from '../ui/toast.ts';
+import { joinCodeForm, lookingSheet, type JoinKinds, type JoinTarget } from './joining.ts';
 import type { TurnBoard, TurnsHooks } from './types.ts';
 
 /** What the session does for the flow. */
@@ -103,7 +107,7 @@ export class TurnsFlow {
     return true;
   }
 
-  /** A new game: with the computer (started at once), with a link, or with open seats for anyone. */
+  /** A new game: with the computer (started at once), with a link, or anyone (a game that is waiting, else a new one). */
   create(who: TurnsWho): Promise<void> {
     const base = this.o.hooks.create ?? {};
     return this.guard(async () => {
@@ -112,27 +116,122 @@ export class TurnsFlow {
         await game.start();
         return game;
       }
-      return this.o.hub.turns.create(who === 'link' ? { ...base, link: true } : { ...base, public: true });
+      if (who === 'anyone') return this.anyone();
+      return this.o.hub.turns.create({ ...base, link: true });
     });
   }
 
-  /** The title's Play online: who to play with. */
-  choose(): void {
-    openModal({
+  /**
+   * Anyone: take a seat in a game that is waiting (same mode; skip one taken meanwhile), else make
+   * one anyone can join that starts once every seat is taken. "Looking for a game…" shows meanwhile.
+   */
+  private async anyone(): Promise<TurnGameLike> {
+    const base = this.o.hooks.create ?? {};
+    const looking = lookingSheet();
+    try {
+      for (const lobby of await this.waiting()) {
+        if ((lobby.mode ?? null) !== (base.mode ?? null)) continue;
+        try {
+          return await this.o.hub.turns.join(lobby.id);
+        } catch {
+          // taken meanwhile (or the player's own): try the next
+        }
+      }
+      return await this.o.hub.turns.create({ ...base, public: true, autoStart: true });
+    } finally {
+      looking.close();
+    }
+  }
+
+  /** Games waiting for a player with a seat still open (none on a hub without `openLobbies`, or offline). */
+  private async waiting(): Promise<OpenTurnGame[]> {
+    try {
+      return (await this.o.hub.turns.openLobbies()).filter((l) => l.taken < l.seats);
+    } catch {
+      return [];
+    }
+  }
+
+  /**
+   * The title's Play online: who to play with (`turns-computer`, `turns-link`, `turns-anyone`), the games
+   * waiting for a player (`turns-open-<id>`, each with Join), More games online (the hub's Play online
+   * sheet, `turns-more`) and Join with a code (an invite link; a room's code too when the game has rooms).
+   */
+  choose(joinCode?: { kinds: JoinKinds; go(target: JoinTarget): void }): void {
+    let sheet: ModalHandle | null = null;
+    const pick = (go: () => void) => (): void => {
+      sheet?.close();
+      go();
+    };
+    const open = h('ul.kit-friends', { 'data-testid': 'turns-open' }, h('li.kit-tagline', {}, '…'));
+    const social = this.o.hub.social;
+    const body = h(
+      'div.kit-choose',
+      {},
+      button(
+        t('turnsWithComputer'),
+        pick(() => void this.create('computer')),
+        {
+          cls: 'kit-primary',
+          testid: 'turns-computer',
+        },
+      ),
+      button(
+        t('turnsWithLink'),
+        pick(() => void this.create('link')),
+        { testid: 'turns-link' },
+      ),
+      button(
+        t('turnsWithAnyone'),
+        pick(() => void this.create('anyone')),
+        { testid: 'turns-anyone' },
+      ),
+      h('h3.kit-choose-head', {}, t('turnsOpenTitle')),
+      open,
+      social.openPlayOnline === undefined
+        ? null
+        : button(
+            t('turnsMore'),
+            pick(() => social.openPlayOnline?.()),
+            { testid: 'turns-more' },
+          ),
+      joinCode === undefined ? null : joinCodeForm(joinCode.kinds, (target) => pick(() => joinCode.go(target))()),
+    );
+    sheet = openModal({
       title: t('turnsWho'),
       testid: 'turns-who',
-      buttons: [
-        {
-          label: t('turnsWithComputer'),
-          testid: 'turns-computer',
-          primary: true,
-          onClick: () => void this.create('computer'),
-        },
-        { label: t('turnsWithLink'), testid: 'turns-link', onClick: () => void this.create('link') },
-        { label: t('turnsWithAnyone'), testid: 'turns-anyone', onClick: () => void this.create('anyone') },
-        { label: t('back'), testid: 'turns-who-back' },
-      ],
+      body,
+      buttons: [{ label: t('back'), testid: 'turns-who-back' }],
     });
+    fireAndForget(
+      this.waiting().then((lobbies) => {
+        if (lobbies.length === 0) return void open.replaceChildren(h('li.kit-tagline', {}, t('turnsOpenNone')));
+        open.replaceChildren(
+          ...lobbies.slice(0, 5).map((l) =>
+            this.openRow(
+              l,
+              pick(() => void this.join(l.id)),
+            ),
+          ),
+        );
+      }),
+    );
+  }
+
+  /** A game waiting for a player: the host's face, "Sam is waiting", how many have joined, and Join. */
+  private openRow(l: OpenTurnGame, join: () => void): HTMLElement {
+    return h(
+      'li.kit-friend',
+      { 'data-testid': `turns-open-${l.id}` },
+      face(this.o.hub, { name: l.host, look: l.hostLook }, 32),
+      h(
+        'span.kit-open-text',
+        {},
+        h('span.kit-open-name', {}, t('turnsOpenWaiting', { name: l.host })),
+        h('span.kit-open-sub', {}, t('turnsOpenSeats', { taken: l.taken, seats: l.seats })),
+      ),
+      button(t('join'), join, { testid: `turns-open-join-${l.id}` }),
+    );
   }
 
   /** Stop following the game (the hub keeps it; Your games lists it). */

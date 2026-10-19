@@ -76,6 +76,7 @@ e2e(
     const b = await t.newPlayer(undefined, `/${SLUG}/`);
     await Promise.all([ready(a), ready(b)]);
     await a.tid('online');
+    await a.tid('online-friends');
     await waitScreen(a, 'lobby');
     const code = await until(() => a.page.evaluate(() => window.__game?.online?.room() ?? null), 'a room code');
     await b.page.evaluate((c) => window.__game?.online?.join(c), code);

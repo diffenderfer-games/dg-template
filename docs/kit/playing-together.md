@@ -17,9 +17,37 @@ must feel like. Visual rules are [polish.md](polish.md).
   the share sheet, then the clipboard with a toast, then a dialog with the
   link. The button says **Invite link** (or "Share the invite link"); the
   raw `http://` link is never printed on screen.
+- **Joining is as easy as hosting** (`kit/boot` joining.ts, below).
 - **Start with the people who are there.** Don't make players wait for a
   full table when the rules work with fewer. The number of seats follows the
   variant chosen (partners Pinochle is four).
+
+## Joining
+
+Pressing the online button must never just make the player a host when
+someone is already waiting. The kit's choosers do this for every game:
+
+- **Online games the hub runs** (Play online, `turns-who`): **Anyone**
+  (`turns-anyone`) takes a seat in a game that is waiting
+  (`hub.turns.openLobbies()`, same mode), skipping one taken meanwhile, and
+  only when none is left makes a game anyone can join that starts by itself
+  once every seat is taken (`public`, `autoStart`). "Looking for a game…"
+  (`looking`) shows meanwhile. The chooser also lists the games waiting for
+  a player ("Sam is waiting", "1 of 2 players", **Join**: `turns-open-<id>`,
+  `turns-open-join-<id>`) and **More games online** (`turns-more`, the hub's
+  Play online sheet, `hub.social.openPlayOnline()`; left out on a runtime
+  without it).
+- **Live rooms** (the `online` button, `online-who`): **Play now**
+  (`online-play-now`) joins a public room waiting in its lobby
+  (`hub.rooms.list()`, a free seat, not the player's own) or else hosts one
+  anyone can join (`public`, and `public` in presence). **With friends**
+  (`online-friends`) hosts a private room to invite them into, as before.
+- **Join with a code** in both choosers (`join-code`, `join-code-go`): a
+  room's 5-letter code (the lobby shows it, `room-code`), or an online game's
+  invite link pasted whole (or its key). Anything else says "That code
+  doesn't look right." and stays.
+- Invites, parties, invite links and the hub's Join and Watch still arrive as
+  launches ([online.md](online.md)).
 
 ## Computer players online
 

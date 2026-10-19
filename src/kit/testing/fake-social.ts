@@ -126,6 +126,9 @@ export class FakeSocial implements SocialLike {
     this.log.record('social.openInvite', options);
   }
 
+  /** The hub's Play online sheet (realtime feature 4); set to `undefined` to act as an older runtime. */
+  openPlayOnline: (() => void) | undefined = () => this.log.record('social.openPlayOnline');
+
   friends(): Promise<FriendEntry[]> {
     this.log.record('social.friends');
     return Promise.resolve(this.friendList.map((f) => ({ ...f })));

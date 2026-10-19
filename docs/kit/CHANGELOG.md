@@ -4,6 +4,33 @@ KIT doc. One entry per kit version; per module inside. A **major** version
 means a hook's signature changed: the entry says how to move a game over.
 `npm run kit:sync` prints the entries newer than a game's `kit.json`.
 
+## 1.15 (2026-10-19)
+
+Joining others is as easy as hosting: the online buttons find a game that is waiting first.
+
+- **boot 1.9:** Play online's **Anyone** joins a game waiting for a player (`hub.turns.openLobbies()`,
+  same mode, skipping one taken meanwhile) and only then makes one anyone can join (`public`,
+  `autoStart`), behind "Looking for a game…". The chooser lists the games waiting ("Sam is waiting",
+  seats, Join), **More games online** (`hub.social.openPlayOnline()`) and **Join with a code**. The
+  live-room button (`online`) now asks: **Play now** (join a public room waiting in its lobby,
+  `hub.rooms.list()`, else host a public one), **With friends** (a private room, as before) or a code.
+  New `joining.ts` (`parseJoinCode`, `joinCodeForm`, `lookingSheet`). Test ids `turns-who`,
+  `turns-computer`, `turns-link`, `turns-anyone`, `online` are unchanged; new: `turns-open-<id>`,
+  `turns-open-join-<id>`, `turns-more`, `online-who`, `online-play-now`, `online-friends`,
+  `join-code`, `join-code-go`, `looking`. A game test that pressed `online` to host now presses
+  `online-friends` after it (or calls `__game.online.host()`).
+- **online 1.4:** `OnlineMatch.create({ public })`; lobby presence carries `public`.
+- **core 1.10:** `TurnsLike.openLobbies`, `RoomsLike.list`, `SocialLike.openPlayOnline` (optional);
+  strings for the choosers. `KIT_VERSION` 1.15.
+- **testing 1.10:** `FakeTurns.lobbies` / `taken` / `lobbiesError`, `openTurnGame()`; `FakeRooms.open` /
+  `full` / `listError` and `list()`; `FakeSocial.openPlayOnline`.
+- **ui 1.5:** chooser, waiting-game row, code box and spinner styles.
+- **turns 1.8, docs 1.18:** turns.md, online.md, testing.md and playing-together.md § Joining.
+- **hub-events 1.8, hub-suites 1.11, scripts 1.19:** the new flows tested; suites and shots that host
+  a room press With friends.
+- Needs hub client **2.0.0-next.14** (already pinned): `openLobbies`, `rooms.list`, `openPlayOnline`.
+  On an older hub Anyone and Play now fall back to making a game.
+
 ## 1.14 (2026-10-19)
 
 - **scripts 1.18:** `freeBlock` / `portFree` probe every address on its own (`::`, `0.0.0.0`,

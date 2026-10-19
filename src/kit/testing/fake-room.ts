@@ -14,6 +14,7 @@ import type {
   RoomCreateOptions,
   RoomEvents,
   RoomInfo,
+  RoomListOptions,
   RoomSeat,
   RoomSelf,
   RoomSendOptions,
@@ -198,6 +199,11 @@ export class FakeRooms implements RoomsLike {
   joinError: string | null = null;
   /** What `reclaim` resolves (a held seat after a reload). */
   held: FakeRoom | null = null;
+  /** Public rooms waiting in their lobby (`list`); `listError` makes `list` reject (an older hub). */
+  open: RoomInfo[] = [];
+  listError = false;
+  /** Codes whose `join` fails with `room_full` (taken meanwhile). */
+  readonly full = new Set<string>();
   private readonly log: CallLog;
   private readonly host: { readonly slug: string; readonly userId: number; readonly offline: boolean };
 
@@ -213,6 +219,7 @@ export class FakeRooms implements RoomsLike {
       game: this.host.slug,
       hostId: this.host.userId,
       seats: [fakeSeat(this.host.userId)],
+      public: options.public === true,
       ...(options.mode === undefined ? {} : { mode: options.mode }),
     });
     this.current = new FakeRoom(this.log, { userId: this.host.userId, host: true, spectator: false }, info);
@@ -227,12 +234,15 @@ export class FakeRooms implements RoomsLike {
       this.joinError = null;
       return Promise.reject(fakeHubError(code, { status: 404 }));
     }
-    const hostId = this.host.userId === 1 ? 2 : 1;
+    if (this.full.has(codeOrId)) return Promise.reject(fakeHubError('room_full', { status: 409 }));
+    const listed = this.open.find((r) => r.code === codeOrId || r.id === codeOrId);
+    const hostId = listed?.hostId ?? (this.host.userId === 1 ? 2 : 1);
     const info = fakeRoomInfo({
-      code: codeOrId,
+      ...listed,
+      code: listed?.code ?? codeOrId,
       game: this.host.slug,
       hostId,
-      seats: [fakeSeat(hostId), fakeSeat(this.host.userId)],
+      seats: [...(listed?.seats ?? [fakeSeat(hostId)]), fakeSeat(this.host.userId)],
     });
     this.current = new FakeRoom(
       this.log,
@@ -240,6 +250,13 @@ export class FakeRooms implements RoomsLike {
       info,
     );
     return Promise.resolve(this.current);
+  }
+
+  list(options: RoomListOptions = {}): Promise<RoomInfo[]> {
+    this.log.record('rooms.list', options);
+    if (this.host.offline) return Promise.reject(fakeHubError('offline', { status: 0 }));
+    if (this.listError) return Promise.reject(fakeHubError('not_found', { status: 404 }));
+    return Promise.resolve(this.open.filter((r) => options.mode === undefined || r.mode === options.mode));
   }
 
   reclaim(): Promise<HubRoom | null> {

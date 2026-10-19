@@ -79,7 +79,7 @@ Every hook gets a `GameContext` (built once in `context.ts`):
 
 ## Screens
 
-`screens.ts` builds the title, loading, play (HUD row plus pause button), pause and result screens from `kit/ui`. The title shows Continue rows, Play, Daily, Race and Open races, Play online, Quick match, Play online, Settings and How to play, each only when the game supports it and with a `data-testid`. The game skins them with CSS variables ([ui.md](ui.md)) and decorates them through `screens` hooks. The title shows an offline note when `hub.isOffline`, and disables Play online and Play online after `hub:rt-failed`. An online game the hub runs has its own `turns` screen (`turns-flow.ts`, [turns.md](turns.md#the-screen)).
+`screens.ts` builds the title, loading, play (HUD row plus pause button), pause and result screens from `kit/ui`. The title shows Continue rows, Play, Daily, Race and Open races, Play online, Quick match, Play online, Settings and How to play, each only when the game supports it and with a `data-testid`. The game skins them with CSS variables ([ui.md](ui.md)) and decorates them through `screens` hooks. The title shows an offline note when `hub.isOffline`, and disables Play online and Play online after `hub:rt-failed`. An online game the hub runs has its own `turns` screen (`turns-flow.ts`, [turns.md](turns.md#the-screen)). Both online buttons open a chooser that joins a game that is waiting before making one, with Join with a code (`joining.ts`, [playing-together.md](playing-together.md#joining)).
 
 ## What the kit does for you
 

@@ -85,11 +85,12 @@ export class OnlineMatch {
     return this.room?.info.code ?? null;
   }
 
-  /** Host a new room (for an invite's party, a table, or the Play online button). */
-  async create(o: { mode?: string; partyId?: string; table?: TableLaunch } = {}): Promise<void> {
+  /** Host a new room (for an invite's party, a table, With friends, or Play now's `public` one anyone can join). */
+  async create(o: { mode?: string; partyId?: string; table?: TableLaunch; public?: boolean } = {}): Promise<void> {
     const room = await this.hub.rooms.create({
       ...(o.mode === undefined ? {} : { mode: o.mode }),
       ...(o.partyId === undefined ? {} : { partyId: o.partyId }),
+      ...(o.public === true ? { public: true } : {}),
     });
     this.table = o.table;
     this.attach(room);
@@ -200,7 +201,7 @@ export class OnlineMatch {
     this.hub.notify.setQuiet(false);
   }
 
-  /** Report presence for the room (lobby: joinable with open seats; playing: watchable). */
+  /** Report presence for the room (lobby: joinable with open seats, and `public` for a room anyone can join; playing: watchable). */
   reportPresence(): void {
     const room = this.room;
     if (!room) return;
@@ -211,6 +212,7 @@ export class OnlineMatch {
         kind: 'lobby',
         room: room.info.code,
         joinable: true,
+        public: room.info.public,
         openSeats: Math.max(0, room.info.maxPlayers - room.info.seats.length),
       });
   }

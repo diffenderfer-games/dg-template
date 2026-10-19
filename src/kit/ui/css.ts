@@ -96,6 +96,16 @@ html[data-controls="touch"] #ui[data-screen="play"] .kit-toasts { bottom: auto; 
 .kit-friend { display: flex; align-items: center; gap: 10px; min-height: 48px; }
 .kit-friend-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .kit-friend > .kit-btn { min-height: 40px; padding: 4px 14px; }
+/* The online choosers (kit/boot): who to play with, games waiting for a player, Join with a code. Text wraps to fit. */
+.kit-choose { display: flex; flex-direction: column; gap: 10px; }
+.kit-choose-head, .kit-join-label { margin: 8px 0 0; font-size: 14px; font-weight: 700; color: var(--kit-muted); }
+.kit-open-text { flex: 1; min-width: 0; display: flex; flex-direction: column; overflow-wrap: anywhere; }
+.kit-open-sub { font-size: 13px; color: var(--kit-muted); }
+.kit-join-code { display: flex; flex-direction: column; gap: 6px; }
+.kit-join-code .kit-btn { min-height: 44px; padding: 6px 16px; }
+.kit-looking { display: flex; justify-content: center; padding: 12px 0; }
+.kit-spinner { width: 36px; height: 36px; border-radius: 50%; border: 4px solid rgba(255,255,255,0.15);
+  border-top-color: var(--kit-accent); animation: kit-spin .8s linear infinite; }
 /* An online game the hub runs (kit/turns): status, seats, the game's board, buttons, chat; scrolls on a phone. */
 .kit-turns { overflow-y: auto; justify-content: flex-start; padding-top: max(var(--kit-top, 16px), 72px); padding-bottom: 24px; }
 .kit-turn-status { font-size: 18px; font-weight: 700; min-height: 1.4em; }
@@ -116,5 +126,6 @@ html[data-controls="touch"] #ui[data-screen="play"] .kit-toasts { bottom: auto; 
 @keyframes kit-banner { 0% { opacity: 0; transform: translate(-50%, -50%) scale(0.6); } 20% { opacity: 1; transform: translate(-50%, -50%) scale(1.06); }
   80% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, -60%) scale(1); } }
 @keyframes kit-fall { to { transform: translateY(110vh) rotate(720deg); } }
-@media (prefers-reduced-motion: reduce) { .kit-in, .kit-toast, .kit-banner { animation: none; } }
+@keyframes kit-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .kit-in, .kit-toast, .kit-banner { animation: none; } .kit-spinner { animation-duration: 2.4s; } }
 `;

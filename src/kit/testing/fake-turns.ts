@@ -14,6 +14,7 @@
  */
 import type {
   GamePayload,
+  OpenTurnGame,
   TurnChatLine,
   TurnCreateOptions,
   TurnGameEvents,
@@ -23,6 +24,7 @@ import type {
 import { Emitter } from '../core/emitter.ts';
 import type { TurnGameLike, TurnsLike } from '../core/hub-like.ts';
 import type { CallLog } from './calls.ts';
+import { fakeHubError } from './fake-room.ts';
 
 /** A turn game's live events, as an emitter's event map. */
 type Events = { [K in keyof TurnGameEvents<GamePayload, GamePayload>]: TurnGameEvents<GamePayload, GamePayload>[K] };
@@ -46,6 +48,22 @@ export function turnSummary(s: Partial<TurnSummary> = {}): TurnSummary {
     isPublic: false,
     isMuted: false,
     ...s,
+  };
+}
+
+/** A game waiting for a player, as `openLobbies` lists it: Sam's, one of two seats taken. */
+export function openTurnGame(o: Partial<OpenTurnGame> = {}): OpenTurnGame {
+  return {
+    id: 'open-1',
+    game: 'mygame',
+    gameTitle: 'My game',
+    mode: null,
+    taken: 1,
+    seats: 2,
+    host: 'Sam',
+    hostLook: '',
+    createdAt: 0,
+    ...o,
   };
 }
 
@@ -227,6 +245,11 @@ export class FakeTurns implements TurnsLike {
   /** The invite link key the page was opened with (`?hub_turn_link=`); tests set it. */
   link: string | null = null;
   readonly games = new Map<string, FakeTurnGame>();
+  /** Games waiting for a player (`openLobbies`); `lobbiesError` makes it reject (an older hub). */
+  lobbies: OpenTurnGame[] = [];
+  lobbiesError = false;
+  /** Ids whose `join` fails with `no_open_seat` (taken meanwhile). */
+  readonly taken = new Set<string>();
   private readonly log: CallLog;
 
   constructor(log: CallLog) {
@@ -254,7 +277,17 @@ export class FakeTurns implements TurnsLike {
 
   join(idOrLinkKey: string): Promise<FakeTurnGame> {
     this.log.record('turns.join', idOrLinkKey);
-    return Promise.resolve(this.game(idOrLinkKey));
+    if (this.taken.has(idOrLinkKey)) return Promise.reject(fakeHubError('no_open_seat', { status: 409 }));
+    const g = this.game(idOrLinkKey);
+    if (this.lobbies.some((l) => l.id === idOrLinkKey))
+      g.summary = turnSummary({ phase: 'lobby', toAct: [], isMyTurn: false, isMine: false, isPublic: true });
+    return Promise.resolve(g);
+  }
+
+  openLobbies(): Promise<OpenTurnGame[]> {
+    this.log.record('turns.openLobbies');
+    if (this.lobbiesError) return Promise.reject(fakeHubError('not_found', { status: 404 }));
+    return Promise.resolve(this.lobbies.map((l) => ({ ...l })));
   }
 
   open(id: string): Promise<FakeTurnGame> {

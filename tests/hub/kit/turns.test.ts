@@ -146,3 +146,29 @@ e2e(
   },
   { skip, timeout: 60_000 },
 );
+
+e2e(
+  'turns: Anyone joins the game that is waiting (listed in the chooser) instead of making a second one',
+  e,
+  async (t) => {
+    const ann = await t.newPlayer(undefined, `/${SLUG}/`);
+    const bob = await t.newPlayer(undefined, `/${SLUG}/`);
+    await Promise.all([ready(ann), ready(bob)]);
+    await ann.tid('turns-new');
+    await ann.tid('turns-anyone');
+    await waitScreen(ann, 'turns');
+    await see(ann, 'her game waits for a player', (s) => s.phase === 'lobby');
+
+    await bob.tid('turns-new');
+    await bob.find('[data-testid^="turns-open-"] .kit-open-name', `${ann.name} is waiting`);
+    await bob.tid('turns-anyone');
+    await waitScreen(bob, 'turns');
+    // One game for both, started by itself once every seat is taken (autoStart).
+    await see(ann, 'the game starts', (s) => s.phase === 'playing');
+    await see(bob, 'the game starts', (s) => s.phase === 'playing');
+    const names = (p: Player): Promise<string> =>
+      p.page.evaluate(() => document.querySelector('[data-testid="turn-seats"]')?.textContent ?? '');
+    assert.ok((await names(ann)).includes(bob.name), "Bob sits in Ann's game");
+  },
+  { skip, timeout: 180_000 },
+);

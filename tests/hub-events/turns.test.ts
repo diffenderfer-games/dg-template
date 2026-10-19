@@ -4,7 +4,7 @@
 import { expect, it } from 'vitest';
 import { MANIFEST } from '../../src/kit/core/manifest.ts';
 import type { TurnBoard } from '../../src/kit/boot/index.ts';
-import type { FakeTurnGame } from '../../src/kit/testing/index.ts';
+import { openTurnGame, type FakeTurnGame } from '../../src/kit/testing/index.ts';
 import { bootGame, describeIf, HAS, type Booted } from './_support/harness.ts';
 import { toyTurns } from './_support/toys.ts';
 
@@ -251,5 +251,91 @@ describeIf(HAS.turns, 'this game declares no game.turns')('chat follows who sits
     await g.settle();
     expect(has(g, 'chat-input')).toBe(true);
     expect(g.ui.querySelectorAll('[data-testid="chat"]').length).toBe(1);
+  });
+});
+
+describeIf(HAS.turns, 'this game declares no game.turns')('joining others: Anyone, games waiting, a code', () => {
+  /** Type into Join with a code and press Join. */
+  const typeCode = (g: Booted, text: string): void => {
+    const input = g.ui.querySelector<HTMLInputElement>('[data-testid="join-code"]');
+    if (!input) throw new Error('no join-code box');
+    input.value = text;
+    g.press('join-code-go');
+  };
+
+  it('Anyone takes a seat in a game that is waiting instead of making one', async () => {
+    const g = await boot();
+    g.fake.turns.lobbies = [openTurnGame({ id: 'open-1' })];
+    g.press('turns-new');
+    g.press('turns-anyone');
+    expect(has(g, 'looking')).toBe(true);
+    await g.settle();
+    expect(g.fake.log.last('turns.join')?.args[0]).toBe('open-1');
+    expect(g.fake.log.count('turns.create')).toBe(0);
+    expect(has(g, 'looking')).toBe(false);
+    expect(g.hook.screen()).toBe('turns');
+  });
+
+  it('Anyone skips a game taken meanwhile or full, then makes one anyone can join that starts by itself', async () => {
+    const g = await boot();
+    g.fake.turns.lobbies = [openTurnGame({ id: 'gone' }), openTurnGame({ id: 'full', taken: 2, seats: 2 })];
+    g.fake.turns.taken.add('gone');
+    g.press('turns-new');
+    g.press('turns-anyone');
+    await g.settle();
+    expect(g.fake.log.calls.filter((c) => c.name === 'turns.join').map((c) => c.args[0])).toEqual(['gone']);
+    expect(g.fake.log.last('turns.create')?.args[0]).toMatchObject({ public: true, autoStart: true });
+    expect(g.hook.screen()).toBe('turns');
+  });
+
+  it('Anyone on a hub without openLobbies makes a game anyone can join', async () => {
+    const g = await boot();
+    g.fake.turns.lobbiesError = true;
+    g.press('turns-new');
+    g.press('turns-anyone');
+    await g.settle();
+    expect(g.fake.log.last('turns.create')?.args[0]).toMatchObject({ public: true, autoStart: true });
+  });
+
+  it('the chooser lists the games waiting ("Sam is waiting", seats) with Join, and More games online', async () => {
+    const g = await boot();
+    g.fake.turns.lobbies = [openTurnGame({ id: 'open-7', host: 'Sam', taken: 1, seats: 3 })];
+    g.press('turns-new');
+    await g.settle();
+    const row = g.ui.querySelector('[data-testid="turns-open-open-7"]')?.textContent ?? '';
+    expect(row).toContain('Sam is waiting');
+    expect(row).toContain('1 of 3 players');
+    g.press('turns-open-join-open-7');
+    await g.settle();
+    expect(g.fake.log.last('turns.join')?.args[0]).toBe('open-7');
+    expect(has(g, 'turns-who')).toBe(false);
+    expect(g.hook.screen()).toBe('turns');
+
+    const h = await boot();
+    h.press('turns-new');
+    await h.settle();
+    expect(h.ui.querySelector('[data-testid="turns-open"]')?.textContent).toBe('Nobody is waiting right now.');
+    h.press('turns-more');
+    expect(h.fake.log.count('social.openPlayOnline')).toBe(1);
+  });
+
+  it('More games online is left out on a runtime without the Play online sheet', async () => {
+    const g = await boot({ before: (f) => (f.social.openPlayOnline = undefined) });
+    g.press('turns-new');
+    expect(has(g, 'turns-more')).toBe(false);
+  });
+
+  it('Join with a code: a pasted invite link takes the seat; nonsense says so and stays', async () => {
+    const g = await boot();
+    g.press('turns-new');
+    typeCode(g, 'what?');
+    await g.settle();
+    expect(g.fake.log.count('turns.join')).toBe(0);
+    expect(g.ui.querySelector('[data-testid="toast"]')?.textContent).toBe("That code doesn't look right.");
+    expect(has(g, 'turns-who')).toBe(true);
+    typeCode(g, 'https://example.test/mygame/?hub_turn_link=AbC_123-xyz789');
+    await g.settle();
+    expect(g.fake.log.last('turns.join')?.args[0]).toBe('AbC_123-xyz789');
+    expect(g.hook.screen()).toBe('turns');
   });
 });

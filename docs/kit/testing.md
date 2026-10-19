@@ -49,7 +49,8 @@ fake.auth(null); // hub:auth (log out)
 | `fakeClock(start?)`, `FakeClock` | Hand-driven clock |
 | `fakeStorage`, `throwingStorage` | Storage fakes |
 | `FakeOverlay`, `FakeInput`, `FakeDaily`, `FakeProgress`, `FakeResume`, `FakeRace`, `FakeRooms`, `FakeRoom`, `FakeMp`, `FakeSocial`, `FakePresence`, `FakeNotify`, `FakeMenu` | The parts of the fake |
-| `FakeSaved`, `FakeTurns`, `FakeTurnGame`, `FakeAvatar` | Your games, online games the hub runs, avatars (`savedEntry`, `turnSummary`, `fakeAvatarRef` build their shapes) |
+| `FakeSaved`, `FakeTurns`, `FakeTurnGame`, `FakeAvatar` | Your games, online games the hub runs, avatars (`savedEntry`, `turnSummary`, `openTurnGame`, `fakeAvatarRef` build their shapes) |
+| Joining others | `FakeTurns.lobbies` (`openLobbies`), `.taken` (a join that fails), `.lobbiesError`; `FakeRooms.open` (`list`), `.full`, `.listError`; `FakeSocial.openPlayOnline` (`undefined` acts as an older runtime) |
 | `fakePlayer`, `fakeSeat`, `fakeRoomInfo`, `fakeHubError`, `fakeAudioContext` | Builders |
 | `HUB_PHASES`, `HubPhase`, `shipped(...)`, `waitsOn(...)` | The hub-phase list |
 | `simulate`, `seedRange`, `formatReport`, `SimSpec`, `SimReport` | The sim (`kit/testing/sim.ts`, imported by path, not from the index) |

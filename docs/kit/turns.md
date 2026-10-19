@@ -100,10 +100,16 @@ The kit draws everything around the board (`kit/turns/screen.ts`, on the
 `turns` screen):
 
 - **The title's Play online** (`turns-new`, "With friends, a link or anyone"; first among the online
-  buttons) asks who to play with: the computer (`turns-computer`: made with
+  buttons) asks who to play with (`turns-who`): the computer (`turns-computer`: made with
   `bots` and started at once), a friend with a link (`turns-link`: the link
   shows while the game waits, with Copy the link), or anyone (`turns-anyone`:
-  open seats in the hub's Play online).
+  a seat in a game that is waiting, from `openLobbies()`, else a new game with
+  open seats, `public` and `autoStart`, behind "Looking for a game…", `looking`).
+  Below them: the games waiting for a player (`turns-open`, a row
+  `turns-open-<id>` with Join, `turns-open-join-<id>`), More games online
+  (`turns-more`, `hub.social.openPlayOnline()`) and Join with a code
+  (`join-code`, `join-code-go`: an invite link, or a room's code when the
+  game has live rooms). [playing-together.md](playing-together.md#joining).
 - **Opening**: Your games and the title's Continue rows (`hub.saved.opened`,
   `onOpen`, without a reload), an invite link (`?hub_turn_link=`, the seat is
   taken at boot), an invited seat (joined on open).
@@ -227,7 +233,9 @@ checkTurnRules(rules, { seats: [2, 3], games: 30, plant: (s, seat, marker) => hi
   `canLetComputerPlay` follows the client's; the rules entry's RNG.
 - `tests/game/turns.test.ts`: the example rules pass `checkTurnRules` at 2 and
   3 seats, refuse bad moves with a short code, and use kid-word labels.
-- `tests/hub-events/turns.test.ts`: the title's Play online, Your games,
+- `tests/hub-events/turns.test.ts`: the title's Play online, Anyone joining a
+  game that is waiting (or making one), the waiting games' rows, More games
+  online, Join with a code, Your games,
   an invite link, moves from the board, "is playing" / "Waiting for…", the
   hand-over at `handOverAt` with nothing fetched while waiting, chat with the
   game's phrases, the end, Rematch, Back; no button for a game without the hook.
@@ -242,6 +250,6 @@ checkTurnRules(rules, { seats: [2, 3], games: 30, plant: (s, seat, marker) => hi
 
 ## Hub API used
 
-`hub.turns` (`create`, `join`, `open`, `link`, and the `TurnGame` members in
+`hub.turns` (`create`, `join`, `open`, `link`, `openLobbies`, and the `TurnGame` members in
 `TurnGameLike`), `@diffenderfer-games/hub/turns-rules` and (tests)
 `@diffenderfer-games/hub/turns`.

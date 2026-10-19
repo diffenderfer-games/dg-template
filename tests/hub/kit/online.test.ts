@@ -31,6 +31,7 @@ const seats = (p: Player): Promise<number> => p.page.evaluate(() => window.__gam
 async function startMatch(a: Player, b: Player): Promise<string> {
   await Promise.all([ready(a), ready(b)]);
   await a.tid('online');
+  await a.tid('online-friends');
   await waitScreen(a, 'lobby');
   const code = await until(() => room(a), 'a room code');
   await b.page.evaluate((c) => window.__game?.online?.join(c), code);
@@ -69,6 +70,7 @@ e2e(
     await befriend(a, b);
     await ready(a);
     await a.tid('online');
+    await a.tid('online-friends');
     await waitScreen(a, 'lobby');
     await a.tid('lobby-invite');
     await inviteLive(a);
@@ -92,6 +94,7 @@ e2e(
     await befriend(a, b);
     await ready(a);
     await a.tid('online');
+    await a.tid('online-friends');
     await waitScreen(a, 'lobby');
     await a.tid('lobby-invite');
     await inviteLive(a);
@@ -140,6 +143,7 @@ e2e(
     await befriend(a, b);
     await ready(a);
     await a.tid('online');
+    await a.tid('online-friends');
     const code = await until(() => room(a), 'a room code');
     await b.openFriends();
     await b.find('.so-wcontent .so-friend .so-status', /In lobby/);
@@ -176,6 +180,7 @@ e2e(
     await befriend(a, b);
     await Promise.all([ready(a), ready(b)]);
     await a.tid('online');
+    await a.tid('online-friends');
     const code = await until(() => room(a), 'a room code');
     await b.page.evaluate((c) => window.__game?.online?.join(c), code);
     await waitScreen(a, 'lobby');
@@ -233,6 +238,7 @@ e2e(
       });
     }, a.id);
     await a.tid('online');
+    await a.tid('online-friends');
     await a.page.waitForFunction(
       () =>
         /switched off|connection|went wrong/.test(document.querySelector('[data-testid="toast"]')?.textContent ?? ''),
@@ -269,6 +275,7 @@ e2e(
     const a = await onGame(t);
     await ready(a);
     await a.tid('online');
+    await a.tid('online-friends');
     const code = await until(() => room(a), 'a room code');
     await a.tid('lobby-invite');
     await a.find(`${L}.so-dialog .so-dtitle`, 'Invite to play');
@@ -283,4 +290,44 @@ e2e(
     assert.equal(await until(() => room(c), 'c joined by link', 20_000), code);
   },
   { skip },
+);
+
+e2e(
+  'Play now: the second player joins the public room that is waiting instead of hosting one',
+  e,
+  async (t) => {
+    const a = await onGame(t);
+    const b = await onGame(t);
+    await Promise.all([ready(a), ready(b)]);
+    await a.tid('online');
+    await a.tid('online-play-now');
+    await waitScreen(a, 'lobby');
+    const code = await until(() => room(a), 'a room code');
+    await b.tid('online');
+    await b.tid('online-play-now');
+    await waitScreen(b, 'lobby');
+    assert.equal(await until(() => room(b), 'b in a room'), code);
+    await until(async () => (await seats(a)) === 2, 'two seats');
+  },
+  { skip, timeout: 120_000 },
+);
+
+e2e(
+  'Join with a code: the room code from the lobby takes a seat',
+  e,
+  async (t) => {
+    const a = await onGame(t);
+    const b = await onGame(t);
+    await Promise.all([ready(a), ready(b)]);
+    await a.tid('online');
+    await a.tid('online-friends');
+    await waitScreen(a, 'lobby');
+    const code = await until(() => room(a), 'a room code');
+    await b.tid('online');
+    await b.page.type('[data-testid="join-code"]', code.toLowerCase());
+    await b.tid('join-code-go');
+    await waitScreen(b, 'lobby');
+    assert.equal(await until(() => room(b), 'b in a room'), code);
+  },
+  { skip, timeout: 120_000 },
 );

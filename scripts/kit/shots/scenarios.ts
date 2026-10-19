@@ -237,6 +237,7 @@ export const KIT_SCENARIOS: Scenario[] = [
       await c.open();
       await c.open('', b.page);
       await c.press('online', b.page);
+      await c.press('online-friends', b.page);
       await c.screen('lobby', b.page);
       await c.press('lobby-invite', b.page);
       await c.hubClick(`${L}.so-dialog .so-row button`, 'Invite', b.page);
@@ -252,6 +253,7 @@ export const KIT_SCENARIOS: Scenario[] = [
       const b = await c.player();
       await c.open();
       await c.press('online');
+      await c.press('online-friends');
       await c.screen('lobby');
       await c.wait(SETTLE_MS);
       const code = await c.page.evaluate(() => document.querySelector('[data-testid="room-code"]')?.textContent ?? '');

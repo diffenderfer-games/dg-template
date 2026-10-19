@@ -34,6 +34,7 @@ import type { Screens } from '../ui/screens.ts';
 import { toast } from '../ui/toast.ts';
 import type { RunningAudio } from '../audio/kit-audio.ts';
 import { titleDemo } from '../avatar/index.ts';
+import type { JoinKinds, JoinTarget } from './joining.ts';
 import type { OnlineFlow } from './online-flow.ts';
 import type { TurnsFlow } from './turns-flow.ts';
 import type { ContinueRow, SavedHandle } from '../saved/index.ts';
@@ -144,12 +145,25 @@ export class Session<P extends JsonObject, R extends JsonObject> {
       daily: () => void this.d.hub.daily.startAndPlay(this.d.today()),
       race: () => this.parts?.race?.create(this.d.game.race?.params?.()),
       raceBrowse: () => this.parts?.race?.browse(),
-      online: () => void this.parts?.online?.hostRoom(),
-      turns: () => this.parts?.turns?.choose(),
+      online: () => this.parts?.online?.choose(this.joinCode()),
+      turns: () => this.parts?.turns?.choose(this.joinCode()),
       pause: () => this.pause(),
       resume: () => this.resume(),
       restart: () => this.restart(),
       quit: () => this.toTitle(),
+    };
+  }
+
+  /** Join with a code from an online chooser: a room's code (live rooms), or an online game's invite link. */
+  private joinCode(): { kinds: JoinKinds; go(target: JoinTarget): void } {
+    const online = this.parts?.online ?? null;
+    const turns = this.parts?.turns ?? null;
+    return {
+      kinds: { rooms: online !== null, turns: turns !== null },
+      go: (target) => {
+        if (target.kind === 'room') void online?.joinRoom(target.code, false);
+        else void turns?.join(target.key);
+      },
     };
   }
 

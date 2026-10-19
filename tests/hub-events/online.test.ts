@@ -1,7 +1,7 @@
 // Appendix B rows 34–55: launches, rooms, seats, chat, social, presence, the runtime.
 import { expect, it } from 'vitest';
 import { envelope } from '../../src/kit/online/wire.ts';
-import type { FakeRoom } from '../../src/kit/testing/index.ts';
+import { fakeRoomInfo, fakeSeat, type FakeRoom } from '../../src/kit/testing/index.ts';
 import { bootGame, describeIf, HAS, type Booted } from './_support/harness.ts';
 import { toyOnline, toyView } from './_support/toys.ts';
 
@@ -22,6 +22,7 @@ function roomOf(g: Booted): FakeRoom {
 /** Host a room from the title, seat a second player, start. */
 async function hostAndStart(g: Booted): Promise<FakeRoom> {
   g.press('online');
+  g.press('online-friends');
   await g.settle();
   const room = roomOf(g);
   room.addSeat(2);
@@ -210,6 +211,7 @@ describe('chat, social, presence, the runtime', () => {
   it('row 49: delivered text is shown as text; a softened line says so; a rejected one keeps the draft and the hint', async () => {
     const g = await boot();
     g.press('online');
+    g.press('online-friends');
     await g.settle();
     const room = roomOf(g);
     room.chatFrom(2, '<b>hi</b>');
@@ -241,6 +243,7 @@ describe('chat, social, presence, the runtime', () => {
     ] as const) {
       const g = await boot();
       g.press('online');
+      g.press('online-friends');
       await g.settle();
       g.fake.rooms.current?.setInfo({ chatMode: mode });
       const chat = g.ui.querySelector<HTMLElement>('[data-testid="chat"]');
@@ -293,5 +296,73 @@ describe('chat, social, presence, the runtime', () => {
     }
     await g.frames(2);
     expect(g.hook.screen()).toBe('play');
+  });
+});
+
+describe('joining others: Play now, With friends, a code', () => {
+  /** A public room waiting in its lobby, hosted by player `host`. */
+  const waiting = (code: string, host = 2, extra: Parameters<typeof fakeRoomInfo>[0] = {}) =>
+    fakeRoomInfo({ id: `room-${code}`, code, hostId: host, public: true, seats: [fakeSeat(host)], ...extra });
+
+  it('Play now joins a public room that is waiting, skipping full, started and own rooms', async () => {
+    const g = await boot();
+    g.fake.rooms.open = [
+      waiting('FULLA', 2, { maxPlayers: 1 }),
+      waiting('GAMEA', 3, { phase: 'playing' }),
+      waiting('MINEA', 1),
+      waiting('GONEA', 4),
+      waiting('QWERT', 5),
+    ];
+    g.fake.rooms.full.add('GONEA');
+    g.press('online');
+    g.press('online-play-now');
+    expect(g.ui.querySelector('[data-testid="looking"]')).not.toBeNull();
+    await g.settle();
+    expect(g.fake.log.calls.filter((c) => c.name === 'rooms.join').map((c) => c.args[0])).toEqual(['GONEA', 'QWERT']);
+    expect(g.fake.log.count('rooms.create')).toBe(0);
+    expect(g.hook.screen()).toBe('lobby');
+    expect(g.ui.querySelector('[data-testid="looking"]')).toBeNull();
+  });
+
+  it('Play now with nobody waiting (or a hub without rooms.list) hosts a public room, public in presence', async () => {
+    for (const listError of [false, true]) {
+      const g = await boot();
+      g.fake.rooms.listError = listError;
+      g.press('online');
+      g.press('online-play-now');
+      await g.settle();
+      expect(g.fake.log.last('rooms.create')?.args[0]).toMatchObject({ public: true });
+      expect(g.hook.screen()).toBe('lobby');
+      expect(g.fake.presence.current).toMatchObject({ kind: 'lobby', joinable: true, public: true });
+    }
+  });
+
+  it('With friends hosts a private room (Invite in the lobby), as before', async () => {
+    const g = await boot();
+    g.press('online');
+    g.press('online-friends');
+    await g.settle();
+    expect(g.fake.log.last('rooms.create')?.args[0]).not.toHaveProperty('public');
+    expect(g.fake.presence.current).toMatchObject({ kind: 'lobby', public: false });
+    g.press('lobby-invite');
+    expect(g.fake.log.count('social.openInvite')).toBe(1);
+  });
+
+  it('Join with a code joins that room (any case); Back closes the chooser', async () => {
+    const g = await boot();
+    g.press('online');
+    const input = g.ui.querySelector<HTMLInputElement>('[data-testid="join-code"]');
+    if (!input) throw new Error('no join-code box');
+    input.value = 'qwert';
+    g.press('join-code-go');
+    await g.settle();
+    expect(g.fake.log.last('rooms.join')?.args).toEqual(['QWERT', false]);
+    expect(g.hook.screen()).toBe('lobby');
+
+    const h = await boot();
+    h.press('online');
+    h.press('online-who-back');
+    expect(h.ui.querySelector('[data-testid="online-who"]')).toBeNull();
+    expect(h.hook.screen()).toBe('title');
   });
 });

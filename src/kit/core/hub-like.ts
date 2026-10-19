@@ -35,6 +35,7 @@ import type {
   HubSocialApi,
   HubTurns,
   InputSystem,
+  OpenTurnGame,
   TurnCreateOptions,
   TurnGame,
   UiStack,
@@ -123,12 +124,17 @@ export type TurnGameLike = Pick<
   kick?(seat: number): Promise<void>;
 };
 
-/** `hub.turns` (multiplayer.md §16.3). Its games are `TurnGameLike`, so a fake can stand in. */
+/**
+ * `hub.turns` (multiplayer.md §16.3). Its games are `TurnGameLike`, so a fake can stand in.
+ * `openLobbies` lists games waiting for a player (not the player's own; it rejects on a hub
+ * without it, so the kit falls back to making a game).
+ */
 export type TurnsLike = {
   readonly link: HubTurns['link'];
   create(options?: TurnCreateOptions): Promise<TurnGameLike>;
   join(idOrLinkKey: string): Promise<TurnGameLike>;
   open(id: string): Promise<TurnGameLike>;
+  openLobbies(): Promise<OpenTurnGame[]>;
 };
 
 /**
@@ -153,11 +159,18 @@ export type MpLike = Pick<
 > &
   PlannedMpExtras;
 
-/** Hub relay rooms. */
-export type RoomsLike = Pick<HubRoomsApi, 'create' | 'join' | 'reclaim'>;
+/** Hub relay rooms; `list` is the public rooms waiting in their lobby (Play now joins one). */
+export type RoomsLike = Pick<HubRoomsApi, 'create' | 'join' | 'reclaim' | 'list'>;
 
-/** Friends, player cards, chat modes. */
-export type SocialLike = Pick<HubSocialApi, 'openInvite' | 'openNotify' | 'openPlayer' | 'chatMode' | 'on' | 'friends'>;
+/**
+ * Friends, player cards, chat modes, and the hub's Play online sheet (`openPlayOnline`,
+ * realtime feature 4: a no-op on older runtimes, and optional here so a fake may leave it out).
+ */
+export type SocialLike = Pick<
+  HubSocialApi,
+  'openInvite' | 'openNotify' | 'openPlayer' | 'chatMode' | 'on' | 'friends'
+> &
+  Partial<Pick<HubSocialApi, 'openPlayOnline'>>;
 
 /** Everything the kit uses from the hub client. */
 export type HubLike = {

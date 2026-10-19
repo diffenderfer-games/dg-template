@@ -37,6 +37,8 @@ export const createOnline = (o: { input(): OnlineInput | null; render(v: OnlineV
 
 ## What the kit does for you
 
+- **The online button** (`online`) asks how to play (`online-who`): **Play now** (`online-play-now`) joins a public room waiting in its lobby (`hub.rooms.list()`) or hosts one anyone can join (`public: true`); **With friends** (`online-friends`) hosts a private room to invite friends into; **Join with a code** (`join-code`, `join-code-go`) joins a room by its code. [playing-together.md](playing-together.md#joining).
+
 - **Match (`OnlineMatch`).** The host calls `start`, simulates at the frame rate, applies guest input, and broadcasts a public view and, when it differs, a private view per seat at `tickHz` (default 10). Guests send `input()` at the tick rate and draw the latest view. Spectators send nothing. Messages are wrapped in a versioned envelope; other versions and unknown kinds are dropped.
 - **Lobby.** `lobbyScreen`: room code, every seat with a face, the player's name opening the player card, Invite, a bell, Start (host, enabled at `minPlayers`) and Leave.
 - **Chat.** `chatPanel` shows only text the hub delivered. A rejected message keeps the draft and shows the hub's hint (from `ContentRejectedError`, or the generic words if there is none); when the hint carries `retryAfterMs` a countdown follows ("Try again in 3 s."). A softened line says "Some words were changed." Modes follow `room.info.chatMode`: `on` is a text box plus quick chips, `quick` is chips only (non-friends), `off` hides the panel. Quick phrases: `gg`, `nice`, `hi`, thumbs up, then the game's own `game.multiplayer.quickChat` (sent as `g:<slug>:<i>`; kit/core/manifest.ts reads them from package.json). The same panel serves online games the hub runs through a `ChatPort` (`roomChat(room)`, kit/boot's `turnChat(game)`).
@@ -45,7 +47,7 @@ export const createOnline = (o: { input(): OnlineInput | null; render(v: OnlineV
 - **Host loss.** The host sends its whole state to the successor (longest-seated connected non-host) every 2 s. When the host role moves, the successor restores from the freshest backup and play goes on.
 - **Invites, Join, Watch.** `installLaunches` registers `onLaunch` and `onJoinInfo` at boot. `host` creates the room for the party (or shares the room you already host), `guest` joins the join info now or when it arrives, `join` and `watch` (also `via: link` or `rejoin`) join `launch.room`, watch as a spectator. Identical launches are ignored; a launch before mount waits; race launches are ignored (the hub joins races). `launch.table` options reach `start` as `m.table`. Invite links come from the hub's invite dialog or `inviteLink()`.
 - **`setBusy` and quiet.** When the match starts: `hub.mp.setBusy(true, { label: 'a match' })` (the hub asks "Leave your match?" before an invite takes the player away) and `hub.notify.setQuiet(true)`. Both are cleared when the match ends, the room closes or the player leaves. A live match never pauses.
-- **Presence.** Lobby: joinable, with the open seat count. Playing: watchable, not joinable.
+- **Presence.** Lobby: joinable, with the open seat count and whether anyone may join (`public`). Playing: watchable, not joinable.
 - **Ending and leaving.** `ended` is handled once, then the result screen says won or lost by `winners`. `closed` and `kicked` go to the title with words (`closedText`). Online play writes no normal board or Continue.
 - **Errors.** `errText` turns hub errors (offline, room not found, full, in progress, banned, suspended) into kid words; the player returns to a safe screen.
 
@@ -55,14 +57,14 @@ Installed with the other drivers by `kit/boot` (dev, localhost or `__HUB_TEST__`
 
 | Driver | What |
 |---|---|
-| `host()` | Create a room (like Play online). |
+| `host()` | Create a private room (like With friends). |
 | `join(code, spectate?)` | Join a room by code, optionally as a spectator. |
 | `start()` | The host starts the match. |
 | `room()` | The room code, or null. |
 | `seats()` | How many seats the room has. |
 | `view()` | The latest view this player draws. |
 
-Test ids: `online`, `quick-match`, `lobby-start`, `lobby-invite`, `lobby-bell`, `lobby-leave`, `player-<id>`, `room-code`, `seats`, `chat`, `chat-lines`, `chat-note`, `chat-input`, `chat-send`, `quick-<id>`.
+Test ids: `online`, `online-who`, `online-play-now`, `online-friends`, `online-who-back`, `join-code`, `join-code-go`, `looking`, `quick-match`, `lobby-start`, `lobby-invite`, `lobby-bell`, `lobby-leave`, `player-<id>`, `room-code`, `seats`, `chat`, `chat-lines`, `chat-note`, `chat-input`, `chat-send`, `quick-<id>`.
 
 ## Rules it enforces
 
@@ -114,7 +116,7 @@ Test ids: `online`, `quick-match`, `lobby-start`, `lobby-invite`, `lobby-bell`, 
 
 ## Hub API used:
 
-- `hub.rooms.create`, `join`, `reclaim`; the room: `info`, `me`, `send`, `start`, `end`, `leave`, `chat`, `quick`, and events `room`, `msg`, `seat`, `abandoned`, `ended`, `closed`, `kicked`, `chat`.
+- `hub.rooms.create`, `join`, `reclaim`, `list`; the room: `info`, `me`, `send`, `start`, `end`, `leave`, `chat`, `quick`, and events `room`, `msg`, `seat`, `abandoned`, `ended`, `closed`, `kicked`, `chat`.
 - `hub.mp.onLaunch`, `onJoinInfo`, `setJoinInfo`, `setBusy`, `inviteLink`, `setRoster` (planned).
 - `hub.notify.setQuiet`, `hub.presence.set`.
-- `hub.social.openInvite`, `openNotify`, `openPlayer`.
+- `hub.social.openInvite`, `openNotify`, `openPlayer`, `openPlayOnline` (turns' More games online).
