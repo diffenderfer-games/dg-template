@@ -155,7 +155,7 @@ target: the catalog shows an **Online** tag, and the invite picker lists the gam
 | `players` | `[2, 8]` | `[min, max]`, integers within 1..8. `max` caps party size and room seats. `min` is checked by `room.start()`. |
 | `transport` | `hub-rooms` (static) / `own-server` (process) | `own-server` on a static app is rejected (falls back to `hub-rooms` with a warning). `hub.rooms.create` only works for `hub-rooms` games. |
 | `invites` | `true` | `false` hides the game from the invite picker and `hub.mp.invite` fails with `not_supported`. |
-| `join` | `true` | Friends see **Join** when your presence says `joinable`. |
+| `join` | `true` | Friends see **Join** when your presence says `joinable` (a hub room in its lobby with a free seat says so by itself). |
 | `spectate` | `false` | Friends see **Watch** when your presence says `watchable`, and `rooms.join(code, {spectate:true})` is allowed (≤20 spectators). |
 | `quickMatch` | `false` | Reserved (quick match isn't built yet). |
 | `tournaments` | `false` | Tournaments can be played in this game: it plays a 1v1 match from a `host`/`guest` launch and reports the winner (§15). Race games don't need it. |
@@ -190,7 +190,7 @@ hub.presence.clear();                                                     // bac
 |---|---|
 | `kind` | `'menu' \| 'lobby' \| 'playing' \| 'watching' \| 'away'`. With several tabs, the most engaged wins: playing > watching > lobby > menu > away. A hidden or 5-minute-idle tab becomes `away` automatically. |
 | `detail?` | ≤40 chars of **your** text. It is filtered without softening; a rejected detail is dropped silently and logged. Keep it factual: no player-typed text, no violent words. |
-| `joinable?` / `watchable?` | Lights up **Join** / **Watch** for friends (needs `room`; `watchable` also needs `multiplayer.spectate`). |
+| `joinable?` / `watchable?` | Lights up **Join** / **Watch** for friends (needs `room`; `watchable` also needs `multiplayer.spectate`). While you sit in a **hub room** that is in its lobby with a free seat and your tab is on its game, the hub sets `joinable` (and `openSeats`, unless you gave one) for you, so friends always get Join; once it is full or started, your own report stands. |
 | `room?` | Opaque join info, ≤64 chars of `[A-Za-z0-9_:-]`, visible to friends. A Join/Watch launch hands it back to the joiner as `launch.room`. **Hub rooms fill this in automatically** for seated players. Own-server games set it to their room code. |
 | `public?` / `openSeats?` | A public lobby with open seats can trigger `lobby_open` notifications ([§5](#5-notifications--lobby_open)). |
 | `mode?` | A mode key, shown to friends. |
@@ -1453,7 +1453,8 @@ show as a colour swatch in the HUD and on the result card.
 ## 15. Tournaments
 
 Players start tournaments from **Play online** (the home page card, the menu's row,
-or `hub.social.openPlayOnline()`): a bracket of 1v1 matches in one game, or a random
+or `hub.social.openPlayOnline()`; `hub.social.openCreateTournament({ game })` opens the
+new-tournament dialog with a game picked, as the home card menu's Challenge does): a bracket of 1v1 matches in one game, or a random
 game from a set (once, or per match). Single elimination, or double/triple
 elimination with **redemption brackets** for players who have lost; seeded at random
 or by wins in those games; started at a set time or as soon as enough players sign
@@ -1785,9 +1786,20 @@ the hub holds the game.
   then **Play now** (or "Play now: <mode>") for the live room. `GET /games`
   carries `turns: { players, modes }` for it.
 - **Invites go to friends only**; a link lets anyone with it take a seat
-  (it stops working once the seats are full or the game starts); an **open-seat
-  game** (`public: true`) is listed in Play online for anyone. Nobody sits with
+  (it stops working once the seats are full or the game starts), and a lobby
+  with a link also takes **the friends of its players** without it (their
+  Friends window and player cards show **▶ Join**); an **open-seat game**
+  (`public: true`) is listed in Play online for anyone. Nobody sits with
   someone they blocked or who blocked them.
+- **Joining from the hub.** An invite is one tap wherever it shows: Play
+  online's Invites, the Friends window's Game invites, "Your games" (the
+  home page, the menu's This game) and the invite toast all have **Join**,
+  which takes the seat and then opens your page with `?hub_open=<id>&hub_kind=turns`;
+  **No thanks** gives the seat back. Your boot code above stays as it is:
+  `hub.turns.open(id)` finds the seat already taken (and taking a seat twice
+  is fine). An invite counts in Play online's badge. Play online's **Join
+  with code** takes your invite link's key (or the whole link) as well as a
+  live room's code, and opens your page with `?hub_turn_link=`.
 - **Chat** is moderated free text only when everyone seated is a friend of
   everyone (or the admin switch **Typing with non-friends** is on and nobody
   seated is a guest or parent-locked); otherwise quick-chat and emotes only.

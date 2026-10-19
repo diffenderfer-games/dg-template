@@ -1681,6 +1681,7 @@ repo.
   - `hub.presence.set({ kind, detail?, joinable?, watchable?, room?, public?, openSeats?, mode? })` / `.clear()`
   - `hub.social.openPlayer({userId}|{username})`, `openFriends()`, `openChat(id)`,
     `openInvite({userId?, mode?})`, `openSuggest()`, `openNotify({game?})`,
+    `openPlayOnline()`, `openCreateTournament({game?})` (the new-tournament dialog, that game picked; feature version 7),
     `friends()`, `counts()`, `chatMode(userIds?)`, `on(ev, cb)`
   - `hub.mp.onLaunch(cb)`, `onJoinInfo(cb)`, `invite(userId, {mode?})`,
     `setBusy(busy, {label?})`, `ticket()`, `setJoinInfo(partyId, info)`, `party()`,
@@ -2058,7 +2059,7 @@ of the menu, for about 13 s; a still border for less motion) opens `/world` (`/w
 goes back to your last world, the Hall the first time). Guests can come in. dg-host
 serves the page; `/_hub/adventure.js` loads `/_hub/world.js` and `/_hub/avatar.js`.
 The hub menu works inside (the world's input pauses under it, `hub.overlay.autoPause`),
-and **To All Games** (in the world's top bar, and the menu's top card there; once called
+and **All Games** (in the world's top bar, and the menu's top card there; once called
 Library Mode) goes back to the games. The top bar shows the place's name ("The Hall"). In it:
 
 - **Walking and running:** you walk 6.3 tiles/s; hold **Shift** to run half as fast again
@@ -2425,6 +2426,7 @@ fields go through the filter and answer **422** `content_rejected` on refusal.
 
 ### The world ([The world](#the-world-gameworld))
 - `GET  /world/maps/:key?rev=` → `{key, rev, map}` (a `dg-world@1` file; `key` is `lounge`, `park`, `station`, `camp` or `game.<slug>`; `immutable` with the current `rev`; 404 `world_not_found`)
+- `GET  /world/games/:slug/places` → `{places: [{world, title, via, people, friends}]}`: where a game is played (each hub world with a spot for it, then the world with the door into its own room, `via: 'door'`), with everyone there right now and the viewer's friends who show them (counts only; `[]` for a game that is nowhere). The home card menu's Adventure goes to the one with the most friends, then people (`/world/<key>?play=<slug>`, which walks up to the game)
 - Socket ops: `world.enter {world, spawn?}` → place · `world.leave` · `world.move {steps[≤12], facing?}` → `{at, facing, accepted}` · `world.sit {object, index}` · `world.stand` · `world.teleport {portal}` → place · `world.say {quick}` (quick-chat only)
 - Socket events: `world.state {instance, join, update, leave}` · `world.say {instance, userId, quick, text}`; presence carries `world`
 - `GET  /games` lists `embed {w, h, aspect?, minScale, frame?: {url, stillUrl, viewBox, screen}}` for games that play over the world; dg-host serves the sanitised frame at `/_frames/<slug>.svg?v=<hash>[&still=1]` (*public*, `image/svg+xml`, locked-down CSP)
@@ -2459,9 +2461,10 @@ fields go through the filter and answer **422** `content_rejected` on refusal.
 - `POST /mp/links` `{game}` → `{token, url, game, mode?, room, createdBy, expiresAt}` (claimed; an invite link to the room I'm in, reused while it lives; 409 `not_in_room`, 429 `too_many_links`) · `GET /mp/links?game=` → `{links}` (mine, plus links to rooms I host) · `DELETE /mp/links/:token` → `{ok}` (creator or room host)
 - `POST /mp/links/:token/open` → `{launchToken, url}` (a `join` launch while a seat is free, else `watch`, with `via:'link'`; 404 `link_invalid` / `link_room_gone`, 409 `room_full`)
 - `POST /mp/ticket` `{slug}` → `{ticket, expiresAt}` (60 s identity ticket for that game's own server)
+- `POST /join-code` `{code}` → `{kind:'room'|'turns', game, gameTitle, watch, url}`: Play online's **Join with code**. `code` is what the player typed: a live room's 5-character code (any case), an invite link key (a room's or an online game's), or a whole invite link pasted in (the contract's `readJoinCode` reads it). A room code becomes a `join` launch into the room (a `watch` launch when it's full and the game allows watching), exactly as a room invite link; an online game's key becomes its page, `/<slug>/?hub_turn_link=<key>`, which takes the seat. 400 `bad_code`, 404 `no_game` ("No game with that code"; also for a room that ended or holds someone across a block), 409 `room_full` / `in_progress`, 429 (as many lookups a minute as invites).
 
 ### Tournaments (batch-2026-10 R15; game guide: `docs/multiplayer.md` §15)
-- `GET  /play-online` → `{counts:{now, invites, mine, upcoming}, lobbies, gameInvites, tournamentInvites, mine, upcoming}` (anyone; signed out: open tournaments only). The home page's **Play online** card and the menu's row show `counts`; the window lists the rest. `lobbies` are public lobbies and races waiting for a player (claimed hosts who show their presence, nobody across a block); join one with `POST /mp/join {userId, fromLobbyOpen:true}`.
+- `GET  /play-online` → `{counts:{now, invites, turnInvites, mine, upcoming, yourTurn}, lobbies, gameInvites, tournamentInvites, mine, upcoming, turns, openTurns, turnGames}` (anyone; signed out: open tournaments only). The home page's **Play online** card and the menu's row show `counts`; the window lists the rest. `invites` counts invites to online games too (`turnInvites` of them: lobby seats kept for the viewer, which are in `turns`); the window lists them under **Invites** with **Join** and **No thanks** instead of under "Your online games", and the drawer's Friends & chat pill adds them. `lobbies` are public lobbies and races waiting for a player (claimed hosts who show their presence, nobody across a block); join one with `POST /mp/join {userId, fromLobbyOpen:true}`.
 - `GET  /tournaments?game=` → `{tournaments}` (open ones plus mine, invited or followed; ended ones for 3 days) · `GET /tournaments/:id?key=` → the detail with `players` and the bracket's `matches` (404 `tournament_not_found` for a closed one not shared with me; `key` is a shared link's invite key)
 - `POST /tournaments` (*claimed*) `{games:[slug] (≤8), title? (≤48, content filter), pick?:'fixed'|'random-once'|'random-each', lives?:1|2|3, seeding?:'random'|'rank', visibility?:'open'|'closed', start?:{kind:'filled'}|{kind:'scheduled', at}, minPlayers?, maxPlayers? (2–64), readyMinutes? (1–60, default 10), invite?:[userId]}` → detail. The defaults are the quick public 1v1. 400 `not_supported` (a game without tournaments), 422 (title), 429 (5 a day, 3 open at once).
 - `POST /tournaments/:id/join` `{key?}` (guests too) → detail (starts a `filled` one with enough players; 409 `tournament_closed` / `tournament_full`, 403 `cannot_join` across a block) · `POST /tournaments/:id/leave` → detail (before the start the place is freed; after it the player is out; from an invited player who hasn't signed up it is "No thanks": the invite stops showing for them, nobody is told; 409 `not_entered` otherwise)
@@ -2483,6 +2486,8 @@ chat) is on the WebSocket **`/_ws`**: JSON envelopes `{t:'op', id, op, d}` →
 - `POST /turns/:id/moves` `{seq,move}` → `{game,events}` (403 `not_your_turn`, 409 `stale`, 422 `illegal` + `rule`, 500 `rules_error`, 503 `rules_busy`, 413 over 2 KB; 30/min)
 - `GET  /turns/:id/history?since=<seq>` → `{moves:[{seq,seat,events,at}]}` · `POST /turns/:id/leave` · `/nudge` · `/rematch` · `/auto` (an overdue turn, or an absent player's seat for the rest of the game) · `/chat` `{text?|quick?}` · `PUT /turns/:id/notify` `{mode}`
 - `GET  /turns[?game=]` → `{games:[SavedGame]}` · `GET /open-turns[?game=]` → `{games:[OpenTurnGame]}`
+- `GET  /joinable-turns` → `{games:[JoinableTurnGame]}` (`{id, game, gameTitle, mode, taken, seats, host, friendIds, invited, createdAt}`): lobbies the caller may join through people they know, invites first (`invited`), then lobbies a friend sits in with a free seat open to the caller (open seats, or an invite link: **a link lobby takes the friends of its players without the key**). Never across a block, never a suspended host's; a friend who hides their presence never makes one show. The Friends window (its Game invites, ▶ Join on friend cards and offline rows) and player cards use it.
+- `POST /turns/:id/join` when the caller already sat down answers the game as it is, so the hub's **Join** (Play online, Your games, the Friends window, player cards, the invite toast) can take the seat and then open the page, whose own join finds it taken. `POST /turns/:id/leave` from an invited player is **No thanks**: the seat opens again (the creator leaving their own lobby cancels it, as before).
 - Socket events `turn` (per seat: `{id,game,seq,seat,events,view,summary,outcome}`) and `turn.chat` `{id,line}`.
 
 ### Internal (game servers only)
