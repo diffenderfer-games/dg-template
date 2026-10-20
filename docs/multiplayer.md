@@ -74,6 +74,7 @@ loaded, and when it never loads (offline, `hub: false`, local `vite dev`). See
 14. [Races (single-player games go multiplayer)](#14-races-single-player-games-go-multiplayer)
 15. [Tournaments](#15-tournaments)
 16. [Turn games (online games played over days)](#16-turn-games-online-games-played-over-days)
+17. [Live games (realtime play the hub runs)](#17-live-games-realtime-play-the-hub-runs)
 
 ---
 
@@ -116,6 +117,7 @@ game**.
 | Real-time but forgiving (co-op, casual races) with ≤8 players | **`hub-rooms`** | `static` | Fine if a cheating host doesn't matter. Results are untrusted. |
 | Real-time physics, competitive, ranked, or anything a cheater would ruin | **`own-server`** | `process` | Your server is the authority. Trusted results feed hub stats and server-only boards. |
 | Needs lockstep, tick-rate netcode, >8 players, or persistent worlds | **`own-server`** | `process` | Hub rooms cap at 8 seats and 30 msgs/s per seat. |
+| Real-time and fair (racing, action) with up to 8 players, no server of your own | **`hub-rooms`** + **`game.live`** | `static` | The hub's live server runs your sim; results are trusted ([§17](#17-live-games-realtime-play-the-hub-runs)). |
 
 - **Hub rooms are not cheat-proof.** The host is a player's browser. Never post
   competitive scores from a hub-room match to a board that matters.
@@ -1899,3 +1901,74 @@ usernames. Your game needs no code for any of this.
   `test/api/turns.test.mjs`; moves out of turn and tournament matches have
   `apps-test/jumpdemo` with `test/e2e/turn-out-of-turn.test.mjs` and
   `test/api/turns-out-of-turn.test.mjs`.
+
+---
+
+## 17. Live games (realtime play the hub runs)
+
+For real-time games (racing first): the hub's live server runs **your sim**
+and owns the truth, and every page runs the same sim to predict, so a
+player's own car moves the moment they steer. The design is the hub's
+`docs/plans/live.md`; the sim module, its fields and `dmath` are in
+dg-template's `docs/kit/live.md`. Players never see "live game", "sim",
+"tick" or "server": the button is **Play now**.
+
+### 17.1 Declare it
+
+A live game is a hub-rooms game (its lobby) with a `game.live` block:
+
+```jsonc
+"game": {
+  "type": "static",
+  "multiplayer": { "lobby": "?mp=lobby", "players": [2, 8] },        // the lobby: a hub room
+  "live": { "sim": "dist-live/sim.mjs", "players": [1, 8], "bots": true }
+}
+```
+
+`game.live` without hub rooms is ignored with a warning.
+
+### 17.2 The flow
+
+Everything before the start is a hub room ([§8](#8-hub-rooms-no-server)):
+invites, Join, Watch, chat, presence, reconnects.
+
+```ts
+import { live } from '@diffenderfer-games/hub/live';
+import sim from './live/sim';
+
+// In the lobby: each player's own choices (a car, a colour), never text.
+await room.seat({ ship: 'manta', team: 2 });
+// The host starts it; the sim's setup gets the options (≤2 KB of JSON, never text).
+await room.start({ options: { track: 1234, laps: 3 } });
+
+// Everyone, once the room is playing (and the page is ready to draw it):
+const match = await live.join(room, { sim });   // a live ticket from the hub, then the connection
+match.onMessage((m) => { if (m.t === 'end') showPlaces(m.places); });   // seats, winner first
+room.on('ended', ({ results }) => showResult(results));                   // { places: userIds, winnerId }
+function frame() {
+  match.input({ steer, throttle });                  // any time; sampled every tick
+  for (const car of match.view().of('car')) draw(car, car.isMine);
+  requestAnimationFrame(frame);
+}
+```
+
+- **Starting places the match.** `room.start` asks a live server to run it with
+  the room's seats (in seat order: seat `i` is `room.info.seats[i]`), each
+  seat's `room.seat` data (the sim's `ctx.seatData[i]`) and the options
+  (`ctx.options`). If no live server takes it, `start` rejects with
+  `live_unavailable` and the room stays in its lobby.
+- **The match starts** once every seat is connected, or 20 s after the start;
+  a seat whose player isn't there yet is driven by your `autoInput` (with
+  `bots`) until they arrive. Ticks count from the start, so take your time
+  building what the options need before `live.join`, but not too long.
+- **Drops and reloads:** call `live.join(room, { sim })` again (after the room
+  is reclaimed): the ticket gives the seat back, and the page catches up from
+  a full snapshot. Meanwhile `autoInput` drives the seat.
+- **The end:** when your sim's `outcome` returns places, the live server tells
+  the hub, which records **trusted** results (`online_games`, `online_wins`
+  for the winner, recent players) and ends the room: every page gets the
+  room's `ended` event with `{ places, winnerId }` (user ids). `room.end` is
+  refused for a live room.
+- **Transports:** WebTransport (UDP) first, a WebSocket (`/_live`) when it is
+  blocked; `match.transport` says which. Locally (`npm run local`, the test
+  kit) it is the same, with a self-signed certificate the ticket vouches for.

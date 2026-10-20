@@ -21,11 +21,14 @@ import {
 /** Skipped for a game without online play in hub rooms. */
 const skip = unlessDeclared('multiplayer', 'online play in hub rooms');
 
-const e = env({ apps: { mpdemo: await mpdemoDir() }, env: { HUB_LIMITS_JSON: JSON.stringify({ roomGraceMs: 4000 }) } });
+const e = env({ apps: { mpdemo: await mpdemoDir() }, env: { HUB_LIMITS_JSON: JSON.stringify({ roomGraceMs: 8000 }) } });
 
 /** Read the online test drivers. */
 const room = (p: Player): Promise<string | null> => p.page.evaluate(() => window.__game?.online?.room() ?? null);
 const seats = (p: Player): Promise<number> => p.page.evaluate(() => window.__game?.online?.seats() ?? 0);
+
+/** How long a match may take to be on screen after the start: a live game builds its world first (docs/kit/live.md). */
+const MATCH_LOAD_MS = 60_000;
 
 /** A hosts a room; B joins it by code; A starts. Returns the code. */
 async function startMatch(a: Player, b: Player): Promise<string> {
@@ -38,7 +41,7 @@ async function startMatch(a: Player, b: Player): Promise<string> {
   await waitScreen(b, 'lobby');
   await until(async () => (await seats(a)) === 2, 'two seats');
   await a.tid('lobby-start');
-  await Promise.all([waitScreen(a, 'play'), waitScreen(b, 'play')]);
+  await Promise.all([waitScreen(a, 'play', MATCH_LOAD_MS), waitScreen(b, 'play', MATCH_LOAD_MS)]);
   return code;
 }
 
@@ -219,7 +222,7 @@ e2e(
     await b.page.reload();
     await ready(b);
     assert.equal(await until(() => room(b), 'b back in the room', 20_000), code);
-    await waitScreen(b, 'play', 20_000);
+    await waitScreen(b, 'play', MATCH_LOAD_MS);
   },
   { skip },
 );
@@ -246,7 +249,7 @@ e2e(
     );
     await waitScreen(a, 'title');
     await game.newGame(a);
-    await waitScreen(a, 'play');
+    await waitScreen(a, 'play', MATCH_LOAD_MS);
   },
   { skip },
 );
@@ -259,7 +262,9 @@ e2e(
     const b = await onGame(t);
     const code = await startMatch(a, b);
     await b.page.close();
-    await settle(4000); // the seat goes away; the host's computer takes it (the game's `computer` hook plays it)
+    // The seat goes away (the computer drives it meanwhile: the room's `computer` hook, or a live game's
+    // `autoInput`); the player comes back inside the grace (8 s here), which a seat held that long allows.
+    await settle(3000);
     assert.equal(await game.screen(a), 'play', 'the match goes on');
     const tab = await b.newTab(`/${SLUG}/`);
     await ready(tab);

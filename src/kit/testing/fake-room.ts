@@ -18,6 +18,7 @@ import type {
   RoomSeat,
   RoomSelf,
   RoomSendOptions,
+  RoomStartOptions,
   RoomState,
   RoomStateOptions,
 } from '@diffenderfer-games/hub';
@@ -81,8 +82,9 @@ export class FakeRoom implements HubRoom {
     return Promise.resolve();
   }
 
-  start(): Promise<void> {
-    this.log.record('room.start');
+  start(options?: RoomStartOptions): Promise<void> {
+    if (options?.options === undefined) this.log.record('room.start');
+    else this.log.record('room.start', options.options);
     this.setInfo({ phase: 'playing' });
     return Promise.resolve();
   }

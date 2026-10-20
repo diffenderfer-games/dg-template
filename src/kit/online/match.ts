@@ -108,9 +108,9 @@ export class OnlineMatch {
     this.attach(await this.hub.rooms.join(code, { spectate }));
   }
 
-  /** Take back a seat held after a reload (the kit's boot calls it with a timeout). */
-  async reclaim(): Promise<boolean> {
-    const room = await this.hub.rooms.reclaim();
+  /** Take back a seat held after a reload (the kit's boot calls it with a timeout; `early`: the hub already asked, as the page started). */
+  async reclaim(early?: Promise<HubRoom | null>): Promise<boolean> {
+    const room = await (early ?? this.hub.rooms.reclaim());
     if (room === null) return false;
     this.attach(room);
     return true;

@@ -14,6 +14,7 @@
  * 4. otherwise the title (its Continue row appears once the lookup answers).
  * The profile gets 2.5 s to load first (8 s when resuming; solitaire's numbers).
  */
+import type { HubRoom } from '@diffenderfer-games/hub';
 import { withTimeout } from '../core/async.ts';
 import type { Clock } from '../core/clock.ts';
 import type { JsonObject } from '../core/json.ts';
@@ -36,6 +37,8 @@ export async function routeOnce<P extends JsonObject, R extends JsonObject>(o: {
   search: string;
   launches: LaunchHandle | null;
   online: OnlineFlow | null;
+  /** The seat held after a reload, asked for as the page started (a short grace mustn't run out while the game mounts). */
+  held?: Promise<HubRoom | null> | null;
   saved: SavedHandle;
   turns?: TurnsFlow | null;
 }): Promise<void> {
@@ -45,7 +48,7 @@ export async function routeOnce<P extends JsonObject, R extends JsonObject>(o: {
   if (o.launches?.ready() === true) return; // 1. a launch that waited for mount
   if (o.online !== null) {
     // A seat held after a reload (the hub also sends a rejoin launch; whichever comes first wins).
-    const back = await withTimeout(o.clock, o.online.match.reclaim(), 6000, false);
+    const back = await withTimeout(o.clock, o.online.match.reclaim(o.held ?? undefined), 6000, false);
     if (back) return;
     if (new URLSearchParams(o.search).get('mp') === 'lobby') {
       // The lobby URL: wait briefly for the launch that brought the player, else host a room.

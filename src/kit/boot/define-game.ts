@@ -133,13 +133,15 @@ export function defineGame<P extends JsonObject, R extends JsonObject>(
     { clock },
   );
   // 2. online: launches and join info registered now (the hub's 8 s rule); they wait for mount
+  const roomGame =
+    game.live !== undefined ? { live: game.live } : game.online !== undefined ? { online: game.online } : null;
   const online =
-    game.online === undefined
+    roomGame === null
       ? null
-      : new OnlineFlow(hub, game.online, clock, screens, {
+      : new OnlineFlow(hub, roomGame, clock, screens, {
           enter: () => session.enterOnline(),
           showPlay: () => session.showPlay(),
-          showResult: (won) => void session.showResult(won, false),
+          showResult: (won) => session.showResult(won, false),
           toTitle: () => session.toTitle(),
           get screen() {
             return session.screen;
@@ -269,9 +271,11 @@ export function defineGame<P extends JsonObject, R extends JsonObject>(
 
   const booted = (async () => {
     session.showLoading();
+    // A seat held after a reload is asked for now, while the game mounts: the hub's grace keeps running.
+    const held = online === null ? null : hub.rooms.reclaim().catch(() => null);
     await game.mount(ctx);
     session.loop.start();
-    await routeOnce({ session, daily, profile, resume, clock, search, launches, online, saved, turns });
+    await routeOnce({ session, daily, profile, resume, clock, search, launches, online, saved, turns, held });
     installGameHook({ game, ctx, session, slug, drivers: o.drivers, audio, online, turns });
     document.body.dataset.ready = '1';
   })();

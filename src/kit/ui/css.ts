@@ -89,6 +89,8 @@ html[data-controls="touch"] #ui[data-screen="play"] .kit-toasts { bottom: auto; 
 .kit-seat .kit-tagline { margin: 0 0 0 auto; font-size: 13px; }
 .kit-seat[data-due="true"] { box-shadow: inset 0 0 0 2px var(--kit-accent); }
 .kit-seat > .kit-seat-remove { margin-left: auto; min-height: 40px; padding: 4px 12px; font-size: 14px; }
+.kit-progress { width: min(260px, 70vw); height: 6px; border-radius: 3px; overflow: hidden; background: rgba(255, 255, 255, 0.12); }
+.kit-progress > i { display: block; height: 100%; width: 0; background: var(--kit-accent); transition: width 0.25s ease-out; }
 .kit-share { display: flex; flex-direction: column; gap: 8px; }
 .kit-share-field { width: 100%; box-sizing: border-box; min-height: 44px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.2);
   background: rgba(0,0,0,0.3); color: var(--kit-fg); padding: 0 10px; font: 15px var(--kit-font); }

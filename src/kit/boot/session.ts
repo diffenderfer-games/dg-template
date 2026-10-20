@@ -215,7 +215,7 @@ export class Session<P extends JsonObject, R extends JsonObject> {
           daily: game.daily !== undefined,
           dailyDone: this.dailyDone,
           race: game.race !== undefined,
-          online: game.online !== undefined,
+          online: game.online !== undefined || game.live !== undefined,
           turns: this.parts?.turns !== null && this.parts?.turns !== undefined,
           onlineDown: this.onlineDown,
         },
@@ -232,8 +232,8 @@ export class Session<P extends JsonObject, R extends JsonObject> {
     this.syncChrome();
   }
 
-  /** The play screen (HUD for single-player games). */
-  showPlay(): void {
+  /** The play screen (HUD for single-player games); returns the HUD's element (a live game mounts its own there). */
+  showPlay(): HTMLElement {
     const { el, hud } = playScreen(this.actions());
     this.d.screens.show('play', () => el);
     this.hud = hud;
@@ -241,6 +241,7 @@ export class Session<P extends JsonObject, R extends JsonObject> {
     this.syncChrome();
     // A key still held as play shows (the Esc that resumed) must come up before it pauses.
     this.pauseHeld = this.d.hub.input.value('pause') >= 0.5;
+    return hud;
   }
 
   /** Pause screen (the pause module calls it). */
@@ -412,14 +413,20 @@ export class Session<P extends JsonObject, R extends JsonObject> {
    * pausing again while it asks (Esc, Start) answers Stay.
    */
   pause(): void {
-    if (this.mode === 'race' && this.parts?.race?.live) {
+    const racing = this.mode === 'race' && this.parts?.race?.live === true;
+    // A match with others (a room's) goes on too: no pausing it, only leaving.
+    const inMatch = this.mode === 'online' && this.parts?.online?.match.playing === true;
+    if (racing || inMatch) {
       if (this.askingLeave) {
         this.askingLeave = false;
         closeTopModal();
         return;
       }
       this.askingLeave = true;
-      void confirm({ title: t('leaveRace'), body: t('leaveRaceBody'), yes: t('leave'), no: t('stay') }).then((yes) => {
+      const words = racing
+        ? { title: t('leaveRace'), body: t('leaveRaceBody') }
+        : { title: t('leaveMatch'), body: t('leaveMatchBody') };
+      void confirm({ ...words, yes: t('leave'), no: t('stay') }).then((yes) => {
         this.askingLeave = false;
         if (yes) this.toTitle();
       });
@@ -436,6 +443,10 @@ export class Session<P extends JsonObject, R extends JsonObject> {
 
   private simulate(dt: number): void {
     if (this.mode === 'online') {
+      // The pause input asks to leave the match (it never pauses: the others play on).
+      const held = this.d.hub.input.value('pause') >= 0.5;
+      if (held && !this.pauseHeld) this.pause();
+      this.pauseHeld = held;
       this.parts?.online?.frame(dt);
       return;
     }

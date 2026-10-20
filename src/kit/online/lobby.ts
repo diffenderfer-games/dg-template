@@ -31,6 +31,8 @@ export function lobbyScreen(
     minPlayers: number;
     chat: HTMLElement | null;
     face?: (seat: RoomSeat) => Node;
+    /** The game's own part (a live game's options, as the host picked them). */
+    extra?: HTMLElement | null;
   },
   a: LobbyActions,
 ): HTMLElement {
@@ -72,6 +74,7 @@ export function lobbyScreen(
     {},
     h('h2.kit-title', {}, t('online')),
     h('p.kit-tagline', { 'data-testid': 'room-code' }, o.info.code),
+    o.extra ?? null,
     seats,
     menu,
     o.chat,

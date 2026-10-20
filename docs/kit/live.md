@@ -8,7 +8,7 @@ the **same sim** to predict, so the player's own car moves the moment they
 steer. Players never see "live game", "sim", "tick" or "server": the button is
 **Play now**. The design is the hub's `docs/plans/live.md`.
 
-Needs hub client **2.0.0-next.14** or later (`@diffenderfer-games/hub/live-sim`
+Needs hub client **2.0.0-next.16** or later (the page flow; the sim and `joinLive` alone, next.14) (`@diffenderfer-games/hub/live-sim`
 and `@diffenderfer-games/hub/live`).
 
 ## How it works (what the hub does for you)
@@ -98,46 +98,70 @@ The rules:
 - **Keep a full snapshot under ~1,150 bytes** (`checkLiveSimRuns` reports it).
   Bigger ones go the slow way.
 
-Declare it in `package.json`. `npm run build` then bundles it to the `sim`
-path (`npm run build:live` alone):
+Declare it in `package.json` with a hub-room lobby. `npm run build` then
+bundles the sim to the `sim` path (`npm run build:live` alone):
 
 ```jsonc
 "game": {
+  "multiplayer": { "lobby": "?mp=lobby", "players": [2, 8] }, // the lobby: a hub room
   "live": {
     "sim": "dist-live/sim.mjs",
-    "players": [2, 8],     // a match starts once min are in; up to 16
-    "bots": true,          // the sim has autoInput
+    "players": [1, 8],     // seats a match may have; up to 16
+    "bots": true,          // the sim has autoInput (empty seats, players not there yet)
     "maxStepMs": 4         // optional: one step's budget on the server (default 4, at most 20)
   }
 }
 ```
 
-## The page
+The sim's `setup` gets the host's options (`ctx.options`) and each seat's own
+choices (`ctx.seatData[seat]`, the player's `room.seat` data), so the track,
+the laps and each player's car are known from the first tick. Keep `setup`
+under a second (the server cuts it off) and every `step` under `maxStepMs`.
+
+## The page flow
+
+`GameDefinition.live` (`LiveRoomGame`, src/kit/live/types.ts) is everything
+the page does; the kit runs the rest (`LiveRoomMatch`, in the online flow):
+
+| Step | The kit | The game |
+|---|---|---|
+| Title | The online button: Play now, With friends, a code; invites and Join | |
+| Lobby | Seats with faces, chat, Invite, Start (host) | `seat()` (my choices), `options()` (the host's), `describe(options)` |
+| Start | `room.start({ options })`: the hub places the match on its live server | |
+| Loading | A loading screen with a bar | `prepare(start, progress)`: build the world for `start.options` |
+| Play | `live.join(room, { sim })`, again after a drop | `play(match, start)`, `frame(dt)` (input), `render()` (draw `match.view()`) |
+| End | The hub's `{ places, winnerId }`: the result screen | `result(el, places, start)`; `stop()` when the player leaves |
 
 ```ts
-import { joinLive } from '../../kit/live/index.ts';
-import sim from './sim.ts';
+// src/game/live.ts
+import type { LiveRoomGame } from '../kit/live/index.ts';
+import sim from './live/sim.ts';
 
-const match = await joinLive({
+export const live: LiveRoomGame = {
   sim,
-  slug: 'my-game',
-  room: code, // everyone in the match uses the same code (a room code)
-  ticket: await hub.mp.ticket(), // who the player is
-  url: `https://${location.hostname}:4433/_live`, // WebTransport
-  wsUrl: `wss://${location.host}/_live`, // the fallback
-});
-match.onMessage((m) => {
-  if (m.t === 'end') showResult(m.places);
-});
-function frame() {
-  match.input({ steer: stick.x, throttle: pedal }); // any time; sampled every tick
-  for (const car of match.view().of('car')) draw(car, car.isMine);
-  requestAnimationFrame(frame);
-}
+  options: () => ({ track: setup.track, laps: setup.laps }),
+  seat: () => ({ car: setup.car }),
+  prepare: async (start, progress) => { await buildWorld(start.options, progress); },
+  play: (match, start) => { current = { match, start }; },
+  frame: () => current?.match.input({ steer: stick.x, throttle: pedal }),
+  render: () => current && draw(current.match.view()),
+  stop: () => { current = null; },
+};
 ```
 
-TODO(kit): a `src/game/live/` page flow (lobby → countdown → race → result)
-like `boot/turns-flow.ts`, once the first live game shows what it needs.
+- **Seats** are the room's, in order: `start.seats[i]` (name, look for the
+  avatar) drives seat `i`; `start.me` is mine. The match starts once every
+  seat is in, or 20 s after the start; until a player arrives, `autoInput`
+  drives their seat.
+- **Results are trusted:** the live server reports the outcome to the hub,
+  which records `online_games` and `online_wins` and ends the room.
+- **Locally** (`npm run local`, the hub suites) it is production's shape: the
+  live server next to the hub, `/_live` routed to it, WebTransport with a
+  certificate the ticket vouches for.
+
+Lower down, `joinLive({ sim, slug, room, ticket, url, wsUrl })` connects with a
+live ticket you already have (`room.liveTicket()`); `live.join(room, { sim })`
+is that plus the ticket.
 
 ## Deterministic math
 

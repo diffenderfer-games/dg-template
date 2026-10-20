@@ -4,6 +4,36 @@ KIT doc. One entry per kit version; per module inside. A **major** version
 means a hook's signature changed: the entry says how to move a game over.
 `npm run kit:sync` prints the entries newer than a game's `kit.json`.
 
+## 1.16 (2026-10-20)
+
+Live games play through a hub room: the lobby, the loading screen, joining the live match and the result.
+
+- **live 1.1:** `GameDefinition.live` (`LiveRoomGame`): `sim`, the host's `options()`, my `seat()`,
+  `describe(options, { isHost, update })` for the lobby (the host's controls and my choices; `update()`
+  shares them), `prepare(start, progress)`, `play(match, start)`, `frame(dt)`,
+  `render()`, `hud(el)`, `stop()`, `result(el, places, start)`; `start.seats[i].data` is each seat's choices. `LiveRoomMatch` runs it: my choices in my seat,
+  the host's options in the room's state (everyone's lobby shows them) and in `room.start({ options })`,
+  which places the match on the hub's live server; when the room plays, every page builds the match
+  behind a loading screen, joins it (`live.join`, again after a drop) and plays; the hub's end
+  (`{ places, winnerId }`) shows the result. Exports `joinLiveRoom`, `live`.
+- **boot 1.10:** `OnlineFlow` takes `{ online }` or `{ live }`; the lobby, invites, chat and
+  reconnects are shared. In a room's match the pause button (and the `pause` input) asks "Leave the
+  game?" instead of pausing: the others play on. `session.showPlay()` returns the HUD element. The
+  lobby keeps one chat panel for the room's life (it was made again on every change in the room,
+  dropping the lines shown and the draft). A seat held after a reload is asked for as the page starts,
+  in parallel with `mount` (a short reconnect grace mustn't run out while a big game mounts). A reclaimed seat enters online mode when its room shows. The title's online
+  button shows for a live game too.
+- **online 1.5:** `lobbyScreen({ extra })`: the game's own part of the lobby; `reclaim(early)`.
+- **core 1.11:** strings `liveGettingReady`, `liveJoining`, `leaveMatch`, `leaveMatchBody`. `KIT_VERSION` 1.16.
+- **testing 1.11:** `FakeRoom.start(options)` records the options.
+- **ui 1.6:** `.kit-progress`.
+- **hub-suites 1.12:** online.test.ts waits up to 60 s for a match to be on screen (a live game
+  builds its world first). Scenario 9 comes back inside the grace (8 s; it waited exactly the old 4 s
+  grace, after which the hub frees the seat for good, so no game could pass it).
+- **config 1.3:** lint skips `dist-live/` (the sim bundle).
+- **scripts 1.20, docs 1.19:** module versions; this entry.
+- Needs hub client **2.0.0-next.16** (`room.start({ options })`, `room.liveTicket()`, `live.join`).
+
 ## 1.15 (2026-10-19)
 
 Joining others is as easy as hosting: the online buttons find a game that is waiting first.

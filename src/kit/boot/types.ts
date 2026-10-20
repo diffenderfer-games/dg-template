@@ -23,6 +23,7 @@ import type { KitSettings } from '../settings-ui/index.ts';
 import type { GameHookDrivers } from '../test-hook/index.ts';
 import type { AudioHooks, KitAudio } from '../audio/types.ts';
 import type { OnlineGame } from '../online/types.ts';
+import type { LiveRoomGame } from '../live/types.ts';
 import type { AvatarHooks } from '../avatar/types.ts';
 
 /** How a game ended. */
@@ -220,6 +221,11 @@ export type GameDefinition<P extends JsonObject, R extends JsonObject> = {
   race?: RaceHooks<R>;
   /** Online play in hub rooms: `onlineGame({ ... })` from src/game/online.ts. */
   online?: OnlineGame;
+  /**
+   * Live play (docs/kit/live.md): a hub room is the lobby and the hub's live server runs
+   * src/game/live/sim.ts; needs `game.multiplayer` and `game.live`. Instead of `online`.
+   */
+  live?: LiveRoomGame;
   /** Online games, run by the hub from src/game/turns/rules.ts (src/game/turns/board.ts). */
   turns?: TurnsHooks<P, R>;
   avatar?: AvatarHooks;

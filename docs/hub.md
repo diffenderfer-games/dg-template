@@ -2537,7 +2537,8 @@ Social and multiplayer knobs, read at boot and validated by one schema
 | `HUB_MOD_GUARD_TIMEOUT_MS` | `1500` (capped by `HUB_MOD_TIMEOUT_MS`) | Jev call timeout. Healthy Jev answers in a few hundred ms; a short timeout lets `both` hand a slow message to the LLM quickly. |
 | `HUB_CONTACT_URL` | unset | Parents' contact link on `/parents` (a mailto: or form URL). The section is hidden when unset. |
 | `HUB_VAPID_PUBLIC` / `HUB_VAPID_PRIVATE` | generated into `DATA_DIR/vapid.json` | Web Push keys (base64url, raw P-256). Back the file up. New keys invalidate every push subscription. |
-| `HUB_MP_SECRET` | random, persisted to `DATA_DIR/mp-secret` | Root secret for game tickets and per-game `HUB_APP_KEY`s. |
+| `HUB_MP_SECRET` | random, persisted to `DATA_DIR/mp-secret` | Root secret for game tickets, per-game `HUB_APP_KEY`s and the live servers' key. |
+| `HUB_LIVE_INTERNAL_URL` | `http://127.0.0.1:8091` | The live server (dg-live) live games' matches are placed on (docs/plans/live.md §8.1). |
 | `HUB_REALTIME` | on | `0` disables `/_ws` (an escape hatch: social goes quiet, single-player is unaffected). |
 | `HUB_TEST` | off | `1` = test mode: relaxed limits, fake AI, push outbox, `/_api/test/*`. **Never in production.** |
 | `HUB_LIMITS_JSON` | `{}` | JSON overrides for any `SOCIAL_LIMITS` field (tests). |

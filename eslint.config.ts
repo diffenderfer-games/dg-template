@@ -53,6 +53,7 @@ export default tseslint.config(
     ignores: [
       'dist/**',
       'dist-rules/**',
+      'dist-live/**',
       'shots/**',
       '.tmp/**',
       'node_modules/**',

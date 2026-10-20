@@ -32,6 +32,8 @@ export const KIT_STRINGS = {
   quit: 'Back to the title',
   leaveRace: 'Leave race?',
   leaveRaceBody: 'The race goes on without you.',
+  leaveMatch: 'Leave the game?',
+  leaveMatchBody: 'The others play on without you.',
   leaveGame: 'Leave this game?',
   leave: 'Leave',
   stay: 'Stay',
@@ -84,6 +86,9 @@ export const KIT_STRINGS = {
   onlinePlayNowSub: "Join anyone who's waiting",
   onlineFriends: 'With friends',
   onlineFriendsSub: 'Your own room. Invite friends in',
+  // A live game's match: built on each page, then joined (kit/live).
+  liveGettingReady: 'Getting ready…',
+  liveJoining: 'Joining the others…',
   // Join with a code: a room's 5-letter code, or an online game's invite link.
   joinCodeLabel: 'Have a code?',
   joinCodeRoom: 'Room code',
