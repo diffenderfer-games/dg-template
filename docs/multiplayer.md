@@ -1957,13 +1957,14 @@ function frame() {
   seat's `room.seat` data (the sim's `ctx.seatData[i]`) and the options
   (`ctx.options`). If no live server takes it, `start` rejects with
   `live_unavailable` and the room stays in its lobby.
-- **The match starts** once every seat is connected, or 20 s after the start;
-  a seat whose player isn't there yet is driven by your `autoInput` (with
-  `bots`) until they arrive. Ticks count from the start, so take your time
+- **The match starts** once every seat is connected (a page connects once it has built the match), or 90 s after the start;
+  a seat whose player isn't there yet gets no input (`inputs[seat]` is
+  `null`: hands off, the ship waits) until they arrive; the computer never
+  drives a player's seat. Ticks count from the start, so take your time
   building what the options need before `live.join`, but not too long.
 - **Drops and reloads:** call `live.join(room, { sim })` again (after the room
   is reclaimed): the ticket gives the seat back, and the page catches up from
-  a full snapshot. Meanwhile `autoInput` drives the seat.
+  a full snapshot. Meanwhile the seat gets no input (`null`).
 - **The end:** when your sim's `outcome` returns places, the live server tells
   the hub, which records **trusted** results (`online_games`, `online_wins`
   for the winner, recent players) and ends the room: every page gets the

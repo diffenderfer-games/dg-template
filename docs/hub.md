@@ -1456,7 +1456,7 @@ contract exports it as `GAME_LABELS`, display names in `GAME_LABEL_TITLES`):
 
 | Group | Labels |
 |---|---|
-| Genre | `cards` `board` `puzzle` `arcade` `platformer` `real-time-strategy` `physics` `typing` `word` `sports` `racing` |
+| Genre | `cards` `board` `puzzle` `arcade` `platformer` `real-time-strategy` `physics` `typing` `word` `sports` `racing` `horror` |
 | Look | `2d` `3d` |
 | Plays on | `phone` (touch controls) `controller` (gamepad support) `desktop` (keyboard or mouse only) |
 | Players | `multiplayer` `single-player` |

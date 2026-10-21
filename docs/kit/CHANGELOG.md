@@ -4,6 +4,14 @@ KIT doc. One entry per kit version; per module inside. A **major** version
 means a hook's signature changed: the entry says how to move a game over.
 `npm run kit:sync` prints the entries newer than a game's `kit.json`.
 
+## 1.20 (2026-10-21)
+
+- **docs 1.23:** the genre labels gain `horror` (scary games; the catalog's Genre filter and picked
+  games can show or hide them, and Adventure Mode puts them in the arcade's cabinets). The synced
+  hub.md lists it.
+- **world 1.6:** docs: horror games get arcade cabinets.
+- **core 1.15:** `KIT_VERSION` 1.20. **scripts 1.24:** this entry's module versions.
+
 ## 1.19 (2026-10-20)
 
 - **live 1.2:** docs: the computer never drives a player's seat. Until a player arrives, and while

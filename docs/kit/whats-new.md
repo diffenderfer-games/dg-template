@@ -25,7 +25,7 @@ kid would understand**. Skip refactors, builds, tests and tooling.
 
 `game.labels` drives the catalog filter. Use only these, from what the code
 really does: a genre (`cards`, `board`, `puzzle`, `arcade`, `platformer`,
-`real-time-strategy`, `physics`, `typing`, `word`, `sports`, `racing`), `2d` or
+`real-time-strategy`, `physics`, `typing`, `word`, `sports`, `racing`, `horror`), `2d` or
 `3d` (`npm run new-game` sets it), `phone` (touch controls and a phone
 layout), `controller` (gamepad bindings), `desktop` (only if it needs a
 keyboard or mouse), and `single-player` and/or `multiplayer`.
