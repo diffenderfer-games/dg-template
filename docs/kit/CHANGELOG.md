@@ -4,6 +4,17 @@ KIT doc. One entry per kit version; per module inside. A **major** version
 means a hook's signature changed: the entry says how to move a game over.
 `npm run kit:sync` prints the entries newer than a game's `kit.json`.
 
+## 1.18 (2026-10-20)
+
+- **ui 1.7:** `Screens.show` of the screen already showing (a live room's lobby, drawn again on
+  every change in the room) marks the new one `data-redraw="true"`, which skips `.kit-in` and
+  the game's own entrances that check it; focus on a part the new screen reuses (the lobby's chat
+  box) stays put, so a player typing keeps the keyboard.
+- **turns 1.9:** the seats are patched, not rebuilt: whose turn it is flips `data-due` on the same
+  rows, and only a seat that changed gets a new row, so a `.kit-seat` entrance plays once.
+- **core 1.13:** `KIT_VERSION` 1.18. **docs 1.21, scripts 1.22:** this entry; module versions;
+  look.md: entrances play once.
+
 ## 1.17 (2026-10-20)
 
 - **core 1.12:** `isLocalNetwork()`: test drivers are installed on a private network address too (a

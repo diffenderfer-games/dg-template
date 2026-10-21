@@ -25,7 +25,7 @@ Title, HUD, pause and result decoration go through `GameDefinition.screens` (see
 ## What the kit does for you
 
 - `mountUi` creates `#ui`, adds the kit's CSS once, and reads the system's reduced-motion preference. `defineGame` calls it.
-- `Screens.show(name, build)` swaps the screen, sets `data-screen` on the root, focuses `[data-autofocus]`, and reports presence (`playing` for `play`, `menu` otherwise), only when it changes.
+- `Screens.show(name, build)` swaps the screen, sets `data-screen` on the root, focuses `[data-autofocus]` (showing the same screen again marks it `data-redraw="true"`, which skips entrances, and keeps focus on a part it reuses), and reports presence (`playing` for `play`, `menu` otherwise), only when it changes.
 - `h()` only ever sets text (`textContent`), never HTML, so player names and chat cannot inject markup.
 - Every control gets `data-nav` (menu navigation finds it) and a `data-testid` (tests and scripts press it by name). Controls are at least 44 px.
 - Modals: the topmost `[data-modal]` is what navigation targets. Escape and back close it unless it is locked (a choice the game is waiting on).

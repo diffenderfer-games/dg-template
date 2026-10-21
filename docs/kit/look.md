@@ -134,6 +134,10 @@ Rules:
   and no entrances.
 - Use `animation-fill-mode: both` only with short delays, so a slow device or a
   screenshot never shows an empty screen.
+- An entrance plays once, when its thing first shows, never on a redraw: a
+  screen drawn again while it shows carries `data-redraw="true"` (scope the
+  entrance with `:not([data-redraw])`), and the turns screen keeps its seat rows
+  (`.kit-seat`) across turns.
 
 ## 5. Every screen
 

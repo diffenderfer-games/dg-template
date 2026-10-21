@@ -70,6 +70,19 @@ describe('screens, modals, toasts', () => {
     expect(presence.mock.calls).toEqual([[{ kind: 'menu' }], [{ kind: 'playing' }]]);
   });
 
+  it('Screens.show again for the screen showing marks it a redraw and keeps focus on a part it reuses', () => {
+    const s = new Screens();
+    const input = h('input');
+    s.show('lobby', () => h('div', {}, input));
+    expect(ui().root.querySelector<HTMLElement>('.kit-screen')?.dataset.redraw).toBeUndefined();
+    input.focus();
+    s.show('lobby', () => h('div', {}, input));
+    expect(ui().root.querySelector<HTMLElement>('.kit-screen')?.dataset.redraw).toBe('true');
+    expect(document.activeElement).toBe(input);
+    s.show('title', () => h('div'));
+    expect(ui().root.querySelector<HTMLElement>('.kit-screen')?.dataset.redraw).toBeUndefined();
+  });
+
   it('a locked modal ignores back and Esc; buttons close it and run onClose once', () => {
     const onClose = vi.fn();
     const m = openModal({ title: 'Choose', locked: true, buttons: [{ label: 'OK', testid: 'ok' }], onClose });

@@ -34,10 +34,15 @@ export class Screens {
   /** Show `name`, built by `build()`; report `presence` (default: menu, or playing for `play`). */
   show(name: string, build: () => HTMLElement, opts: { presence?: PresenceInput } = {}): HTMLElement {
     const root = ui().root;
+    // Drawn again while it shows (a lobby on each change in the room): data-redraw skips entrance
+    // animations, and focus on a part the new screen keeps (the chat box) stays put.
+    const redraw = this.el !== null && this.name === name;
+    const focused = document.activeElement;
     this.el?.remove();
     const el = build();
     el.classList.add('kit-screen');
     el.dataset.screen = name;
+    if (redraw) el.dataset.redraw = 'true';
     root.appendChild(el);
     root.dataset.screen = name;
     this.name = name;
@@ -47,7 +52,8 @@ export class Screens {
       this.lastPresence = presence;
       this.setPresence(presence);
     }
-    el.querySelector<HTMLElement>('[data-autofocus]')?.focus();
+    if (redraw && focused instanceof HTMLElement && el.contains(focused)) focused.focus({ preventScroll: true });
+    else el.querySelector<HTMLElement>('[data-autofocus]')?.focus();
     return el;
   }
 }

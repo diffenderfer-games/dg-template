@@ -74,6 +74,8 @@ html[data-controls="touch"] #ui[data-screen="play"] .kit-toasts { bottom: auto; 
 .kit-confetti { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 36; }
 .kit-confetti i { position: absolute; top: -12px; width: 8px; height: 14px; border-radius: 2px; animation: kit-fall 2.4s linear forwards; }
 .kit-in { animation: kit-pop .28s ease-out both; }
+/* A screen drawn again while it shows (kit/ui Screens) doesn't replay its entrance: a game's own entrances check it too. */
+.kit-screen[data-redraw="true"].kit-in, .kit-screen[data-redraw="true"] .kit-in { animation: none; }
 .kit-corner { position: absolute; display: flex; align-items: center; gap: 8px; }
 /* People: faces, names, lobby seats, chat (kit/avatar, kit/online). */
 .kit-face { display: inline-grid; place-items: center; border-radius: 50%; background: var(--kit-accent-2); color: #04202a;

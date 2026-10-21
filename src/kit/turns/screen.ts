@@ -57,7 +57,7 @@ export function turnsScreen(
   const menu = h('div.kit-menu');
   let chatEl = o.chat;
   const el = h('div.kit-dim.kit-turns', {}, h('h2.kit-title', {}, o.title), status, seats, link, board, menu, chatEl);
-  let seatsKey = '';
+  let seatKeys: string[] = [];
   let menuKey = '';
 
   const seatName = (s: TurnSeat): HTMLElement => {
@@ -126,12 +126,23 @@ export function turnsScreen(
         s.userId !== null &&
         ((summary.phase === 'lobby' && (s.status === 'joined' || s.status === 'invited')) ||
           (summary.phase === 'playing' && s.status === 'joined'));
-      const nextSeats = JSON.stringify(
-        summary.seats.map((s) => [s.seat, s.name, s.status, s.connected, s.look, due.has(s.seat), removable(s)]),
-      );
-      if (nextSeats !== seatsKey) {
-        seatsKey = nextSeats;
+      // Whose turn it is changes every move: that flips the row's data-due in place. A row is drawn
+      // again only when its seat changed, so a game's entrance animation on .kit-seat plays once.
+      const rowKey = (s: TurnSeat): string =>
+        JSON.stringify([s.seat, s.name, s.status, s.connected, s.look, removable(s)]);
+      const nextKeys = summary.seats.map(rowKey);
+      const rows = [...seats.children];
+      if (rows.length === nextKeys.length && seatKeys.length === rows.length) {
+        nextKeys.forEach((key, i) => {
+          const s = summary.seats[i];
+          if (s && key !== seatKeys[i]) rows[i]?.replaceWith(seatRow(s, due.has(s.seat), removable(s)));
+        });
+      } else {
         seats.replaceChildren(...summary.seats.map((s) => seatRow(s, due.has(s.seat), removable(s))));
+      }
+      seatKeys = nextKeys;
+      for (const row of seats.children) {
+        if (row instanceof HTMLElement) row.dataset.due = due.has(Number(row.dataset.seat)) ? 'true' : 'false';
       }
 
       const seated = game.mySeat !== null;

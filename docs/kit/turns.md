@@ -231,6 +231,8 @@ checkTurnRules(rules, { seats: [2, 3], games: 30, plant: (s, seat, marker) => hi
   missing `autoMove` and an illegal one; the status words ("Waiting for…"
   only when not connected); the hand-over names and timer; the fake's
   `canLetComputerPlay` follows the client's; the rules entry's RNG.
+- `tests/kit/turns/screen.test.ts`: a turn change flips `data-due` on the same
+  seat rows; only a seat that changed gets a new row.
 - `tests/game/turns.test.ts`: the example rules pass `checkTurnRules` at 2 and
   3 seats, refuse bad moves with a short code, and use kid-word labels.
 - `tests/hub-events/turns.test.ts`: the title's Play online, Anyone joining a
