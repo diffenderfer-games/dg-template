@@ -1970,6 +1970,16 @@ function frame() {
   for the winner, recent players) and ends the room: every page gets the
   room's `ended` event with `{ places, winnerId }` (user ids). `room.end` is
   refused for a live room.
+- **When the sim fails:** a `step` that throws, or runs away (past 250 ms;
+  `setup` past 5 s), ends the match with no result. Every page gets
+  `{ t: 'error', code: 'sim_error' }` from `match.onMessage`, then the
+  connection closes, and the room ends with
+  `{ places: [], winnerId: null, error: 'sim_error' }` and nothing recorded:
+  show "The game stopped" rather than a result, and don't rejoin.
+- **Step time:** `game.live.maxStepMs` (default 4, at most 20) is the time you
+  expect a step to take on the server. It is a soft budget: steps over it are
+  logged for the owner, never cut off, so a slow moment on the server doesn't
+  end a match. Keep steps well under it anyway (every page runs them too).
 - **Transports:** WebTransport (UDP) first, a WebSocket (`/_live`) when it is
   blocked; `match.transport` says which. Locally (`npm run local`, the test
   kit) it is the same, with a self-signed certificate the ticket vouches for.
