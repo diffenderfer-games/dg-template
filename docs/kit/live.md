@@ -18,8 +18,9 @@ and `@diffenderfer-games/hub/live`).
 - **Inputs, not positions.** Each page sends its input for each tick, a little
   ahead of the server (the hub works out how far from the round trip). It
   repeats the last few, so a lost packet costs nothing. A seat with no input for
-  a tick keeps its last one. An empty or dropped seat gets `autoInput` when
-  `game.live.bots` is on.
+  a tick keeps its last one. A seat whose player isn't connected (not in yet,
+  or dropped) gets `null`: your sim keeps that ship hands-off. The computer
+  never drives a player's seat.
 - **Snapshots.** After each step the server sends every page the state as a
   delta against one the page already holds, packed from your field schemas. The
   wire format is never your code.
@@ -151,8 +152,8 @@ export const live: LiveRoomGame = {
 
 - **Seats** are the room's, in order: `start.seats[i]` (name, look for the
   avatar) drives seat `i`; `start.me` is mine. The match starts once every
-  seat is in, or 20 s after the start; until a player arrives, `autoInput`
-  drives their seat.
+  seat is in, or 90 s after the start; until a player arrives their seat
+  gets no input (`null`), and the page shows who it's waiting for.
 - **Results are trusted:** the live server reports the outcome to the hub,
   which records `online_games` and `online_wins` and ends the room.
 - **Locally** (`npm run local`, the hub suites) it is production's shape: the

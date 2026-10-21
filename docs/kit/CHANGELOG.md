@@ -4,6 +4,14 @@ KIT doc. One entry per kit version; per module inside. A **major** version
 means a hook's signature changed: the entry says how to move a game over.
 `npm run kit:sync` prints the entries newer than a game's `kit.json`.
 
+## 1.19 (2026-10-20)
+
+- **live 1.2:** docs: the computer never drives a player's seat. Until a player arrives, and while
+  they're dropped, their seat's input is `null` (the sim keeps that ship hands-off); the match waits
+  up to 90 s for everyone. Show who it's waiting for while the race loads (a `seat` message per seat
+  arrives right after the welcome).
+- **core 1.14:** `KIT_VERSION` 1.19. **docs 1.22, scripts 1.23:** this entry; module versions.
+
 ## 1.18 (2026-10-20)
 
 - **ui 1.7:** `Screens.show` of the screen already showing (a live room's lobby, drawn again on
