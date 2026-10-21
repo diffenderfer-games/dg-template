@@ -3,8 +3,9 @@
  * Source: dg-template src/kit/ui/ (kit v1.0). Copy byte-identical; change it in the template first.
  * Docs: docs/kit/ui.md § "Theming"
  *
- * Focus rings use the hub's `--hub-focus-*` variables (sliderush / phase10),
- * shown only for keyboard and gamepad (`data-hub-input=keys`). Controls are
+ * Focus is the kit's own look, themed by `--kit-focus-*` (which default to
+ * the hub's `--hub-focus-*` ring), shown only for keyboard and gamepad
+ * (`data-hub-input=keys`, or `[data-hub-focus]` from the hub's navigation). Controls are
  * at least 44 px. Screens keep clear of the safe area, the race HUD
  * (`--hub-race-hud-top/bottom`) and the hub menu button (none in the world's
  * box: `html[data-embed]`). Sizes follow the window (the box), width and height.
@@ -36,9 +37,20 @@ html[data-embed] .kit-screen:not([data-screen="play"]) { padding-top: calc(var(-
 .kit-btn.kit-primary { background: var(--kit-accent); color: var(--kit-accent-fg); border-color: transparent; }
 .kit-btn-sub { flex-basis: 100%; font-weight: 500; font-size: 13px; opacity: 0.8; }
 .kit-btn:focus { outline: none; }
-[data-hub-input="keys"] .kit-ui [data-nav]:focus, .kit-ui [data-nav].hub-nav-focus, .kit-ui [data-nav]:focus-visible {
-  box-shadow: 0 0 0 var(--hub-focus-gap, 2px) var(--hub-focus-inner, rgba(13, 15, 20, 0.85)),
-    0 0 0 calc(var(--hub-focus-gap, 2px) + var(--hub-focus-width, 3px)) var(--hub-focus-color, #fff); }
+/* Focus (keys and pad): one look, the kit's, themed with --kit-focus-* (they default to the hub's
+   --hub-focus-* ring). The hub's own ring stays off over the kit's menus (installMenuNav ring: false);
+   the control the hub's navigation highlights also has [data-hub-focus]. Set --kit-focus-shadow,
+   --kit-focus-outline or --kit-focus-filter (on :root, or per control in its own :focus rule) for a
+   whole new look. */
+[data-hub-input="keys"] .kit-ui [data-nav]:focus, .kit-ui [data-nav][data-hub-focus], .kit-ui [data-nav]:focus-visible {
+  outline: var(--kit-focus-outline, none); outline-offset: var(--kit-focus-outline-offset, 2px);
+  filter: var(--kit-focus-filter, none);
+  box-shadow: var(--kit-focus-shadow, 0 0 0 var(--kit-focus-gap, var(--hub-focus-gap, 2px)) var(--kit-focus-inner, var(--hub-focus-inner, rgba(13, 15, 20, 0.85))),
+    0 0 0 calc(var(--kit-focus-gap, var(--hub-focus-gap, 2px)) + var(--kit-focus-width, var(--hub-focus-width, 3px))) var(--kit-focus-color, var(--hub-focus-color, #fff))); }
+html[data-hub-input="touch"] .kit-ui [data-nav][data-hub-focus] { box-shadow: none; outline: none; filter: none; }
+/* The back guard (kit/ui/back-guard.ts) in play: a drag plays, never scrolls or swipes the page away. */
+html.kit-back-guard, html.kit-back-guard body { overscroll-behavior: none; }
+html.kit-back-guard #app, html.kit-back-guard .kit-screen[data-screen="play"] { touch-action: none; }
 .kit-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 48px; width: 100%; }
 .kit-row-label { text-align: left; }
 .kit-toggle { width: 56px; height: 32px; border-radius: 16px; border: 0; background: #3a4150; position: relative; cursor: pointer; }

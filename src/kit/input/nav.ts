@@ -8,6 +8,11 @@
  * (bingo's target function). Back closes the top modal unless it is locked
  * (phase10/uno), else calls the game's back.
  *
+ * While `active()` is false (by default: active play whose controls use the
+ * pad's act or back button) there are no pad targets, so A and B are the
+ * game's and never click a HUD button. The kit's CSS draws the focus look
+ * (`--kit-focus-*`, kit/ui/css.ts), so the hub's ring is off (`ring`).
+ *
  * Escape on a keyboard is the same back, and it calls `preventDefault()` only
  * when something went back (or the game's own inputs read Esc, e.g. `pause`
  * in play): in the world's box an Esc nobody used leaves the game, so on the
@@ -45,6 +50,10 @@ export type MenuNavSpec = {
   ownsEscape?(): boolean;
   /** Where keydown arrives (default `window`). */
   keys?: EventTarget;
+  /** Is pad navigation on now (default: always)? False: no targets, so the pad's A and B are the game's. Esc is unaffected. */
+  active?(): boolean;
+  /** Draw the hub's ring over the focused control too (default false: the kit's CSS draws focus). */
+  ring?: boolean;
 };
 
 /**
@@ -57,7 +66,10 @@ export function installMenuNav(hub: Pick<HubLike, 'input' | 'overlay'>, o: MenuN
     if (topModal() !== null) return closeTopModal();
     return o.back();
   };
-  hub.input.autoNavigate(() => navTargets(o.root), { back: () => void back() });
+  hub.input.autoNavigate(() => (o.active?.() === false ? [] : navTargets(o.root)), {
+    back: () => void back(),
+    ring: o.ring === true,
+  });
   const keys = o.keys ?? (typeof window === 'undefined' ? null : window);
   const onKey = (e: Event): void => {
     if (!(e instanceof KeyboardEvent) || e.key !== 'Escape' || e.defaultPrevented || hub.overlay.isOpen) return;

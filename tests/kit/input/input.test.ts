@@ -1,6 +1,16 @@
 // @vitest-environment jsdom
 import { beforeEach, describe, expect, it } from 'vitest';
-import { controlHints, defineControls, navTargets, repeatPress, setHudInsets } from '../../../src/kit/input/index.ts';
+import {
+  controlHints,
+  defineControls,
+  installMenuNav,
+  navTargets,
+  padButtonsOf,
+  repeatPress,
+  RESUME_GROUP,
+  RESUME_INPUT,
+  setHudInsets,
+} from '../../../src/kit/input/index.ts';
 import { closeTopModal, openModal } from '../../../src/kit/ui/modal.ts';
 import { mountUi } from '../../../src/kit/ui/root.ts';
 import { createFakeHub, type FakeHub } from '../../../src/kit/testing/index.ts';
@@ -19,6 +29,55 @@ const spec = {
     { id: 'move', type: 'joystick' as const, place: 'bottom-left' as const, size: w < 520 ? 120 : 150 },
   ],
 };
+
+describe('controls: the pad', () => {
+  const padSpec = {
+    groups: {
+      play: {
+        inputs: {
+          use: { gamepad: { button: [0, 4] } },
+          pause: { keys: ['escape'], gamepad: { button: 9 }, touch: { button: 'pause' } },
+        },
+      },
+      menu: { inputs: { back: { gamepad: { button: 1 } } } },
+    },
+  };
+
+  it('usesPadButton: does a group (enabled or not; default play) read any of these buttons', () => {
+    const c = defineControls(fake, padSpec, 1000);
+    expect(c.usesPadButton([0, 1])).toBe(true);
+    expect(c.usesPadButton([4])).toBe(true);
+    expect(c.usesPadButton([1])).toBe(false);
+    expect(c.usesPadButton([1], 'menu')).toBe(true);
+    expect(padButtonsOf(undefined)).toEqual([]);
+    expect(padButtonsOf({ button: 3 })).toEqual([3]);
+  });
+
+  it('a game with a pause input gets kit:resume (its keys and pad button, no touch), on only while paused', () => {
+    const c = defineControls(fake, padSpec, 1000);
+    const resume = fake.input.config?.groups[RESUME_GROUP];
+    expect(resume?.inputs[RESUME_INPUT]).toEqual({ keys: ['escape'], gamepad: { button: 9 } });
+    c.sync({ playing: true });
+    expect(fake.input.isEnabled(RESUME_GROUP)).toBe(false);
+    c.sync({ playing: false, paused: true });
+    expect(fake.input.isEnabled(RESUME_GROUP)).toBe(true);
+    expect(fake.input.isEnabled('play')).toBe(false);
+  });
+
+  it('installMenuNav: no targets while inactive; the ring is off unless asked for', () => {
+    const root = document.createElement('div');
+    root.innerHTML = '<button data-nav>Pause</button>';
+    document.body.append(root);
+    let active = false;
+    installMenuNav(fake, { root, back: () => true, active: () => active });
+    expect(fake.input.nav?.targets()).toHaveLength(0);
+    expect(fake.input.nav?.ring).toBe(false);
+    active = true;
+    expect(fake.input.nav?.targets()).toHaveLength(1);
+    installMenuNav(fake, { root, back: () => true, ring: true });
+    expect(fake.input.nav?.ring).toBe(true);
+  });
+});
 
 describe('controls', () => {
   it('enable/disable only on change (quanta syncControls), extra groups one by one', () => {

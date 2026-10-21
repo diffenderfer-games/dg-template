@@ -10,6 +10,7 @@ export * from './fake-daily.ts';
 export * from './fake-hub.ts';
 export * from './fake-input.ts';
 export * from './fake-overlay.ts';
+export * from './fake-pad.ts';
 export * from './fake-progress.ts';
 export * from './fake-race.ts';
 export * from './fake-room-info.ts';

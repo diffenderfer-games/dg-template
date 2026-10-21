@@ -63,6 +63,8 @@ export type InputLike = Pick<
   | 'autoNavigate'
   | 'clearAutoNavigate'
   | 'setInsets'
+  | 'padButtons'
+  | 'setPadButtons'
 >;
 
 /** Show/hide the hub's menu button. */

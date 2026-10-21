@@ -65,7 +65,8 @@ border, radius 20, padding 14–18, the large shadow plus the inset highlight,
   column with the **label** (display 900, ~1 rem) and a **sub-line** (mono,
   0.7 rem, `muted`, one line, ellipsis). Every button has a sub-line saying
   what it does in plain words ("Today's puzzle is waiting", "Your game is saved").
-- Hover, focus and gamepad focus (`.hub-nav-focus`): border `accent`, glow
+- Hover, focus and gamepad focus (`:focus` under `html[data-hub-input="keys"]`, `[data-hub-focus]`; the kit's
+  `--kit-focus-*` variables, [ui.md](ui.md#focus)): border `accent`, glow
   `0 0 0 3px <accent .18>, 0 0 22px <accent .3>`, the icon tile fills with
   `accent` and tilts (`scale(1.12) rotate(-6deg)`), a ◀ pointer appears at the
   right and bounces (0.6 s, alternate), the button lifts 2 px; pressed, it

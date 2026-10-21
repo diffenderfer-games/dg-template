@@ -40,7 +40,9 @@ import { routeOnce } from './router.ts';
 import { howToModal } from './screens.ts';
 import { Session } from './session.ts';
 import { installGameHook } from './test-hook.ts';
-import type { GameDefinition, TurnBoard } from './types.ts';
+import type { GameDefinition, NavState, TurnBoard } from './types.ts';
+import { pageBackGuard } from '../ui/back-guard.ts';
+import type { PadButtons } from '@diffenderfer-games/hub';
 
 /** Where things go (tests pass fakes; the game passes nothing). */
 export type DefineGameOptions = {
@@ -202,8 +204,27 @@ export function defineGame<P extends JsonObject, R extends JsonObject>(
         });
   // 5. controls and menu navigation
   const controls = defineControls(hub, game.input, typeof innerWidth === 'number' ? innerWidth : 1280);
+  // The pad's act and back buttons (the hub's; an older hub copy has none: A and B).
+  const navButtons = (): readonly number[] => {
+    const buttons: PadButtons | undefined = hub.input.padButtons;
+    return [...(buttons?.act ?? [0]), ...(buttons?.back ?? [1])];
+  };
+  // Pad navigation is off in active play when A or B are the game's there (they would click the HUD).
+  const navState = (): NavState => {
+    const playing = session.screen === 'play' && !session.paused;
+    return {
+      screen: session.screen,
+      paused: session.paused,
+      byDefault: !playing || !controls.usesPadButton(navButtons()),
+    };
+  };
   // Back and Esc: true only when it went somewhere, so on the title Esc leaves the world's box.
   const stopNav = installMenuNav(hub, {
+    active: () => {
+      const state = navState();
+      return game.nav?.active?.(ctx, state) ?? state.byDefault;
+    },
+    ring: game.nav?.hubRing === true,
     root: ui.root,
     back: () => {
       if (session.screen === 'pause') session.resume();
@@ -265,7 +286,10 @@ export function defineGame<P extends JsonObject, R extends JsonObject>(
     audio,
     haptic,
   });
-  session.attach({ ctx, pause, daily, race, online, turns, controls, audio });
+  // Edge swipes and Back pause play instead of leaving (on by default but for turn-based and idle games).
+  const guardOn = game.backGuard ?? game.resumeOnClose !== true;
+  const backGuard = guardOn === false ? null : pageBackGuard(guardOn === true ? {} : guardOn);
+  session.attach({ ctx, pause, daily, race, online, turns, controls, audio, backGuard });
   // 10. the touch layout follows the width (rotation, resize)
   offs.push(ctx.onResize((w) => controls.relayout(w)));
 
@@ -286,6 +310,7 @@ export function defineGame<P extends JsonObject, R extends JsonObject>(
     audio.dispose();
     pause.dispose();
     profile.dispose();
+    backGuard?.stop();
     for (const off of offs) off();
     document.removeEventListener('visibilitychange', onVisibility);
     removeEventListener('pagehide', onHide);

@@ -20,7 +20,9 @@ function virtual(_width: number): VirtualDef[] {
 /**
  * TODO(game): your inputs, read in hooks.ts `step` with `ctx.hub.input`. For example:
  *   jump: { keys: [' '], gamepad: { button: 0 }, touch: { button: 'jump' } },   // value('jump')
- *   left: { keys: ['a', 'arrowleft'], gamepad: { axis: [0, '-'] }, touch: { stick: 'move', axis: 'x-' } },
+ *   left: { keys: ['a', 'arrowleft'], gamepad: { axis: [0, '-'], button: 14 }, touch: { stick: 'move', axis: 'x-' } },
+ *   (the stick and the d-pad on one input; `button` and `axis` take lists, `deadzone`/`curve` shape the stick).
+ * Select (8) is the hub's menu and B (1) its back (held in the world's box, it leaves): docs/kit/input.md § "The gamepad".
  * and `axes: { move: { x: ['left', 'right'], y: ['up', 'down'] } }` for `vector('move')`.
  */
 export const controls: InputSpec = {

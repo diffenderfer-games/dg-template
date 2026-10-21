@@ -25,6 +25,7 @@ import type { AudioHooks, KitAudio } from '../audio/types.ts';
 import type { OnlineGame } from '../online/types.ts';
 import type { LiveRoomGame } from '../live/types.ts';
 import type { AvatarHooks } from '../avatar/types.ts';
+import type { BackGuardOptions } from '../ui/back-guard.ts';
 
 /** How a game ended. */
 export type Outcome = 'won' | 'lost';
@@ -169,6 +170,26 @@ export type TurnsHooks<P extends JsonObject, R extends JsonObject> = {
   testMove?(board: TurnBoard): GamePayload | null;
 };
 
+/** What the kit's menu navigation knows when it asks `nav.active`. */
+export type NavState = {
+  readonly screen: string;
+  readonly paused: boolean;
+  /** The default answer: false in active play when the game's `play` inputs use the pad's act or back button. */
+  readonly byDefault: boolean;
+};
+
+/** Gamepad and keyboard menus (docs/kit/input.md § "Menus"). */
+export type NavHooks<P extends JsonObject, R extends JsonObject> = {
+  /**
+   * Is the kit's pad navigation on now? Default `state.byDefault`: everywhere but active play whose
+   * `play` inputs use the pad's act (A) or back (B) button, so A and B are the game's there and
+   * never click a HUD button. Return true to navigate the play screen's `[data-nav]` too.
+   */
+  active?(ctx: GameContext<P, R>, state: NavState): boolean;
+  /** Draw the hub's ring over the kit's focused control too (default false: the kit's CSS, `--kit-focus-*`). */
+  hubRing?: boolean;
+};
+
 /** The whole game, as `defineGame` takes it. */
 export type GameDefinition<P extends JsonObject, R extends JsonObject> = {
   /** Default: the hub's slug, else the page's first path segment. */
@@ -179,6 +200,14 @@ export type GameDefinition<P extends JsonObject, R extends JsonObject> = {
   /** The game in progress: shape version, validation and the "Your games" label. */
   run: ResumeSpec<R>;
   input: InputSpec;
+  /** Gamepad menus: when the kit navigates them, and whose focus look shows (docs/kit/input.md § "Menus"). */
+  nav?: NavHooks<P, R>;
+  /**
+   * The back guard in play (kit/ui/back-guard.ts; docs/kit/ui.md § "The back guard"): edge swipes
+   * and the phone's Back pause instead of leaving. Default on, except for games that resume when
+   * hub UI closes (`resumeOnClose`: turn-based and idle). `false` turns it off; options tune it.
+   */
+  backGuard?: boolean | BackGuardOptions;
   scores?: ScoreSpec;
   strings?: Partial<KitStrings>;
   /** Turn-based and idle games resume when hub UI closes; action games show the pause screen. */

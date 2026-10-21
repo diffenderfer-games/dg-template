@@ -41,6 +41,9 @@ syncMenuButton(hub, { playing: true, paused: pause.paused });
 - Swallows the click that closed the hub menu for 300 ms (`SETTLE_MS`) so it does not reach the game.
 - Ignores the hub's on-screen keyboard (reason `keyboard`): typing in the game's own text field does not pause.
 - Hides the hub menu button while actively playing and shows it on the pause screen and menus (`syncMenuButton`).
+- **The pause button resumes:** on the pause screen the `pause` input's keys and pad button (Start) resume, once the
+  press that paused was let go (the kit's `kit:resume` group, enabled only while paused; B and Esc go back too).
+- In play, a back gesture or an edge swipe pauses instead of leaving the page (the back guard, [ui.md](ui.md#the-back-guard)).
 
 ## Rules it enforces
 

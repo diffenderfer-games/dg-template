@@ -33,7 +33,47 @@ Title, HUD, pause and result decoration go through `GameDefinition.screens` (see
 
 ## Theming
 
-`KIT_CSS` is themed by CSS variables the game sets in `src/game/theme.css`: `--kit-bg`, `--kit-panel`, `--kit-fg`, `--kit-muted`, `--kit-accent`, `--kit-accent-fg`, `--kit-accent-2`, `--kit-warn`, `--kit-radius`, `--kit-font`. Screens keep clear of the safe area, the race HUD (`--hub-race-hud-top` and `--hub-race-hud-bottom`) through `--kit-top` and `--kit-bottom`. Focus rings use the hub's `--hub-focus-*` variables and show only for keys and pad.
+`KIT_CSS` is themed by CSS variables the game sets in `src/game/theme.css`: `--kit-bg`, `--kit-panel`, `--kit-fg`, `--kit-muted`, `--kit-accent`, `--kit-accent-fg`, `--kit-accent-2`, `--kit-warn`, `--kit-radius`, `--kit-font`. Screens keep clear of the safe area, the race HUD (`--hub-race-hud-top` and `--hub-race-hud-bottom`) through `--kit-top` and `--kit-bottom`.
+
+### Focus
+
+Focus shows only for keys and a pad (`html[data-hub-input="keys"]`), and it is the **kit's own look**: the hub's ring
+(a box it draws over the control) stays off over the kit's menus (`installMenuNav` passes `ring: false`; a game that
+wants it back sets `nav: { hubRing: true }`). A focused control matches `:focus`, `:focus-visible` and, when the hub's
+pad navigation highlights it, `[data-hub-focus]`. Theme it with variables (they default to the hub's `--hub-focus-*`
+ring, so one set of colours themes both):
+
+| Variable | Default | What |
+|---|---|---|
+| `--kit-focus-color` | `--hub-focus-color`, `#fff` | the ring |
+| `--kit-focus-inner` | `--hub-focus-inner`, dark | the gap between the control and the ring |
+| `--kit-focus-width` / `--kit-focus-gap` | `3px` / `2px` | ring and gap widths |
+| `--kit-focus-shadow` | the two-tone ring from the four above | the whole `box-shadow` (e.g. a glow); `none` for no ring |
+| `--kit-focus-outline` / `--kit-focus-outline-offset` | `none` / `2px` | an outline instead of (or with) the shadow |
+| `--kit-focus-filter` | `none` | a `filter`, e.g. `drop-shadow(0 0 8px pink)` |
+
+Set them on `:root` for every control, or inside a control's own `:focus` rule for a per-control look
+(`.my-card:focus { --kit-focus-shadow: 0 0 0 2px #fff, 0 0 18px #f0a; }`). The hub's menu, its dialogs and its
+on-screen keyboard keep the hub's ring (tune that with `--hub-focus-*`).
+
+## The back guard
+
+In play, a swipe from the screen's side (iOS Safari's back/forward) or the phone's Back doesn't leave the game: it
+pauses (a race or a match asks "Leave race?" / "Leave match?", the kit's `pause()`). `kit/ui/back-guard.ts`:
+
+- on from the first frame of play until the result screen or the title; `html.kit-back-guard` gives `#app` and the play
+  screen `touch-action: none` and the page no overscroll, so a drag plays;
+- a `touchstart` within 24 px of the left or right side is cancelled unless it is on a control (a button, a link,
+  `[role=button]`, the hub's buttons through their shadow roots), since cancelling it would cancel the control's click;
+- Back can't always be cancelled (Android's gesture), so **one** history entry is pushed over the page's for play; a
+  back lands on the page's own entry, the entry goes back on and the game pauses (nothing if the pause screen, a
+  question or hub UI is already up). At the result or the title the entry comes off (`history.back()`, keeping an
+  address the hub tidied meanwhile), so Back in the menus leaves as before.
+
+It is on by default except for games with `resumeOnClose: true` (turn-based and idle: leaving costs nothing).
+`GameDefinition.backGuard`: `false` turns it off, `true` forces it on, or options: `{ edgePx, edges: false, history:
+false }`. A game that wants it elsewhere (a long animation, an editor) drives the page's guard itself:
+`pageBackGuard()?.start(onBack)` / `.stop()`; `backGuard(document, window, options)` makes a separate one (tests).
 
 ## Styling the kit's screens
 
@@ -99,6 +139,9 @@ It prints one line per size and screen and exits 1 if any check failed. Run it a
 - Leave room for the race HUD: [docs/multiplayer.md §14.5](../multiplayer.md#145-testing).
 
 ## Options / API
+
+- `backGuard`, `pageBackGuard`, `historyGuard`, `edgeSwipe`, `EDGE_PX`, `BACK_GUARD_CLASS`: the back guard (above).
+
 
 | Export | What |
 |---|---|

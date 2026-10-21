@@ -21,7 +21,7 @@ import type { HubLike } from '../core/hub-like.ts';
 import { isJson, type JsonObject } from '../core/json.ts';
 import { t } from '../core/strings.ts';
 import type { DailyHandle, DailyStart } from '../daily/index.ts';
-import type { ControlsHandle } from '../input/controls.ts';
+import { RESUME_INPUT, type ControlsHandle } from '../input/controls.ts';
 import { FixedLoop } from '../loop/index.ts';
 import { syncMenuButton, type PauseHandle } from '../pause/index.ts';
 import type { RaceHandle } from '../race/index.ts';
@@ -29,7 +29,8 @@ import type { ResumeSlot } from '../resume/index.ts';
 import { randomSeed, SeededRng } from '../rng/index.ts';
 import { recordResult } from '../scores/index.ts';
 import { h } from '../ui/dom.ts';
-import { closeTopModal, confirm } from '../ui/modal.ts';
+import type { BackGuard } from '../ui/back-guard.ts';
+import { closeTopModal, confirm, topModal } from '../ui/modal.ts';
 import type { Screens } from '../ui/screens.ts';
 import { toast } from '../ui/toast.ts';
 import type { RunningAudio } from '../audio/kit-audio.ts';
@@ -69,6 +70,8 @@ export type SessionParts<P extends JsonObject, R extends JsonObject> = {
   turns: TurnsFlow | null;
   controls: ControlsHandle;
   audio: RunningAudio;
+  /** Edge swipes and Back in play (null: the game turned it off). */
+  backGuard: BackGuard | null;
 };
 
 /** The play session. */
@@ -92,6 +95,8 @@ export class Session<P extends JsonObject, R extends JsonObject> {
   private askingLeave = false;
   /** The `pause` input was held last step. */
   private pauseHeld = false;
+  /** The pause screen's resume (the `pause` input's keys and buttons) was held last frame. */
+  private resumeHeld = true;
 
   constructor(d: SessionDeps<P, R>) {
     this.d = d;
@@ -241,7 +246,22 @@ export class Session<P extends JsonObject, R extends JsonObject> {
     this.syncChrome();
     // A key still held as play shows (the Esc that resumed) must come up before it pauses.
     this.pauseHeld = this.d.hub.input.value('pause') >= 0.5;
+    this.guardBack(true);
     return hud;
+  }
+
+  /** The back guard follows play: on from the first frame of play until the result or the title. */
+  private guardBack(on: boolean): void {
+    const guard = this.parts?.backGuard ?? null;
+    if (guard === null) return;
+    if (!on) {
+      guard.stop();
+      return;
+    }
+    // A back mid-play pauses (a race or a match asks to leave), unless something is up already (the pause screen, a question, hub UI).
+    guard.start(() => {
+      if (this.screen === 'play' && !this.paused && topModal() === null && !this.d.hub.overlay.isOpen) this.pause();
+    });
   }
 
   /** Pause screen (the pause module calls it). */
@@ -250,6 +270,8 @@ export class Session<P extends JsonObject, R extends JsonObject> {
     this.parts?.audio.duck(true);
     const el = this.d.screens.show('pause', () => pauseScreen(this.actions()));
     this.d.game.screens?.pause?.(this.ctx, el);
+    // The button that paused (Start) must come up before it resumes.
+    this.resumeHeld = true;
     this.syncChrome();
   }
 
@@ -262,13 +284,14 @@ export class Session<P extends JsonObject, R extends JsonObject> {
   /** Input groups and the hub menu button follow the screen. */
   syncChrome(): void {
     const playing = this.screen === 'play' && !this.paused;
-    this.parts?.controls.sync({ playing });
+    this.parts?.controls.sync({ playing, paused: this.screen === 'pause' });
     syncMenuButton(this.d.hub, { playing: this.screen === 'play', paused: this.paused });
   }
 
   /** The result screen: Play again only where it makes sense (normal, daily). */
   showResult(won: boolean, again: boolean): HTMLElement {
     const el = this.d.screens.show('result', () => resultScreen(won, this.actions(), { again }));
+    this.guardBack(false);
     this.syncChrome();
     return el;
   }
@@ -393,6 +416,7 @@ export class Session<P extends JsonObject, R extends JsonObject> {
     this.mode = null;
     this.d.activity.set(null);
     this.parts?.pause.resume();
+    this.guardBack(false);
     void this.showTitle();
   }
 
@@ -476,6 +500,7 @@ export class Session<P extends JsonObject, R extends JsonObject> {
   }
 
   private render(alpha: number): void {
+    this.resumeOnPress();
     if (this.mode === 'online' && this.parts?.online) {
       this.parts.online.render();
       return;
@@ -483,6 +508,15 @@ export class Session<P extends JsonObject, R extends JsonObject> {
     this.d.game.render(this.ctx, this.run, alpha);
     if (this.run !== null && this.hud !== null && this.screen === 'play')
       this.d.game.screens?.hud?.update(this.ctx, this.run);
+  }
+
+  /** On the pause screen the pause button (Start, or the `pause` input's keys) resumes, once it was let go. */
+  private resumeOnPress(): void {
+    if (this.screen !== 'pause') return;
+    const held = this.d.hub.input.value(RESUME_INPUT) >= 0.5;
+    const pressed = held && !this.resumeHeld;
+    this.resumeHeld = held;
+    if (pressed && topModal() === null && !this.d.hub.overlay.isOpen) this.resume();
   }
 
   /** The game ended: results by mode, then the result screen. */

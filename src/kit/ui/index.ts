@@ -3,6 +3,7 @@
  * Source: dg-template src/kit/ui/ (kit v1.0). Copy byte-identical; change it in the template first.
  * Docs: docs/kit/ui.md
  */
+export * from './back-guard.ts';
 export * from './controls.ts';
 export * from './css.ts';
 export * from './dom.ts';

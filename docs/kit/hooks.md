@@ -30,6 +30,8 @@ The kit calls these; you fill them in. `npm run todo` lists the open
 | `settingsRows(ctx)` | The game's own settings rows |
 | `strings` | Override kit strings |
 | `resumeOnClose` | Turn-based / idle games resume when hub UI closes (action games show pause) |
+| `nav` | `active(ctx, state)`: when the kit's pad navigation is on (default: off in play when A or B are the game's); `hubRing` ([input.md](input.md#menus)) |
+| `backGuard` | Edge swipes and Back pause play instead of leaving: default on (off with `resumeOnClose`); `false`, `true` or options ([ui.md](ui.md#the-back-guard)) |
 | `stepDt` | Seconds per step (default 1/60) |
 | `daily` | `meta(run, outcome)`, `offline` ([daily.md](daily.md)) |
 | `race` | `stats(run)`, `progress(run)`, `params()` ([race.md](race.md)) |

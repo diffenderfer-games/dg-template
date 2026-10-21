@@ -53,6 +53,7 @@ fake.auth(null); // hub:auth (log out)
 | Joining others | `FakeTurns.lobbies` (`openLobbies`), `.taken` (a join that fails), `.lobbiesError`; `FakeRooms.open` (`list`), `.full`, `.listError`; `FakeSocial.openPlayOnline` (`undefined` acts as an older runtime) |
 | `fakePlayer`, `fakeSeat`, `fakeRoomInfo`, `fakeHubError`, `fakeAudioContext` | Builders |
 | `HUB_PHASES`, `HubPhase`, `shipped(...)`, `waitsOn(...)` | The hub-phase list |
+| `padHarness({ count?, slug? })`, `PadHarness`, `FakePad`, `plugIn(...pads)` | A gamepad through the **real** hub input system ([below](#a-gamepad-through-the-real-hub)) |
 | `simulate`, `seedRange`, `formatReport`, `SimSpec`, `SimReport` | The sim (`kit/testing/sim.ts`, imported by path, not from the index) |
 
 ## What the kit's tests need from your game
@@ -140,6 +141,28 @@ it('opening hub UI pauses the game once', async () => {
 ```
 
 `g.fake` is the `FakeHub`, `g.hook` is `window.__game`, `g.ui` is the kit's DOM, `g.press(testid)` clicks a kit button, `g.frames(n)` runs n 16 ms frames, `g.settle()` lets promises run; `g.calls` records the game's hooks (`newRun`, `step`, `result`, `onResult`, screens). The harness also asks the game: `HAS` (the features it declares; `describeIf(HAS.race, why)` skips a suite without them), `RACE_PARAM`, `savedGame(score)`, `savedDay(day, score)`, `profileAfter(...scores)`, `playTo(g, score)`, `resultBoards(g)`. The suites test the kit through the game's real hooks, not pixels, and need only the test contract (above).
+
+### A gamepad through the real hub
+
+`FakeInput` reads what a test says is held; to test what a pad really does (dead zones, button lists, which device
+is active, the hub's menu navigation clicking your buttons), drive the real `InputSystem` with a fake pad (jsdom):
+
+```ts
+import { PAD_BUTTON } from '@diffenderfer-games/hub/input';
+import { defineControls } from '../../src/kit/input/index.ts';
+import { padHarness } from '../../src/kit/testing/index.ts';
+import { controls } from '../../src/game/controls.ts';
+
+const h = padHarness();                                  // a real InputSystem; navigator.getGamepads() returns h.pad
+defineControls({ input: h.input }, controls, 1280).sync({ playing: true });
+h.pad.press(PAD_BUTTON.RT, 0.6).stick(0.3);              // hold a trigger, push the left stick
+h.frame();                                               // one hub frame (they run by hand)
+expect(h.input.value('throttle')).toBeCloseTo(0.6);
+h.dispose();                                             // unplug, give requestAnimationFrame back
+```
+
+`h.activate()` makes the pad the active device first (the hub counts a pad's values only then); `h.pads` with
+`padHarness({ count: 2 })` for two players. tests/kit/testing/fake-pad.test.ts is a worked example.
 
 ### Planned hub tests
 

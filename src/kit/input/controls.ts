@@ -8,8 +8,11 @@
  *   records it and applies the last one on close.
  * - `virtual(width)` gives the on-screen controls for a width (GD
  *   virtualControls); `relayout()` re-defines them when the layout changes.
+ * - `sync({ paused: true })` enables the kit's own `kit:resume` group: the
+ *   `pause` input's keys and buttons, so Start (or Esc) resumes from the
+ *   pause screen as it paused.
  */
-import type { GroupDef, VirtualDef } from '@diffenderfer-games/hub';
+import type { GamepadMapping, GroupDef, InputDef, VirtualDef } from '@diffenderfer-games/hub';
 import type { HubLike } from '../core/hub-like.ts';
 
 /** What the game declares (src/game/controls.ts). */
@@ -20,14 +23,26 @@ export type InputSpec = {
   virtual?: (width: number) => VirtualDef[];
 };
 
+/** The kit's group while paused: the `pause` input's keys and buttons again, read as `RESUME_INPUT`. */
+export const RESUME_GROUP = 'kit:resume';
+export const RESUME_INPUT = 'kit:resume';
+
+/** A gamepad mapping's buttons as a list. */
+export function padButtonsOf(mapping: GamepadMapping | undefined): readonly number[] {
+  const button = mapping?.button;
+  return button === undefined ? [] : typeof button === 'number' ? [button] : button;
+}
+
 /** The defined controls. */
 export type ControlsHandle = {
-  /** Enable `play` while playing, plus any `extra` groups; hub calls only on change. */
-  sync(state: { playing: boolean; extra?: Record<string, boolean> }): void;
+  /** Enable `play` while playing (and `kit:resume` while paused), plus any `extra` groups; hub calls only on change. */
+  sync(state: { playing: boolean; paused?: boolean; extra?: Record<string, boolean> }): void;
   /** Re-define the touch layout if the width changed it (resize, rotation). */
   relayout(width: number): void;
   /** Does an enabled group read this key (`KeyboardEvent.key`, any case)? Then the key is the game's (Esc in the world's box). */
   usesKey(key: string): boolean;
+  /** Does a group (default `play`, enabled or not) read any of these gamepad buttons? */
+  usesPadButton(buttons: readonly number[], group?: string): boolean;
 };
 
 /** Define the game's controls with the hub. */
@@ -46,6 +61,8 @@ export function defineControls(hub: Pick<HubLike, 'input'>, spec: InputSpec, wid
           ? { ...g, virtual: next, enabled: enabled.get(name) ?? false }
           : { ...g, enabled: enabled.get(name) ?? false };
     }
+    const pause = spec.groups['play']?.inputs['pause'];
+    if (pause !== undefined && !(RESUME_GROUP in groups)) groups[RESUME_GROUP] = resumeGroup(pause, enabled);
     hub.input.define({ groups });
   };
   define(width);
@@ -60,6 +77,7 @@ export function defineControls(hub: Pick<HubLike, 'input'>, spec: InputSpec, wid
   return {
     sync(state) {
       set('play', state.playing);
+      if (spec.groups['play']?.inputs['pause'] !== undefined) set(RESUME_GROUP, state.paused === true);
       for (const [group, on] of Object.entries(state.extra ?? {})) set(group, on);
     },
     relayout: define,
@@ -71,5 +89,18 @@ export function defineControls(hub: Pick<HubLike, 'input'>, spec: InputSpec, wid
           Object.values(g.inputs).some((def) => def.keys?.some((bound) => bound.toLowerCase() === k) === true),
       );
     },
+    usesPadButton(buttons, group = 'play') {
+      const inputs = Object.values(spec.groups[group]?.inputs ?? {});
+      return inputs.some((def) => padButtonsOf(def.gamepad).some((b) => buttons.includes(b)));
+    },
   };
+}
+
+/** The pause screen's resume: the `pause` input's keys and pad buttons (no touch: the pause screen has a button). */
+function resumeGroup(pause: InputDef, enabled: Map<string, boolean>): GroupDef {
+  const input: InputDef = {
+    ...(pause.keys === undefined ? {} : { keys: pause.keys }),
+    ...(pause.gamepad === undefined ? {} : { gamepad: pause.gamepad }),
+  };
+  return { inputs: { [RESUME_INPUT]: input }, enabled: enabled.get(RESUME_GROUP) ?? false };
 }

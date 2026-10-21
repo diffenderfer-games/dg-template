@@ -620,7 +620,8 @@ It runs in three contexts automatically:
 - **On the catalog** — moves a highlight across the tiles and opens the focused
   game.
 - **In the hub menu** — the **Select/Back button (8)** pops the menu from
-  anywhere; while open, the stick navigates its items, A activates, B closes.
+  anywhere; while open, the stick navigates its items, A activates, B closes
+  (a game can move these: `hub.input.setPadButtons`, "The hub's buttons").
   So the whole arcade is playable with no keyboard.
 
 ### Mapping controls per game
@@ -728,8 +729,63 @@ only declares `y`); `hub.input.vector(name)` returns
   with `hub.input.setVirtualDefault(false)` (pass `true` to force-show, `null`
   to restore auto). The player's own show/hide toggle always wins over this.
 - Keyboard always works; **mouse and gamepad are last-used-wins** (using the
-  gamepad ignores the mouse until the mouse moves again). Subscribe with
-  `hub.input.on('sourcechange', s => …)`.
+  gamepad ignores the mouse until the mouse moves again). The gamepad takes
+  over on any button past 0.1 (a light trigger squeeze counts) or a stick past
+  0.3 (above drift). Subscribe with `hub.input.on('sourcechange', s => …)`.
+- **Edges:** `down(name)` / `up(name)` are true the frame an input crosses 0.5
+  up / down, `pressed(name)` while it is at or past 0.5. Read them once per
+  frame (a fixed-step loop that may run 0 or 2 steps a frame keeps its own
+  edge from `value(name) >= 0.5`).
+
+### Gamepad mapping
+
+```ts
+steer_left: {
+  keys: ['a', 'ArrowLeft'],
+  // the stick, the d-pad and LB all steer left (the strongest wins)
+  gamepad: { axis: [0, '-'], button: [PAD_BUTTON.LEFT, PAD_BUTTON.LB], deadzone: 0.1, curve: 1.6 },
+},
+gas: { gamepad: { button: PAD_BUTTON.RT } },          // analog 0..1
+look: { gamepad: { axis: [[2, '+'], [3, '+']] } },    // several axes
+```
+
+- `button` takes one standard-gamepad index or a list; `axis` one
+  `[index, '+' | '-' | '±']` or a list. `PAD_BUTTON` (from
+  `@diffenderfer-games/hub/input`) names them: `A B X Y LB RB LT RT SELECT
+  START L3 R3 UP DOWN LEFT RIGHT HOME`.
+- **Dead zone:** a stick reads 0 up to `deadzone` (default `STICK_DEADZONE`,
+  0.12) and the rest is **rescaled** to 0..1, `(abs − dz) / (1 − dz)`, so a
+  small push past it is a small value, never a jump. `deadzone: 0` reads the
+  raw stick for a game that shapes it itself.
+- **Curve:** `curve` shapes the axes after the dead zone: a power (`2` gentle
+  near the centre, `1` straight, the default) or a function `(0..1) → 0..1`.
+  `shapeAxis(amount, { deadzone, curve })` and `applyDeadzone(amount, dz)` are
+  exported for a game's own sticks.
+- A player's rebind (menu **Controls**) replaces the buttons only; the stick,
+  dead zone and curve stay the game's.
+- Menu navigation steps once a stick points past 0.35 (`AXIS_DEADZONE`).
+
+#### The hub's buttons
+
+`hub.input.padButtons` is what the hub's navigation answers to
+(`DEFAULT_PAD_BUTTONS`):
+
+| | Default | What |
+|---|---|---|
+| `menu` | Select (8) | toggles the hub menu from anywhere (in the world's box, the world's menu); the game's inputs read 0 while it is open, so put no game action on it |
+| `act` | A (0) | clicks the highlighted element of a navigated menu (`autoNavigate`, the hub menu) |
+| `back` | B (1) | a navigated menu's back (`autoNavigate`'s `back`, closes the hub menu); **held 0.6 s in the world's box it leaves the game**, so a short press is the game's but a held one is not |
+
+Change them with `hub.input.setPadButtons(patch)` (merged): `{ menu:
+[PAD_BUTTON.HOME] }` frees Select for the game, `{ menu: [] }` never opens the
+menu from the pad (keep the hub's menu button showing, or open it yourself with
+`dispatchEvent(new Event('hub:menu-toggle'))`), `{ act: [1], back:
+[0] }` is a Nintendo layout. The world's hold-to-leave follows `back`. The
+hub's on-screen keyboard and its own screens keep A/B/Start.
+
+> The Gamepad API only works in a **secure context**: HTTPS or `localhost`. A
+> game opened from a LAN IP over plain http (`http://192.168.x.x:5173`) sees
+> no pads at all; test pads on `localhost` or through HTTPS.
 
 ### Touch control layout
 
@@ -790,11 +846,21 @@ hub.input.autoNavigate('#pause button, #gameover button, #title button');
 
 Pass a CSS selector (or a function returning elements). Whenever any match is
 **visible** and a **gamepad** is the active device, the d-pad/stick move a
-highlight ring across them and **A** clicks the focused one (**B** → `back`). It
+highlight ring across them and **A** clicks the focused one (**B** → `back`; both
+follow `setPadButtons`). It
 re-queries every frame, so it follows menus showing/hiding — call it once at
 startup. It's a no-op for mouse/touch/keyboard (those use the menu natively),
 and it does **not** suppress gameplay (your existing pause logic gates that), so
 the gamepad's pause/Start still works to resume.
+
+During play, return **no elements** from the function (e.g. `() => playing ? []
+: [...]`): otherwise a HUD button stays highlighted and A (often a game action
+too) clicks it.
+
+Options: `{ back, ring }`. `ring: false` draws no hub ring: the elements' own
+focus style shows (see Focus rings). `hub.input.autoNavigateTarget()` returns the
+current `{ query, back, ring, options }`; hub dialogs borrow the pad and give it
+back with the same options.
 
 ### Navigable groups (full control)
 
@@ -841,6 +907,20 @@ A game with its own focus style can key it off the same attribute, for example
 drop it on touch screens with `@media (hover: none) and (pointer: coarse)`.
 `FOCUS_RING_SHADOW` (from `@diffenderfer-games/hub/input`) is the ring as a
 `box-shadow` value.
+
+**Drawing your own focus.** The hub's ring is a separate box drawn over the
+element, so a game with its own look turns it off rather than hiding it:
+
+- `hub.input.autoNavigate(selector, { ring: false })`, or `ring: false` on a
+  navigable group: no ring over that game's menus (the hub menu, hub dialogs
+  and the on-screen keyboard keep theirs);
+- `data-hub-ring="off"` on an element or an ancestor: no ring over it
+  (`RING_ATTRIBUTE`);
+- the element the hub's navigation highlights gets DOM focus and the
+  attribute **`data-hub-focus`** (`NAV_FOCUS_ATTRIBUTE`), taken off when the
+  highlight moves on or navigation stops: style `[data-hub-focus]` or `:focus`
+  under `html[data-hub-input="keys"]` (`el.focus()` doesn't always count as
+  `:focus-visible`). Canvas elements get `onFocus`/`onBlur`.
 
 ### Remapping & persistence
 

@@ -8,7 +8,15 @@
  * open `play` is held, and the last enable/disable made meanwhile is applied
  * on close.
  */
-import type { InputConfig, InputEvents, InputSource, NavTarget, Vector } from '@diffenderfer-games/hub';
+import type {
+  AutoNavigateOptions,
+  InputConfig,
+  InputEvents,
+  InputSource,
+  NavTarget,
+  PadButtons,
+  Vector,
+} from '@diffenderfer-games/hub';
 import { Emitter } from '../core/emitter.ts';
 import type { InputLike } from '../core/hub-like.ts';
 import type { CallLog } from './calls.ts';
@@ -18,7 +26,9 @@ type Insets = { top?: number; right?: number; bottom?: number; left?: number };
 /** The fake input system plus drivers to set what the player holds. */
 export class FakeInput implements InputLike {
   config: InputConfig | null = null;
-  nav: { targets: () => NavTarget[]; back?: () => void } | null = null;
+  nav: { targets: () => NavTarget[]; back?: () => void; ring: boolean } | null = null;
+  /** What the hub's navigation answers to (`setPadButtons`). */
+  padButtons: PadButtons = { menu: [8], act: [0], back: [1] };
   insets: Insets = {};
   touchDevice = false;
   private readonly enabled = new Set<string>();
@@ -82,13 +92,19 @@ export class FakeInput implements InputLike {
     return this.events.on(event, listener);
   }
 
-  autoNavigate(selector: string | (() => NavTarget[]), options?: { back?: () => void }): void {
+  autoNavigate(selector: string | (() => NavTarget[]), options: AutoNavigateOptions = {}): void {
     this.log.record('input.autoNavigate');
     const targets =
       typeof selector === 'string'
         ? (): NavTarget[] => [...document.querySelectorAll<HTMLElement>(selector)]
         : selector;
-    this.nav = options?.back ? { targets, back: options.back } : { targets };
+    const ring = options.ring !== false;
+    this.nav = options.back ? { targets, back: options.back, ring } : { targets, ring };
+  }
+
+  setPadButtons(patch: Partial<PadButtons>): void {
+    this.log.record('input.setPadButtons', patch);
+    this.padButtons = { ...this.padButtons, ...patch };
   }
 
   clearAutoNavigate(): void {
@@ -136,9 +152,9 @@ export class FakeInput implements InputLike {
     this.events.emit('sourcechange', source);
   }
 
-  /** The back button (gamepad B / Escape) while menus are navigable. */
+  /** The pad's back button (B). Like the hub, it calls back only while there are menu targets to navigate. */
   pressBack(): void {
-    this.nav?.back?.();
+    if (this.nav !== null && this.nav.targets().length > 0) this.nav.back?.();
   }
 
   /** Hub UI opened: hold `play` (the overlay calls it). */

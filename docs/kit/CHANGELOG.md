@@ -4,6 +4,35 @@ KIT doc. One entry per kit version; per module inside. A **major** version
 means a hook's signature changed: the entry says how to move a game over.
 `npm run kit:sync` prints the entries newer than a game's `kit.json`.
 
+## 1.22 (2026-10-21)
+
+Needs `@diffenderfer-games/hub` 2.0.0-next.17 or later (`padButtons`, `autoNavigate`'s `ring`, button lists).
+
+- **input 1.4:** the kit's pad navigation is off during active play when the `play` group reads the pad's act or back
+  button (A, B), so A never clicks a HUD button and B is the game's; `GameDefinition.nav.active(ctx, state)`
+  overrides it (`state.byDefault`). `installMenuNav` takes `active()` and `ring` (default false). The pause screen
+  resumes on the `pause` input's keys and pad button (Start): the `kit:resume` group, `sync({ paused })`.
+  `ControlsHandle.usesPadButton`, `padButtonsOf`. Docs: the gamepad (button and axis lists, dead zones, the hub's
+  buttons, the secure context), Menus.
+- **ui 1.8:** the back guard (`kit/ui/back-guard.ts`, from Rift Racers): in play an edge swipe or the phone's Back
+  pauses instead of leaving (a race or a match asks to leave). Focus is the kit's own look, themed with
+  `--kit-focus-color`, `-inner`, `-width`, `-gap`, `-shadow`, `-outline`, `-filter` (they default to the hub's
+  `--hub-focus-*`), and matches `[data-hub-focus]`; the hub's ring stays off over the kit's menus.
+- **boot 1.11:** `GameDefinition.nav` and `backGuard` (default on, off with `resumeOnClose`); the session turns the
+  back guard on in play and off at the result and the title, and resumes on Start.
+- **testing 1.12:** `padHarness`, `FakePad`, `plugIn`: a fake gamepad through the real hub input system.
+  `FakeInput.pressBack()` calls back only while there are menu targets (like the hub); `FakeInput` has
+  `padButtons`, `setPadButtons` and records `autoNavigate`'s `ring`.
+- **core 1.17:** `KIT_VERSION` 1.22; `InputLike` gains `padButtons`, `setPadButtons`. **pause 1.3**, **docs 1.25**
+  (look, hooks), **hub-events 1.9** (row 10 turns pad navigation on in play, so it holds for every game), **scripts 1.26:** this entry's docs, tests and module versions.
+
+### Moving a game over
+
+- Delete game-side workarounds: reading the stick yourself to dodge the old 0.35 dead zone (set `deadzone: 0` on the
+  mapping if you shape the stick yourself), taking `data-nav` off HUD buttons, turning `--hub-focus-*` transparent,
+  your own back/edge-swipe guard. Put d-pad and stick on one input with a button list.
+- A game that navigates its play screen with the pad while A or B are game actions sets `nav.active`.
+
 ## 1.21 (2026-10-21)
 
 - **scripts 1.25:** `kit:check` warns about a label it doesn't know instead of failing, so a label the
