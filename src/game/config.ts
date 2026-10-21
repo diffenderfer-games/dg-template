@@ -29,7 +29,8 @@ export const BOARDS = {
  *   `min` 2 or more (hub.md "Labels, ages and the home page"). The game's sheet on the home page shows it ("Ages 6+")
  *   and the home page's age filter shows the game only for ages in its range (a game without it is left out).
  * TODO(game): `game.labels`, only from the hub's fixed list (hub.md "Labels, ages and the home page"):
- *   genre `cards` `board` `puzzle` `arcade` `platformer` `real-time-strategy` `physics` `typing` `word` `sports` `racing` `horror`;
+ *   genre `cards` `board` `puzzle` `arcade` `platformer` `real-time-strategy` `physics` `typing` `word` `sports` `racing` `horror`
+ *   `adventure` `strategy` `party` `trivia` `learning` `music` `creative` `idle` `simulation` `shooter` `fighting` `mystery`;
  *   look `2d` `3d`; plays on `phone` `controller` `desktop`; players `single-player` `multiplayer`.
  *   They filter the catalog, and the genre labels decide which rooms of the hub's world play the game (every
  *   room one fits; the arcade takes games with nowhere else). Its main family is the first genre label in the

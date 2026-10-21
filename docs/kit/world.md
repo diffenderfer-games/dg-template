@@ -101,14 +101,16 @@ hub.md "Labels and the home page"; anything else is ignored):
 
 - **Every room one of its genre labels fits:** cards in the card room, board in the
   board-game café (and the park's picnic tables), puzzle and typing in the puzzle
-  garden, racing on the start lines, real-time-strategy in the war room, arcade,
-  platformer, physics and horror in the cabinets, sports and arcade at the station's holo-tables,
+  garden (and trivia and learning), racing on the start lines, real-time-strategy and strategy in the war room,
+  mystery and party at the board-game tables, arcade,
+  platformer, physics, horror and the other action kinds in the cabinets, sports and arcade at the station's holo-tables,
   word at the lounge's card tables. A game
   can be in several rooms.
 - **The arcade is the catch-all:** a game with nowhere else gets one of its cabinets
   (at most 10, games that play over the world first).
 - **Its family:** the first genre label in the list's order (cards, board, puzzle,
-  arcade, platformer, real-time-strategy, physics, typing, word, sports, racing, horror),
+  arcade, platformer, real-time-strategy, physics, typing, word, sports, racing, horror,
+  adventure, strategy, party, trivia, learning, music, creative, idle, simulation, shooter, fighting, mystery),
   whatever order you write them in. A game with `game.world` gets its room's door in
   that family's room (cards, board, arcade or the war room), else in the Hall.
 

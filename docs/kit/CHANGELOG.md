@@ -4,6 +4,14 @@ KIT doc. One entry per kit version; per module inside. A **major** version
 means a hook's signature changed: the entry says how to move a game over.
 `npm run kit:sync` prints the entries newer than a game's `kit.json`.
 
+## 1.21 (2026-10-21)
+
+- **scripts 1.25:** `kit:check` warns about a label it doesn't know instead of failing, so a label the
+  hub just learned can ship before the game's next hub package.
+- **docs 1.24, world 1.7:** twelve more genre labels: `adventure`, `strategy`, `party`, `trivia`, `learning`, `music`, `creative`, `idle`, `simulation`, `shooter`, `fighting`, `mystery`. The
+  world docs say where they go; the synced hub.md lists them.
+- **core 1.16:** `KIT_VERSION` 1.21.
+
 ## 1.20 (2026-10-21)
 
 - **docs 1.23:** the genre labels gain `horror` (scary games; the catalog's Genre filter and picked

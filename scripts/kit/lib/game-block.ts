@@ -35,12 +35,18 @@ export function checkChanges(changes: JsonValue | undefined): string[] {
   return problems;
 }
 
-/** Labels outside the hub's vocabulary. */
+/**
+ * Labels outside this game's hub package's vocabulary: a warning, not a problem, so a label the hub
+ * just learned can ship before the game's next hub package (the catalog ignores one it doesn't know).
+ */
 export function checkLabels(labels: JsonValue | undefined): string[] {
   const known = new Set<string>(GAME_LABELS);
   return arr(labels)
     .filter((l): l is string => typeof l === 'string' && !known.has(l))
-    .map((l) => `labels: "${l}" is not one of ${GAME_LABELS.join(', ')}`);
+    .map(
+      (l) =>
+        `labels: "${l}" is not one of ${GAME_LABELS.join(', ')} (fine if the hub is newer than this game's hub package; a typo is ignored by the catalog)`,
+    );
 }
 
 /** The youngest `ages.min` the hub takes (hub-contract's `MIN_GAME_AGE`). */

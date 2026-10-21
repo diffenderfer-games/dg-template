@@ -53,12 +53,8 @@ const game = rec(pkg.game);
 if (!game) {
   problems.push('package.json has no `game` block');
 } else {
-  problems.push(
-    ...checkChanges(game.changes),
-    ...checkLabels(game.labels),
-    ...checkAges(game.ages),
-    ...checkWorld(game.world),
-  );
+  problems.push(...checkChanges(game.changes), ...checkAges(game.ages), ...checkWorld(game.world));
+  warnings.push(...checkLabels(game.labels));
   if (game.ages === undefined)
     warnings.push(
       `package.json: game.ages is missing: say who the game is for, e.g. { "min": 6 } (the home page's age filter leaves it out until then)`,

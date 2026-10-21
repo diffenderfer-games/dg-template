@@ -60,7 +60,7 @@ describe('kit:check: the game block', () => {
 
   it('labels come from the hub vocabulary', () => {
     expect(checkLabels(['arcade', '2d', 'phone'])).toEqual([]);
-    expect(checkLabels(['shooter'])[0]).toMatch(/shooter/);
+    expect(checkLabels(['spaceship'])[0]).toMatch(/spaceship/);
   });
 
   it('ages are { min } or { min, max }, from 2, max no lower than min', () => {
