@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, expect, it } from 'vitest';
-import { inFrame, isEmbedded } from '../../../src/kit/core/env.ts';
+import { inFrame, isEmbedded, isLocalNetwork } from '../../../src/kit/core/env.ts';
 import { goFullscreen, lockPointer } from '../../../src/kit/layout/index.ts';
 
 /** A same-origin iframe's window (the world's box is one). */
@@ -39,5 +39,21 @@ describe('in a frame (the world\'s box, hub.md "Playing over the world")', () =>
     expect(await goFullscreen(el, window)).toBe(true);
     expect(await lockPointer(el, window)).toBe(true);
     expect(asked).toEqual(['fullscreen', 'lock']);
+  });
+});
+
+describe('isLocalNetwork', () => {
+  it('private addresses (a local hub on the Wi-Fi) are; the site, localhost and public ones are not', () => {
+    for (const host of ['192.168.50.112', '10.0.0.7', '172.16.4.2', '172.31.255.1'])
+      expect(isLocalNetwork(host)).toBe(true);
+    for (const host of [
+      'diffenderfer.games',
+      'localhost',
+      '100.100.4.74',
+      '172.32.0.1',
+      '8.8.8.8',
+      '192.168.1.1.evil.com',
+    ])
+      expect(isLocalNetwork(host)).toBe(false);
   });
 });

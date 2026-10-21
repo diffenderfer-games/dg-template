@@ -26,9 +26,17 @@ export function isTestHarness(): boolean {
   return typeof window !== 'undefined' && window.__HUB_TEST__ !== undefined;
 }
 
-/** May test drivers (setState, solveNow…) be installed? Dev, localhost or a test harness. */
+/**
+ * Is the page served from a private network address (a local hub on the Wi-Fi, which phones test on:
+ * 192.168.x, 10.x, 172.16–31.x)? The site itself never is.
+ */
+export function isLocalNetwork(hostname: string = typeof location === 'undefined' ? '' : location.hostname): boolean {
+  return /^(192\.168\.|10\.\d{1,3}\.|172\.(1[6-9]|2\d|3[01])\.)\d{1,3}\.\d{1,3}$/.test(hostname);
+}
+
+/** May test drivers (setState, solveNow…) be installed? Dev, localhost, the local network or a test harness. */
 export function driversAllowed(): boolean {
-  return isDev() || isTestHarness() || isLocalhost();
+  return isDev() || isTestHarness() || isLocalhost() || isLocalNetwork();
 }
 
 /** Does the URL ask for screenshot mode (`?shot`)? */

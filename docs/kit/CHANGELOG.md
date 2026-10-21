@@ -4,6 +4,12 @@ KIT doc. One entry per kit version; per module inside. A **major** version
 means a hook's signature changed: the entry says how to move a game over.
 `npm run kit:sync` prints the entries newer than a game's `kit.json`.
 
+## 1.17 (2026-10-20)
+
+- **core 1.12:** `isLocalNetwork()`: test drivers are installed on a private network address too (a
+  local hub on the Wi-Fi, which phones test on). `KIT_VERSION` 1.17.
+- **docs 1.20, scripts 1.21:** this entry; module versions.
+
 ## 1.16 (2026-10-20)
 
 Live games play through a hub room: the lobby, the loading screen, joining the live match and the result.

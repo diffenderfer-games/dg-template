@@ -23,7 +23,7 @@ function srcModule(name: string, version = '1.0'): KitModuleDef {
 
 /** Every module. */
 export const KIT_MODULES: Record<string, KitModuleDef> = {
-  core: srcModule('core', '1.11'),
+  core: srcModule('core', '1.12'),
   testing: srcModule('testing', '1.11'),
   rng: srcModule('rng'),
   'daily-puzzle': srcModule('daily-puzzle', '1.1'),
@@ -51,7 +51,7 @@ export const KIT_MODULES: Record<string, KitModuleDef> = {
   world: srcModule('world', '1.5'),
   'hub-events': { version: '1.8', paths: ['tests/hub-events'] },
   'hub-suites': { version: '1.12', paths: ['tests/hub/_kit.ts', 'tests/hub/kit'] },
-  scripts: { version: '1.20', paths: ['scripts/kit', 'tests/scripts'] },
+  scripts: { version: '1.21', paths: ['scripts/kit', 'tests/scripts'] },
   ci: { version: '1.0', paths: ['.github/workflows/deploy.yml'] },
   agents: { version: '1.0', paths: ['.claude/agents'] },
   config: {
@@ -66,7 +66,7 @@ export const KIT_MODULES: Record<string, KitModuleDef> = {
     ],
   },
   docs: {
-    version: '1.19',
+    version: '1.20',
     paths: [
       'docs/kit/look.md',
       'docs/kit/look',
