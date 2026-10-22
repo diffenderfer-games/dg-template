@@ -129,8 +129,8 @@
       "version": "1.28",
       "files": {
         "docs/getting-started.md": "12d6f3fa6bfe207ab8d85cd6342bdefebb102b298134059aee87d9874f8ab340",
-        "docs/kit/CHANGELOG.md": "a307dfcecac3edf10abb6afb47d0ffbd02f959704590424083b8ad3973f6180f",
-        "docs/kit/README.md": "537c5aac258060929ff95556031a7ff2748d59d1644da6a91fcde901aad149e3",
+        "docs/kit/CHANGELOG.md": "8121977a5392edee4a193fafa60dc074ec654dfdc191b90dbaa53af378662bbd",
+        "docs/kit/README.md": "b8bac2da690f22d9906bf8b39426eef2ced9e0a8aadcbbf9d711ec4b59b3af26",
         "docs/kit/card-games.md": "f29c0144ab9e7869a14dc5328b2e77cd30f74158122fe3dc3d3fa8912358e3ab",
         "docs/kit/covers.md": "e00687c1e2dbde8cbfb1c6b4fa94bc260e671a4b0d7d0fe71199bd76178eaad7",
         "docs/kit/devices.md": "9b95f0f14040d5016c4465fe3f730c6006c7871e986e220cf7cb0ab40c8c8295",
@@ -148,6 +148,7 @@
         "docs/kit/polish.md": "ee7fb410bc6e4afebdbc78e84ffb55d3e682d9fddb90201bb13e57fd5bcd5599",
         "docs/kit/review.md": "cf5fc83ad65dd09f238bd5975163117ce2225aaef675860f7952e8d86332e286",
         "docs/kit/screenshots.md": "90b4357c0ffec19c258602b1f8fb26d0610d4eda7913f8b7748699630603440a",
+        "docs/kit/trailer.md": "294d9517a4b5d79de27079e902ccda911d082dfcbc55b0113e63949eef7e916a",
         "docs/kit/whats-new.md": "0a42974c551112eb036609d52e7effcd3d7fcdeeab9c44e5b4bb7c39aeffadda",
         "docs/repo-setup.md": "e924206f2452a4cfc69faaa7769ba2bf3b933d924de721c4f3da77e13deb2d2c"
       }
@@ -332,7 +333,7 @@
         "scripts/kit/lib/json-file.ts": "dbf7615f262a4cfaed24444d157ce3a1eb43c38139abf22910b5de63fc39fabc",
         "scripts/kit/lib/kit-manifest.ts": "3dd9b442e44bf0f265bdbd3f78332ebce23cf7a058ef6cfc00bea39d1121916d",
         "scripts/kit/lib/kit-skips.ts": "64c564f5bcd174f422c955b23ba42b51c6c7ea8b0e525f371890f24486aa7b67",
-        "scripts/kit/lib/modules.ts": "46fb3639fa2d231a0ceefa1a90d6495085a7714612627634ed8160e99d532239",
+        "scripts/kit/lib/modules.ts": "78e9bbc18af31cddf129de0aeaa9aa3170d146716708054d7578ef7f0a7dac74",
         "scripts/kit/lib/paths.ts": "eff533c813a780dae8389146613b04f627ffa275d46045c98b30bad5149ab9be",
         "scripts/kit/lib/ports.ts": "33b1e358794f2e50f8119c958e0ed857d0c6dc7fe5d3708d97486cae16affdad",
         "scripts/kit/lib/procs.ts": "092866a7f4f02faf47b7b7c6280ff7152b3ba66fe3c505ec52b36089b0609b10",

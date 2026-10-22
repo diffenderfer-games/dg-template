@@ -83,6 +83,7 @@ export const KIT_MODULES: Record<string, KitModuleDef> = {
       'docs/kit/card-games.md',
       'docs/kit/playing-together.md',
       'docs/kit/review.md',
+      'docs/kit/trailer.md',
     ],
   },
 };

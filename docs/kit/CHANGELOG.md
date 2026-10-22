@@ -10,7 +10,9 @@ means a hook's signature changed: the entry says how to move a game over.
   the last input wins (touch controls only while touch is the last input, never on a touch laptop played with keys),
   what to show for each device, button mapping, linear screens, focus, pause per device, testing and a checklist.
   Linked from CLAUDE.md, polish.md and the README's map. **input 1.6:** input.md links it.
-- **core 1.20:** `KIT_VERSION` 1.25. **scripts 1.29:** the module versions, devices.md in the docs module.
+- **docs 1.28:** [trailer.md](trailer.md): making a promo trailer (filming the game frame by frame, the owner's clip
+  picks in a gallery, cards, music and the cut, the review gates), with Rift Racers' `scripts/film/` as the reference.
+- **core 1.20:** `KIT_VERSION` 1.25. **scripts 1.29:** the module versions, devices.md and trailer.md in the docs module.
 
 ### Moving a game over
 
