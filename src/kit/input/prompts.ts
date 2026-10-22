@@ -238,6 +238,16 @@ export function installPrompts(hub: Pick<HubLike, 'input' | 'overlay'>, o: Promp
   if (html.dataset.padStyle === undefined) html.dataset.padStyle = fixed ?? 'xbox';
 
   const offs: (() => void)[] = [];
+  // The hub's own record of the last input (`data-hub-input`): a finger hides the chips, a mouse shows the keys.
+  if (typeof MutationObserver === 'function') {
+    const modality = new MutationObserver(() => {
+      const m = html.getAttribute('data-hub-input');
+      if (m === 'touch') setPromptMode('none');
+      else if (m === 'pointer' && promptMode() === 'none') setPromptMode('keys');
+    });
+    modality.observe(html, { attributes: true, attributeFilter: ['data-hub-input'] });
+    offs.push(() => modality.disconnect());
+  }
   offs.push(
     hub.input.on('sourcechange', (s) => {
       if (s === 'gamepad') setPromptMode('pad');

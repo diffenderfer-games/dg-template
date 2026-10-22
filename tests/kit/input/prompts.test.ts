@@ -151,6 +151,19 @@ describe('the chips follow the device', () => {
     expect(promptMode()).toBe('none');
   });
 
+  it("a touch screen starts with none, and the hub's record of a finger hides them", async () => {
+    document.documentElement.setAttribute('data-hub-input', 'touch');
+    setup();
+    expect(promptMode()).toBe('none');
+    key('a');
+    expect(promptMode()).toBe('keys');
+    document.documentElement.setAttribute('data-hub-input', 'keys');
+    document.documentElement.setAttribute('data-hub-input', 'touch');
+    await Promise.resolve();
+    expect(promptMode()).toBe('none');
+    document.documentElement.removeAttribute('data-hub-input');
+  });
+
   it('a PlayStation pad shows its own glyphs', () => {
     setup({ id: 'DualSense Wireless Controller (STANDARD GAMEPAD Vendor: 054c Product: 0ce6)' });
     tap(PAD_BUTTON.HOME);
