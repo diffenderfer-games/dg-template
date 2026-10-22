@@ -25,6 +25,7 @@ Read these before drawing anything, and again before asking for a review:
 
 - [docs/kit/look.md](docs/kit/look.md): the UI style and motion every screen has.
 - [docs/kit/polish.md](docs/kit/polish.md): the owner's checklist (every modal juicy, even padding, text that fits, phones, loading states, game feel).
+- [docs/kit/devices.md](docs/kit/devices.md): keyboard, gamepad, touch and mouse like a console game (button chips, linear menus, touch controls that follow the last input).
 - [docs/kit/covers.md](docs/kit/covers.md): the catalog cover.
 - [docs/kit/card-games.md](docs/kit/card-games.md): card games (select then confirm, the hand, card faces).
 - [docs/kit/playing-together.md](docs/kit/playing-together.md): lobbies, invites, computer seats, everyone seeing what happened.

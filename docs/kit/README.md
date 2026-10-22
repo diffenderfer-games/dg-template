@@ -57,6 +57,8 @@ need only a short test contract from the game:
 
 Also: [look.md](look.md) (what every game's UI and motion must be),
 [polish.md](polish.md) (the owner's checklist for every screen),
+[devices.md](devices.md) (keyboard, gamepad, touch and mouse: the console feel,
+showing the buttons of the device in hand),
 [covers.md](covers.md) (the catalog cover), [card-games.md](card-games.md),
 [playing-together.md](playing-together.md) (lobbies, computer seats, online
 feel), [review.md](review.md) (handing a game to the owner, improving the

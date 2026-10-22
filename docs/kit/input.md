@@ -145,7 +145,8 @@ How it behaves (`installPrompts`, which `defineGame` calls):
 - **Looks**: [ui.md](ui.md#button-prompts) (`--kit-glyph-*`).
 
 Lay screens out for it: one primary (`confirm`), one way back (`back`), the main choice on the shoulders, a second on
-the triggers, extras on X and Y, all in reading order, so the focus order matches what the player sees.
+the triggers, extras on X and Y, all in reading order, so the focus order matches what the player sees. The whole
+picture (which device is in use, touch controls, linear screens, focus, testing, a checklist): [devices.md](devices.md).
 
 ## Helpers a game may use
 
