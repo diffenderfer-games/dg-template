@@ -4,6 +4,19 @@ KIT doc. One entry per kit version; per module inside. A **major** version
 means a hook's signature changed: the entry says how to move a game over.
 `npm run kit:sync` prints the entries newer than a game's `kit.json`.
 
+## 1.25 (2026-10-22)
+
+- **docs 1.28:** [devices.md](devices.md), how a game handles keyboard, gamepad, touch and mouse like a console game:
+  the last input wins (touch controls only while touch is the last input, never on a touch laptop played with keys),
+  what to show for each device, button mapping, linear screens, focus, pause per device, testing and a checklist.
+  Linked from CLAUDE.md, polish.md and the README's map. **input 1.6:** input.md links it.
+- **core 1.20:** `KIT_VERSION` 1.25. **scripts 1.29:** the module versions, devices.md in the docs module.
+
+### Moving a game over
+
+- Nothing breaks. A game with touch controls checks devices.md § 4: on a touch laptop played with keys they should
+  not show. Add the CLAUDE.md line by hand (CLAUDE.md is the game's).
+
 ## 1.24 (2026-10-21)
 
 - **input 1.5:** button prompts (`kit/input/glyphs.ts`, `prompts.ts`): controls bound to actions (`confirm`, `back`,

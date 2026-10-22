@@ -58,7 +58,9 @@ through it before you send screenshots or a link for review
 
 - Check every screen at 390 × 844 first ([look.md §7](look.md#7-layout)).
 - Touch play works: on-screen controls show (a joystick, buttons), and
-  instructions say "tap" and "drag", never keys, on a touch screen.
+  instructions say "tap" and "drag", never keys, on a touch screen. They show
+  only while touch is the last input, not on a touch laptop played with keys
+  ([devices.md](devices.md#4-touch-controls)).
 - Turning the phone keeps everything on screen. Nothing disappears, and the
   layout redraws (`npm run shots -- --size phone-land`).
 - The hub menu button gets its corner on a phone too, with nothing under it
