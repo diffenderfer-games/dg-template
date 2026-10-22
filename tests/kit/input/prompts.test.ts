@@ -271,6 +271,27 @@ describe('steppers and arrows', () => {
     expect(navTargets(root)).toContain(go);
   });
 
+  it('left and right move a focused slider (the keys and the d-pad)', () => {
+    setup();
+    const slider = document.createElement('input');
+    slider.type = 'range';
+    slider.min = '0';
+    slider.max = '100';
+    slider.value = '50';
+    slider.setAttribute('data-nav', '');
+    const moved: string[] = [];
+    slider.addEventListener('input', () => moved.push(slider.value));
+    root.append(slider);
+    bound('Below', null, []);
+    slider.focus();
+    key('ArrowRight', slider);
+    expect(document.activeElement).toBe(slider);
+    h.activate();
+    slider.focus();
+    tap(PAD_BUTTON.LEFT);
+    expect(moved).toEqual(['55', '50']);
+  });
+
   it('arrows move focus between the controls, in screen order', () => {
     setup();
     const clicks: string[] = [];

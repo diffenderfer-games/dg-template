@@ -33,7 +33,7 @@ export function navScope(root: ParentNode): ParentNode {
 /**
  * The navigable controls: the topmost modal's, else the screens'. Hidden and disabled ones are
  * skipped; the `confirm`-bound control comes first (the pad's first highlight). While a stepper
- * (`data-nav-axis`) has focus, the controls beside it are left out, so left and right step it.
+ * (`data-nav-axis`) or a slider has focus, the controls beside it are left out, so left and right change it.
  */
 export function navTargets(root: ParentNode): HTMLElement[] {
   const all = [...navScope(root).querySelectorAll<HTMLElement>('[data-nav]')].filter(
@@ -43,8 +43,10 @@ export function navTargets(root: ParentNode): HTMLElement[] {
   const first = confirm > 0 ? all.splice(confirm, 1) : [];
   const ordered = [...first, ...all];
   const focused = typeof document === 'undefined' ? null : document.activeElement;
-  if (!(focused instanceof HTMLElement) || !focused.hasAttribute('data-nav-axis') || !ordered.includes(focused))
-    return ordered;
+  const axis =
+    focused instanceof HTMLElement &&
+    (focused.hasAttribute('data-nav-axis') || (focused instanceof HTMLInputElement && focused.type === 'range'));
+  if (!axis || !ordered.includes(focused)) return ordered;
   const a = focused.getBoundingClientRect();
   if (a.height <= 0) return ordered;
   return ordered.filter((el) => {

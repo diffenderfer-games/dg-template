@@ -148,8 +148,25 @@ export function axisControl<E extends HTMLElement>(
   return el;
 }
 
-/** Step a stepper. */
+/** Is it a stepper (`axisControl`) or a slider: left and right change it? */
+export function isAxis(el: Element | null): el is HTMLElement {
+  return (
+    el instanceof HTMLElement &&
+    (el.hasAttribute('data-nav-axis') || (el instanceof HTMLInputElement && el.type === 'range'))
+  );
+}
+
+/** Step a stepper, or move a slider a twentieth of its range (the hub keeps the arrows from the page). */
 function stepAxis(el: Element, dir: -1 | 1): void {
+  if (el instanceof HTMLInputElement && el.type === 'range') {
+    const min = Number(el.min || 0);
+    const max = Number(el.max || 100);
+    const step = Math.max(Number(el.step) || 1, (max - min) / 20);
+    el.value = String(Math.max(min, Math.min(max, Number(el.value) + dir * step)));
+    el.dispatchEvent(new Event('input', { bubbles: true }));
+    el.dispatchEvent(new Event('change', { bubbles: true }));
+    return;
+  }
   el.dispatchEvent(new CustomEvent(STEP_EVENT, { detail: dir }));
 }
 
@@ -270,7 +287,7 @@ export function installPrompts(hub: Pick<HubLike, 'input' | 'overlay'>, o: Promp
     const inScope = focused instanceof HTMLElement && navScope(root).contains(focused) ? focused : null;
     const arrow = ARROWS[e.key];
     if (arrow !== undefined && o.arrows !== false) {
-      if (inScope?.hasAttribute('data-nav-axis') === true && (arrow === 'left' || arrow === 'right')) {
+      if (isAxis(inScope) && (arrow === 'left' || arrow === 'right')) {
         e.preventDefault();
         stepAxis(inScope, arrow === 'left' ? -1 : 1);
         return;
@@ -347,13 +364,7 @@ export function installPrompts(hub: Pick<HubLike, 'input' | 'overlay'>, o: Promp
       }
       // A focused stepper: the d-pad and the stick step it (the hub's navigation has nothing beside it).
       const focused = document.activeElement;
-      const axis =
-        (o.navActive?.() ?? true) &&
-        focused instanceof HTMLElement &&
-        focused.hasAttribute('data-nav-axis') &&
-        navScope(o.root).contains(focused)
-          ? focused
-          : null;
+      const axis = (o.navActive?.() ?? true) && isAxis(focused) && navScope(o.root).contains(focused) ? focused : null;
       const left = pressed.has(PAD_BUTTON.LEFT) || lx < -AXIS_DEADZONE;
       const right = pressed.has(PAD_BUTTON.RIGHT) || lx > AXIS_DEADZONE;
       const goLeft = stepLeft(axis !== null && left && !right, now2);

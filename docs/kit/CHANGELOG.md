@@ -12,7 +12,7 @@ means a hook's signature changed: the entry says how to move a game over.
   (`html[data-prompts]`, `html[data-pad-style]`); pressing the key or pad button presses the control in the top modal
   or the screen, outside active play, leaving the hub's menu, act and back buttons to the hub. Back (B, Esc) presses
   the `back` control when there is one. Enter presses `confirm` when nothing has focus; arrows move focus as the
-  d-pad does; `axisControl` steppers step on left and right. The kit's own controls are bound by test id
+  d-pad does; `axisControl` steppers step on left and right, and a focused slider moves. The kit's own controls are bound by test id
   (`KIT_ACTIONS`). `bindAction`, `glyph`, `axisControl`, `installPrompts`, `setPromptBindings`, `pressAction`,
   `navScope`; `navTargets` puts the `confirm` control first and leaves out what's beside a focused stepper.
 - **ui 1.10:** `button(..., { action })`, `ModalButton.action`; the chips' CSS (`--kit-glyph-*`). **boot 1.13:**

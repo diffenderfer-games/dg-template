@@ -133,6 +133,8 @@ How it behaves (`installPrompts`, which `defineGame` calls):
   is one (Esc too), else closes the modal or goes back as before. So never bind `back` on the play screen.
 - **Enter** presses `confirm` when no control has focus; a focused button keeps its own Enter.
 - **Arrows move focus** between the controls as the d-pad does (spatially), outside play.
+- **Sliders** (`input[type=range]`) in focus move a twentieth of their range on left and right (arrows, the d-pad):
+  the hub keeps the arrows from the page, so the browser's own wouldn't.
 - **Steppers** (`axisControl`): a focusable row whose left and right (arrows, the d-pad, the stick) step it while it
   has focus, and whose act (Enter, A) presses `confirm`. Keep it alone in its row; while it has focus the controls
   beside it are left out of the pad's moves.
