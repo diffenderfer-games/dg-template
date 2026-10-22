@@ -51,7 +51,7 @@ export const KIT_MODULES: Record<string, KitModuleDef> = {
   world: srcModule('world', '1.7'),
   'hub-events': { version: '1.11', paths: ['tests/hub-events'] },
   'hub-suites': { version: '1.13', paths: ['tests/hub/_kit.ts', 'tests/hub/kit'] },
-  scripts: { version: '1.28', paths: ['scripts/kit', 'tests/scripts'] },
+  scripts: { version: '1.29', paths: ['scripts/kit', 'tests/scripts'] },
   ci: { version: '1.0', paths: ['.github/workflows/deploy.yml'] },
   agents: { version: '1.0', paths: ['.claude/agents'] },
   config: {
@@ -66,7 +66,7 @@ export const KIT_MODULES: Record<string, KitModuleDef> = {
     ],
   },
   docs: {
-    version: '1.27',
+    version: '1.28',
     paths: [
       'docs/kit/look.md',
       'docs/kit/look',
@@ -82,6 +82,7 @@ export const KIT_MODULES: Record<string, KitModuleDef> = {
       'docs/kit/card-games.md',
       'docs/kit/playing-together.md',
       'docs/kit/review.md',
+      'docs/kit/trailer.md',
     ],
   },
 };

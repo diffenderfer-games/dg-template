@@ -61,6 +61,7 @@ Also: [look.md](look.md) (what every game's UI and motion must be),
 [playing-together.md](playing-together.md) (lobbies, computer seats, online
 feel), [review.md](review.md) (handing a game to the owner, improving the
 template), [hooks.md](hooks.md) (every hook), [screenshots.md](screenshots.md),
+[trailer.md](trailer.md) (a promo trailer: filming the game frame by frame, the owner's clip picks, the cut),
 [whats-new.md](whats-new.md), [CHANGELOG.md](CHANGELOG.md).
 
 ## Hub phases

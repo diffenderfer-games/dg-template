@@ -20,6 +20,8 @@ means a hook's signature changed: the entry says how to move a game over.
 - **testing 1.13:** `FakePad`'s `id` (`padHarness({ id })`: a PlayStation pad). **hub-events 1.11:** the prompts
   through a booted game. **core 1.19:** `KIT_VERSION` 1.24. **docs 1.27:** this entry. **scripts 1.28:** the module
   versions.
+- **docs 1.28** (**scripts 1.29**: the docs module lists it): [trailer.md](trailer.md): making a promo trailer (filming the game frame by frame, the owner's clip picks
+  in a gallery, cards, music and the cut, the review gates), with Rift Racers' `scripts/film/` as the reference.
 
 ### Moving a game over
 
