@@ -80,7 +80,7 @@ html[data-pad-style="ps"] .kit-g-face.kit-g-y { color: var(--kit-glyph-triangle,
 .kit-g-word.kit-g-trigger { border-radius: 4px 4px 9px 9px; }
 .kit-g-pad { display: inline-flex; color: var(--kit-glyph-pad-ink, #fff); }
 .kit-g-dpad { width: var(--kit-glyph-size, 22px); height: var(--kit-glyph-size, 22px); filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.6)); }
-.kit-g-dpad path:first-child { fill: var(--kit-glyph-pad-bg, #141824); stroke-width: 1.4; }
+.kit-g-dpad path:first-child { fill: var(--kit-glyph-pad-bg, #141824); stroke-width: 1.4; stroke-opacity: 0.55; }
 .kit-btn { position: relative; }
 .kit-btn > .kit-glyph-on { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); }
 html[data-prompts="keys"] .kit-btn:has(> .kit-glyph-on[data-keys="yes"]), html[data-prompts="pad"] .kit-btn:has(> .kit-glyph-on[data-pad="yes"]) { padding-right: 46px; padding-left: 46px; }

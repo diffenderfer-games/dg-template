@@ -431,7 +431,7 @@
         "docs/kit/ui.md": "70c148062217cf49c89c35a3813863c200130baaff56ed769430eb8515e5632a",
         "src/kit/ui/back-guard.ts": "07a8e32383c7dd80bf2cb98c29d40f4318d952fb9d26d8a332c147f688f4d03d",
         "src/kit/ui/controls.ts": "7f58cc6d91c9f240e0ebbb80b9de73f1a7f1f8634bde35ba25c12a99550e374e",
-        "src/kit/ui/css.ts": "40bfa681f48bb8e42adadd3703f46b42f520ad03d8b38b688b82375c913a81b9",
+        "src/kit/ui/css.ts": "3e6b74846a78ebcb17e347985123a9dd5e7de4c13c99c0d02fb28b2f143a148a",
         "src/kit/ui/dom.ts": "ad6dcc0f40b6fee09d36c4887c49b209a13265e89cf659fbb8785b668a8dcf7c",
         "src/kit/ui/index.ts": "2f0ce4bc94324a251246c8271f0d48c38f4df406667fafc18950391bc1a9b4ec",
         "src/kit/ui/juice.ts": "d92e0c7997594373854f2802e67e9bd9736cb1706d1bc21ee8e9de88311da3d9",
