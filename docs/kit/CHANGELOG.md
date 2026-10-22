@@ -4,6 +4,21 @@ KIT doc. One entry per kit version; per module inside. A **major** version
 means a hook's signature changed: the entry says how to move a game over.
 `npm run kit:sync` prints the entries newer than a game's `kit.json`.
 
+## 1.26 (2026-10-22)
+
+- **resume 1.3:** a save the hub refuses (no game slug in the address, a state over 512 KB) warns once and is
+  skipped; it no longer throws into the session's loop, which stopped the game drawing at the first autosave.
+- **docs 1.29:** review.md: test links are `http://<LAN IP>:<port>/<slug>/` and the game is served under its slug;
+  getting-started.md says `npm run dev` serves `/<slug>/`. **core 1.21:** `KIT_VERSION` 1.26. **scripts 1.30:** the module
+  versions.
+- Not in the kit: the template's `vite.config.ts` now serves `npm run dev` and `vite preview` under `/<slug>/`
+  (the package name); the build keeps `base: './'`. CLAUDE.md's base rule says so.
+
+### Moving a game over
+
+- Nothing breaks. Copy the template's `vite.config.ts` (a game file) so `npm run dev` serves under `/<slug>/`, and
+  give phone links with the `/<slug>/` path. Update the base rule in the game's CLAUDE.md by hand.
+
 ## 1.25 (2026-10-22)
 
 - **docs 1.28:** [devices.md](devices.md), how a game handles keyboard, gamepad, touch and mouse like a console game:

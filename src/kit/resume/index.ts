@@ -93,6 +93,20 @@ export function createResume<R extends JsonObject>(
     return run;
   }
 
+  /**
+   * A save the hub refuses (no game slug in the address, a state over the size limit)
+   * warns once and is skipped: it must never throw into the session's loop, where it
+   * would stop the game drawing every 5 s autosave.
+   */
+  function guarded(save: () => boolean): boolean {
+    try {
+      return save();
+    } catch (e) {
+      kitWarn(`resume: the game was not saved (${e instanceof Error ? e.message : String(e)}); play goes on`);
+      return false;
+    }
+  }
+
   function input(r: R): {
     state: R;
     progress: { label: string; fraction?: number };
@@ -116,11 +130,11 @@ export function createResume<R extends JsonObject>(
     save(r) {
       const mode = deps.activity.mode;
       if (mode === 'race' || mode === 'online') return false;
-      if (mode === 'daily') return hub.daily.save(input(r));
+      if (mode === 'daily') return guarded(() => hub.daily.save(input(r)));
       if (hub.daily.active !== null) return false; // the hub would save it to the day
       cached = r;
       known = true;
-      return hub.resume.save(input(r));
+      return guarded(() => hub.resume.save(input(r)));
     },
     clear() {
       if (deps.activity.mode !== 'daily') cached = null;

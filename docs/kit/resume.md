@@ -30,6 +30,7 @@ const run: ResumeSpec<Run> = {
 - If a saved game is found only after a new game started, offers it (`offerLate`, once) instead of losing it. The player sees "Found your saved game".
 - Migrates an old `getSave` slot once (`legacySlot`), then deletes it.
 - Warns in the console when a progress label breaks the wording rules (`wordingProblems`).
+- A save the hub refuses (no game slug in the address, a state over the size limit) is skipped with one console warning: it never throws into the session's loop, so the game keeps playing.
 - Never saves in a race or an online match. In a daily it saves to the day (`hub.daily.save`), and `clear()` starts the day over from its seed. A normal game is never saved while the hub has a day active (the hub would save it to the day).
 - The saved game is one of the title's Continue rows, with the label `progress` gave ([saved.md](saved.md)).
 
