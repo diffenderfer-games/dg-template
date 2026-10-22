@@ -233,7 +233,13 @@ export function installPrompts(hub: Pick<HubLike, 'input' | 'overlay'>, o: Promp
   const html = document.documentElement;
   const fixed = o.padStyle === 'xbox' || o.padStyle === 'ps' ? o.padStyle : null;
   const firing = (): boolean => !hub.overlay.isOpen && (o.active?.() ?? true);
-  const touchNow = (): boolean => hub.input.source === 'touch' || html.getAttribute('data-hub-input') === 'touch';
+  // (a phone or tablet with no mouse: its only pointer is coarse)
+  const fingerOnly = (): boolean =>
+    typeof matchMedia === 'function' &&
+    matchMedia('(pointer: coarse)').matches &&
+    !matchMedia('(any-pointer: fine)').matches;
+  const touchNow = (): boolean =>
+    hub.input.source === 'touch' || html.getAttribute('data-hub-input') === 'touch' || fingerOnly();
   setPromptMode(hub.input.source === 'gamepad' ? 'pad' : touchNow() ? 'none' : 'keys', fixed ?? undefined);
   if (html.dataset.padStyle === undefined) html.dataset.padStyle = fixed ?? 'xbox';
 

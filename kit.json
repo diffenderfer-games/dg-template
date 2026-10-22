@@ -201,7 +201,7 @@
         "src/kit/input/glyphs.ts": "6eb6e73d0a95b5cc9701e54b95c85d0bf64f8512dbfcb8bec6bbd6283ed158f7",
         "src/kit/input/index.ts": "23106201cf2c9cb1441c042f5840b4558d4897fee3320b32cb94885c376f4c35",
         "src/kit/input/nav.ts": "9221ae48c4c3b2f7ef772c34d853e184b34ef67ab9a3b075d64166d464f1756b",
-        "src/kit/input/prompts.ts": "ae5305723a6bc6116bafd7a855f53f0876be331e2ee90966ce3190f6bde4f903",
+        "src/kit/input/prompts.ts": "a245ac93aa6d80d15ec51db1ad12ee352092b094e6f2d6c26fc284fd64243e4b",
         "tests/kit/input/input.test.ts": "56687a0cbc903950268a4aaf8c1a4db5a4fd650a0f1f54680e70970d0e184fcd",
         "tests/kit/input/prompts.test.ts": "572e11e7bdfca1795efd9ec7231a02a36c2714291f697993101ceba3f39793de"
       }
