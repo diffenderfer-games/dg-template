@@ -37,7 +37,7 @@ reports what to fix. Fix what it finds, then hand over.
 
 ## The hard rules
 
-- `base: './'` stays in `vite.config.ts` ([HANDOFF.md](HANDOFF.md) § Path-handling).
+- The build's `base: './'` stays in `vite.config.ts` ([HANDOFF.md](HANDOFF.md) § Path-handling); `npm run dev` and `vite preview` serve under `/<slug>/`, as the catalog does (at `/` the hub client finds no slug and every save fails).
 - Keep a 64px square clear in the hub menu button's corner (`game.menuPosition`), and give a top bar's height to `hub.input.setInsets({ top })` so the hub's toasts sit below it: [docs/kit/layout.md](docs/kit/layout.md#the-hub-menu-button).
 - The hub client comes from npm, pinned exactly; `npm run hub-doctor` before pushing. Never vendor it.
 - Never edit the synced docs.

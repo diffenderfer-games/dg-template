@@ -24,7 +24,7 @@ shortcut ([repo-setup.md](repo-setup.md)).
 ## Step 2. Play it
 
 ```bash
-npm run dev     # the skeleton: the kit's title, play (the score), pause and result screens
+npm run dev     # the skeleton at /<slug>/: the kit's title, play (the score), pause and result screens
 npm run check   # every local gate: a new game passes it as created
 ```
 

@@ -32,6 +32,19 @@ describe('resume: Continue', () => {
     expect(await make({ version: 4 }).load()).toBeNull();
   });
 
+  it('a save the hub refuses (no slug, too big) warns once and never throws into the game loop', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    vi.spyOn(fake.resume, 'save').mockImplementation(() => {
+      throw new Error('hub.resume: could not determine the game slug.');
+    });
+    const r = make();
+    activity.set('normal');
+    expect(r.save({ level: 1 })).toBe(false);
+    expect(r.save({ level: 2 })).toBe(false);
+    expect(warn).toHaveBeenCalledTimes(1);
+    warn.mockRestore();
+  });
+
   it('save is a no-op in a race or online, and in a daily with no day active', () => {
     const r = make();
     for (const mode of ['race', 'online', 'daily'] as const) {

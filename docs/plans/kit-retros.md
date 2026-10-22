@@ -16,6 +16,18 @@ kit, what changed in the docs and CLAUDE.md. Newest first.
 
 ---
 
+## Fish Flap (`fish-flap`, not deployed yet)
+
+- **Date:** 2026-10-22
+- **Game:** an underwater Flappy Bird: a fish flaps through sponges, kelp, seaweed and coral, dodging sharks; pearl and power-up bubbles; Calm/Choppy/Frenzy, the daily, races.
+- **Renderer / features:** pixi; daily, race, avatar; `--no-online --no-turns` (removed by hand after `create`).
+- **Easy:** the rules-only sim and unit tests for tuning; the screenshot runner with game scenarios for every look pass; lingo's screen helpers as the pattern for the dressed screens.
+- **Worked around:** `hub.input.down()` is per frame, so a flap read with it was missed (read held-now-not-last-step, and latch key presses and taps); a hub `tap` virtual control drew nothing on a static page, so taps are a pointer listener on the stage; the test link served at `/` froze the game every autosave (the hub client finds no slug and `hub.resume.save` threw inside the session loop).
+- **Moved into the kit:** resume 1.3: a save the hub refuses warns once and is skipped instead of throwing into the loop.
+- **Docs / CLAUDE.md changes:** `vite.config.ts` serves `npm run dev` and `vite preview` under `/<slug>/` (the build keeps `base: './'`); CLAUDE.md's base rule and review.md's phone link say `/<slug>/`; resume.md says refused saves are skipped.
+
+---
+
 ## Pinochle (`diffenderfer-games/pinochle`, not deployed yet)
 
 - **Date:** 2026-10-16

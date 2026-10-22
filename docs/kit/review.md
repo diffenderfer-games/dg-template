@@ -15,10 +15,13 @@ the screenshots and the code. Run it, fix what it reports, then hand over.
   ([repo-setup.md](../repo-setup.md)), so a push is a release.
 - **A test link for the owner's phone.** Run the game on a free port
   (`npm run local`, or `npm run dev -- --host`) and give two URLs: the
-  machine's LAN address (`http://192.168.x.x:<port>/…`) and its Tailscale
-  name (`http://gandalf.tail9e7055.ts.net:<port>/…`). A server bound to
+  machine's LAN address (`http://192.168.x.x:<port>/<slug>/`) and its Tailscale
+  name (`http://gandalf.tail9e7055.ts.net:<port>/<slug>/`). A server bound to
   `127.0.0.1` can't be reached from the phone: bind to all addresses or put a
-  forwarder in front. Stop the server when the owner is done
+  forwarder in front. Always serve the game under `/<slug>/` (the template's
+  `vite.config.ts` does it for `npm run dev`): the hub client reads the slug
+  from the address, and at `/` it has none, so the autosave fails (older kits
+  froze the game a few seconds in). Stop the server when the owner is done
   (`npm run clean:procs`).
 - **Tell the owner when it's ready** with the notify tool: when screenshots
   are ready for review, when a test link is up, when a deploy is live. Say
