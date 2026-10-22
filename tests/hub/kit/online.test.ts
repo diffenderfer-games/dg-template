@@ -336,3 +336,63 @@ e2e(
   },
   { skip, timeout: 120_000 },
 );
+
+/** Is the element with `testid` the topmost thing at its own middle (no overlay covers it)? */
+function uncovered(p: Player, testid: string): Promise<boolean> {
+  return p.page.$eval(`[data-testid="${testid}"]`, (el) => {
+    el.scrollIntoView({ block: 'center' });
+    const r = el.getBoundingClientRect();
+    const top = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+    return top !== null && el.contains(top);
+  });
+}
+
+/** The hub's toasts' text on this page. */
+const toastText = (p: Player): Promise<string> =>
+  p.page.evaluate(() => document.querySelector('#hub-social-layer')?.shadowRoot?.textContent ?? '');
+
+e2e(
+  'leaving: Back in the lobby leaves the room (not the page), and the hub offers no Rejoin',
+  e,
+  async (t) => {
+    const a = await t.newPlayer(undefined, '/');
+    await a.goto(`/${SLUG}/`);
+    await ready(a);
+    await a.tid('online');
+    await a.tid('online-friends');
+    await waitScreen(a, 'lobby');
+    await a.page.evaluate(() => history.back());
+    await waitScreen(a, 'title');
+    assert.equal(new URL(a.page.url()).pathname, `/${SLUG}/`);
+    assert.equal(await room(a), null);
+    await a.goto('/');
+    await settle(3000);
+    assert.doesNotMatch(await toastText(a), /still on/);
+  },
+  { skip, timeout: 120_000 },
+);
+
+e2e(
+  'rejoin: a lobby left without Leave (a closed tab) is rejoined from the hub, usable, and Leave works',
+  e,
+  async (t) => {
+    const a = await onGame(t);
+    await ready(a);
+    await a.tid('online');
+    await a.tid('online-friends');
+    await waitScreen(a, 'lobby');
+    const code = await until(() => room(a), 'a room code');
+    await a.goto('/'); // the page goes away: the seat is held a moment
+    await a.find(`${L}.so-toast`, /still on/, { timeout: 15_000 });
+    await a.click(`${L}.so-toast button`, 'Rejoin');
+    await a.page.waitForFunction((slug) => location.pathname === `/${slug}/`, { timeout: 20_000 }, SLUG);
+    await ready(a);
+    await waitScreen(a, 'lobby', 20_000);
+    assert.equal(await room(a), code);
+    assert.ok(await uncovered(a, 'lobby-leave'), 'something covers the lobby');
+    await a.tid('lobby-leave');
+    await waitScreen(a, 'title');
+    assert.equal(await room(a), null);
+  },
+  { skip, timeout: 120_000 },
+);

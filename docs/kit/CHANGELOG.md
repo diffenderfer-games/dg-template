@@ -4,6 +4,28 @@ KIT doc. One entry per kit version; per module inside. A **major** version
 means a hook's signature changed: the entry says how to move a game over.
 `npm run kit:sync` prints the entries newer than a game's `kit.json`.
 
+## 1.23 (2026-10-21)
+
+- **boot 1.12:** Back in the online lobby (the phone's, the browser's, the pad's B, Esc but not while typing in the chat)
+  leaves the room, like Leave, instead of leaving the page with the seat still held (which made the hub offer a Rejoin);
+  on a live match's loading screen Back asks "Leave match?" first. `Session.guardOnline()`, `Session.leaveOnline()`;
+  `OnlineFlowHost.guard()`. The live loading screen has a Leave button (`loading-leave`).
+- **live 1.3:** never an endless loading screen: a join the live server refuses with `no_match` (the match ended, everyone
+  left, the server restarted) takes the player back at once with "That match has ended." (`version`: reload); a room
+  that ends before this page got into its match says so instead of showing a result; a match not on screen within
+  `LOAD_LIMIT_MS` (90 s) takes the player back. `refusalCode`.
+- **ui 1.9:** the back guard's docs (the lobby and the loading screen); `.kit-loading-leave`. **online 1.6:** docs
+  (Leaving). **docs 1.26:** this entry. **scripts 1.27:** the module versions.
+- **core 1.18:** strings `liveOver`, `liveNoJoin`, `liveUpdated`; `KIT_VERSION` 1.23. **hub-events 1.10:** Back, B, Esc
+  and Leave in the lobby leave the room. **hub-suites 1.13:** a lobby rejoined from the hub is usable (nothing covers
+  it); Back in the lobby leaves the room and the hub offers no Rejoin.
+
+### Moving a game over
+
+- A game with its own page loading screen (an overlay in index.html) lifts it for every kit screen but the first
+  loading card (a lobby or a race reached straight from the hub), not only on the title.
+- Reword the new strings for your game if "match" isn't its word (`liveOver: 'That race has ended.'`).
+
 ## 1.22 (2026-10-21)
 
 Needs `@diffenderfer-games/hub` 2.0.0-next.17 or later (`padButtons`, `autoNavigate`'s `ring`, button lists).

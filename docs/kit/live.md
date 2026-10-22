@@ -129,7 +129,7 @@ the page does; the kit runs the rest (`LiveRoomMatch`, in the online flow):
 | Title | The online button: Play now, With friends, a code; invites and Join | |
 | Lobby | Seats with faces, chat, Invite, Start (host) | `seat()` (my choices), `options()` (the host's), `describe(options)` |
 | Start | `room.start({ options })`: the hub places the match on its live server | |
-| Loading | A loading screen with a bar | `prepare(start, progress)`: build the world for `start.options` |
+| Loading | A loading screen with a bar and Leave | `prepare(start, progress)`: build the world for `start.options` |
 | Play | `live.join(room, { sim })`, again after a drop | `play(match, start)`, `frame(dt)` (input), `render()` (draw `match.view()`) |
 | End | The hub's `{ places, winnerId }`: the result screen | `result(el, places, start)`; `stop()` when the player leaves |
 
@@ -156,6 +156,15 @@ export const live: LiveRoomGame = {
   gets no input (`null`), and the page shows who it's waiting for.
 - **Results are trusted:** the live server reports the outcome to the hub,
   which records `online_games` and `online_wins` and ends the room.
+- **Never an endless loading screen.** The live server refusing the join with
+  `no_match` (the match ended, everyone left a minute ago, the server
+  restarted) takes the player back to the title with "That match has ended."
+  at once; `version` says to reload. A room that ends before this page got into
+  its match says the same instead of showing a result. A match not on screen
+  within `LOAD_LIMIT_MS` (90 s) takes the player back ("We couldn't get you
+  into the match."). Other join failures are tried again a few times. The
+  words are kit strings (`liveOver`, `liveNoJoin`, `liveUpdated`) a game can
+  reword ("That race has ended.").
 - **Locally** (`npm run local`, the hub suites) it is production's shape: the
   live server next to the hub, `/_live` routed to it, WebTransport with a
   certificate the ticket vouches for.

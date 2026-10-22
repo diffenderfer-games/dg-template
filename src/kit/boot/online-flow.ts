@@ -10,6 +10,12 @@
  * Two kinds of match share the lobby: kit/online's (the host's page runs the
  * game's rules) and kit/live's (the hub's live server runs the game's sim;
  * the flow adds the loading screen while each page builds the match).
+ *
+ * Getting out is always one step: the lobby's Leave and the loading screen's
+ * Leave, and Back (the phone's, the browser's, the pad's B, Esc) while the
+ * lobby or the loading screen shows (the session's back guard; on the loading
+ * screen it asks first, like a match). Leaving leaves the room with the hub,
+ * so no seat is held and nobody is offered a Rejoin.
  */
 import type { HubRoom } from '@diffenderfer-games/hub';
 import { fireAndForget } from '../core/async.ts';
@@ -43,6 +49,8 @@ export type OnlineFlowHost = {
   /** The result screen (its element, for a live game's places). */
   showResult(won: boolean): HTMLElement | null;
   toTitle(): void;
+  /** The lobby or the loading screen shows: Back leaves the room instead of the page (the session's back guard). */
+  guard(): void;
   readonly screen: string;
 };
 
@@ -147,9 +155,17 @@ export class OnlineFlow {
       const text = h('p.kit-tagline', { 'data-testid': 'live-loading' });
       const bar = h('i');
       this.screens.show('loading', () =>
-        h('div.kit-loading', { 'aria-busy': 'true' }, text, h('div.kit-progress', {}, bar)),
+        h(
+          'div.kit-loading',
+          { 'aria-busy': 'true' },
+          text,
+          h('div.kit-progress', {}, bar),
+          // Never stuck here: the player can always go back (the room is left).
+          button(t('leave'), () => this.host.toTitle(), { testid: 'loading-leave', cls: 'kit-loading-leave' }),
+        ),
       );
       this.loading = { text, bar };
+      this.host.guard();
     }
     this.loading.text.textContent = label;
     this.loading.bar.style.width = `${String(Math.round(Math.max(0, Math.min(1, fraction)) * 100))}%`;
@@ -316,6 +332,7 @@ export class OnlineFlow {
         },
       },
     );
+    this.host.guard();
   }
 
   /** One frame of the match. */

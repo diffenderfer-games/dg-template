@@ -69,6 +69,16 @@ export type GameHandle<P extends JsonObject, R extends JsonObject> = {
   dispose(): void;
 };
 
+/** Is the player typing in a field (an Esc there is the field's)? */
+function isTyping(): boolean {
+  const el = typeof document === 'undefined' ? null : document.activeElement;
+  return (
+    el instanceof HTMLInputElement ||
+    el instanceof HTMLTextAreaElement ||
+    (el instanceof HTMLElement && el.isContentEditable)
+  );
+}
+
 /** Wire the game to the hub. Call once, at load, synchronously (src/main.ts). */
 export function defineGame<P extends JsonObject, R extends JsonObject>(
   hub: HubLike,
@@ -145,6 +155,7 @@ export function defineGame<P extends JsonObject, R extends JsonObject>(
           showPlay: () => session.showPlay(),
           showResult: (won) => session.showResult(won, false),
           toTitle: () => session.toTitle(),
+          guard: () => session.guardOnline(),
           get screen() {
             return session.screen;
           },
@@ -230,7 +241,9 @@ export function defineGame<P extends JsonObject, R extends JsonObject>(
       if (session.screen === 'pause') session.resume();
       else if (session.screen === 'play') session.pause();
       else if (session.screen === 'result' || session.screen === 'turns') session.toTitle();
-      else return false;
+      // (an Esc while typing in the lobby's chat stays the chat's)
+      else if (isTyping()) return false;
+      else return session.leaveOnline();
       return true;
     },
     // In play the game's inputs read Esc (`pause`): the loop acts on it, the kit marks it handled.

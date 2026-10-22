@@ -250,7 +250,7 @@ export class Session<P extends JsonObject, R extends JsonObject> {
     return hud;
   }
 
-  /** The back guard follows play: on from the first frame of play until the result or the title. */
+  /** The back guard follows play (and the online lobby): on from the first frame of play until the result or the title. */
   private guardBack(on: boolean): void {
     const guard = this.parts?.backGuard ?? null;
     if (guard === null) return;
@@ -258,10 +258,40 @@ export class Session<P extends JsonObject, R extends JsonObject> {
       guard.stop();
       return;
     }
-    // A back mid-play pauses (a race or a match asks to leave), unless something is up already (the pause screen, a question, hub UI).
-    guard.start(() => {
-      if (this.screen === 'play' && !this.paused && topModal() === null && !this.d.hub.overlay.isOpen) this.pause();
-    });
+    guard.start(() => this.guardedBack());
+  }
+
+  /**
+   * The online lobby or a match's loading screen shows: a Back (the phone's, the browser's) leaves the
+   * room instead of the page. Only the history half of the guard: the lobby scrolls, and its edges are
+   * the page's.
+   */
+  guardOnline(): void {
+    this.parts?.backGuard?.history.on(() => this.guardedBack());
+  }
+
+  /** A Back the guard kept on the page, unless something is up already (the pause screen, a question, hub UI). */
+  private guardedBack(): void {
+    if (topModal() !== null || this.d.hub.overlay.isOpen) return;
+    // Mid-play it pauses (a race or a match asks to leave).
+    if (this.screen === 'play' && !this.paused) this.pause();
+    else this.leaveOnline();
+  }
+
+  /**
+   * Back in the online lobby leaves the room (like its Leave); on a match's loading screen it asks
+   * first, like the match. False anywhere else.
+   */
+  leaveOnline(): boolean {
+    if (this.mode !== 'online') return false;
+    if (this.screen === 'lobby') {
+      this.toTitle();
+      return true;
+    }
+    if (this.screen !== 'loading') return false;
+    if (this.parts?.online?.match.playing === true) this.pause();
+    else this.toTitle();
+    return true;
   }
 
   /** Pause screen (the pause module calls it). */

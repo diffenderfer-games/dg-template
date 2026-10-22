@@ -70,6 +70,10 @@ pauses (a race or a match asks "Leave race?" / "Leave match?", the kit's `pause(
   question or hub UI is already up). At the result or the title the entry comes off (`history.back()`, keeping an
   address the hub tidied meanwhile), so Back in the menus leaves as before.
 
+In the online lobby and on a live match's loading screen only the history half is on (the lobby scrolls): Back
+leaves the room, as the lobby's Leave does (on the loading screen it asks "Leave match?" first), instead of leaving
+the page with the seat still held.
+
 It is on by default except for games with `resumeOnClose: true` (turn-based and idle: leaving costs nothing).
 `GameDefinition.backGuard`: `false` turns it off, `true` forces it on, or options: `{ edgePx, edges: false, history:
 false }`. A game that wants it elsewhere (a long animation, an editor) drives the page's guard itself:

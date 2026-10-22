@@ -89,6 +89,9 @@ export const KIT_STRINGS = {
   // A live game's match: built on each page, then joined (kit/live).
   liveGettingReady: 'Getting ready…',
   liveJoining: 'Joining the others…',
+  liveOver: 'That match has ended.',
+  liveNoJoin: "We couldn't get you into the match. Try again.",
+  liveUpdated: 'The game was updated. Reload the page to play online.',
   // Join with a code: a room's 5-letter code, or an online game's invite link.
   joinCodeLabel: 'Have a code?',
   joinCodeRoom: 'Room code',

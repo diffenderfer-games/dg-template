@@ -41,6 +41,7 @@ export const createOnline = (o: { input(): OnlineInput | null; render(v: OnlineV
 
 - **Match (`OnlineMatch`).** The host calls `start`, simulates at the frame rate, applies guest input, and broadcasts a public view and, when it differs, a private view per seat at `tickHz` (default 10). Guests send `input()` at the tick rate and draw the latest view. Spectators send nothing. Messages are wrapped in a versioned envelope; other versions and unknown kinds are dropped.
 - **Lobby.** `lobbyScreen`: room code, every seat with a face, the player's name opening the player card, Invite, a bell, Start (host, enabled at `minPlayers`) and Leave.
+- **Leaving.** Leave (`lobby-leave`), the phone's or the browser's Back (the back guard's history entry, [ui.md](ui.md#the-back-guard)), the pad's B and Esc (not while typing in the chat) all leave the room with the hub, so no seat is held and the hub offers no Rejoin. A live match's loading screen has its own Leave (`loading-leave`), and Back there asks "Leave match?" first. The host leaving hands the room to the longest-seated player; a lobby everyone left closes a little later and isn't offered to Play now.
 - **Chat.** `chatPanel` shows only text the hub delivered. A rejected message keeps the draft and shows the hub's hint (from `ContentRejectedError`, or the generic words if there is none); when the hint carries `retryAfterMs` a countdown follows ("Try again in 3 s."). A softened line says "Some words were changed." Modes follow `room.info.chatMode`: `on` is a text box plus quick chips, `quick` is chips only (non-friends), `off` hides the panel. Quick phrases: `gg`, `nice`, `hi`, thumbs up, then the game's own `game.multiplayer.quickChat` (sent as `g:<slug>:<i>`; kit/core/manifest.ts reads them from package.json). The same panel serves online games the hub runs through a `ChatPort` (`roomChat(room)`, kit/boot's `turnChat(game)`).
 - **Reconnect.** At boot `reclaim()` takes back a seat held after a reload (6 s wait); the hub also sends a rejoin launch, whichever comes first wins. The player lands back in the same room and seat.
 - **Away seats played by the computer.** On `seat` `away` or `gone` (and `abandoned`) the seat goes into `computerSeats`; the host feeds it `computer(state, seat)` input each frame. On `back` it is handed back with no reset. A match never ends because someone left.
@@ -64,7 +65,7 @@ Installed with the other drivers by `kit/boot` (dev, localhost or `__HUB_TEST__`
 | `seats()` | How many seats the room has. |
 | `view()` | The latest view this player draws. |
 
-Test ids: `online`, `online-who`, `online-play-now`, `online-friends`, `online-who-back`, `join-code`, `join-code-go`, `looking`, `quick-match`, `lobby-start`, `lobby-invite`, `lobby-bell`, `lobby-leave`, `player-<id>`, `room-code`, `seats`, `chat`, `chat-lines`, `chat-note`, `chat-input`, `chat-send`, `quick-<id>`.
+Test ids: `online`, `online-who`, `online-play-now`, `online-friends`, `online-who-back`, `join-code`, `join-code-go`, `looking`, `quick-match`, `lobby-start`, `lobby-invite`, `lobby-bell`, `lobby-leave`, `loading-leave`, `player-<id>`, `room-code`, `seats`, `chat`, `chat-lines`, `chat-note`, `chat-input`, `chat-send`, `quick-<id>`.
 
 ## Rules it enforces
 

@@ -11,6 +11,11 @@
  * what the options need (`prepare`, with a loading screen), joins the live
  * match (`live.join`) and plays it; a dropped connection joins again. The
  * hub ends the room with the places when the sim's outcome says so.
+ *
+ * Every way in ends on a screen the player can use: a match the live server no
+ * longer has (it ended, everyone left, the server restarted) or a room that
+ * ended before this page got into its match takes the player back with "That
+ * match has ended"; a match not on screen within {@link LOAD_LIMIT_MS} does too.
  */
 import type { HubRoom, RoomInfo } from '@diffenderfer-games/hub';
 import { joinLiveRoom, type LiveMatch } from '@diffenderfer-games/hub/live';
@@ -27,6 +32,17 @@ const REJOIN_FIRST_MS = 500;
 const REJOIN_MAX_MS = 8000;
 /** Joins that may fail in a row before the player is told and taken back to the title. */
 const REJOIN_TRIES = 8;
+/** The longest a match may take to be on screen (built and joined) before the player is taken back. */
+export const LOAD_LIMIT_MS = 90_000;
+
+/**
+ * The live server's refusal code at the start of a failed join's words (`no_match: This game is
+ * over.`), or null. `no_match`: it has no such match any more; `version`: the page is out of date.
+ */
+export function refusalCode(e: unknown): string | null {
+  const words = e instanceof Error ? e.message : '';
+  return /^([a-z_]+)(?::|$)/.exec(words)?.[1] ?? null;
+}
 
 /** What the match tells the flow. */
 export type LiveRoomEvents = {
@@ -57,6 +73,10 @@ export class LiveRoomMatch {
   private match: LiveMatch | null = null;
   private ended = false;
   private entering = false;
+  /** This page got into the room's match (once, since it was attached). */
+  private joined = false;
+  /** Takes the player back when the match isn't on screen in time. */
+  private loadTimer: ReturnType<typeof setTimeout> | null = null;
   /** Counts attaches: a build begun for an earlier one (a reload's reclaim, then its rejoin launch) is let go. */
   private epoch = 0;
   private tries = 0;
@@ -120,6 +140,7 @@ export class LiveRoomMatch {
     this.me = room.me.userId;
     this.isHost = room.me.host;
     this.ended = false;
+    this.joined = false;
     this.playing = false;
     this.matchStart = null;
     this.sharedOptions = null;
@@ -142,6 +163,19 @@ export class LiveRoomMatch {
   private detach(): void {
     for (const off of this.offs) off();
     this.offs = [];
+    this.stopLoadTimer();
+  }
+
+  private stopLoadTimer(): void {
+    if (this.loadTimer !== null) clearTimeout(this.loadTimer);
+    this.loadTimer = null;
+  }
+
+  /** Take the player back to the title with words (the room is left). */
+  private giveUp(text: string): void {
+    this.entering = false;
+    this.leave();
+    this.on.left(text);
   }
 
   /** The host shares the options it would start with (everyone's lobby shows them). */
@@ -210,6 +244,11 @@ export class LiveRoomMatch {
     this.on.loading(0, t('liveGettingReady'));
     const epoch = this.epoch;
     const current = (): boolean => epoch === this.epoch && !this.ended;
+    // Never an endless loading screen: not in the match in time, the player is taken back.
+    this.loadTimer ??= setTimeout(() => {
+      this.loadTimer = null;
+      if (current() && this.match === null) this.giveUp(t('liveNoJoin'));
+    }, LOAD_LIMIT_MS);
     void this.game
       .prepare(start, (fraction, label) => {
         if (current()) this.on.loading(fraction, label);
@@ -221,8 +260,7 @@ export class LiveRoomMatch {
         this.entering = false;
         this.tries += 1;
         if (this.tries >= REJOIN_TRIES) {
-          this.leave();
-          this.on.left(errText(e));
+          this.giveUp(errText(e));
           return;
         }
         setTimeout(
@@ -247,8 +285,10 @@ export class LiveRoomMatch {
         return;
       }
       this.match = match;
+      this.joined = true;
       this.tries = 0;
       this.entering = false;
+      this.stopLoadTimer();
       match.onClose(() => {
         if (this.match !== match) return;
         this.match = null;
@@ -258,10 +298,14 @@ export class LiveRoomMatch {
       this.on.playing();
     } catch (e) {
       if (this.room !== room || this.ended) return;
+      // The live server no longer has this match (it ended, everyone left, it restarted), or the page is out of date: no use trying again.
+      const refused = refusalCode(e);
+      if (refused === 'no_match' || refused === 'version') {
+        this.giveUp(refused === 'version' ? t('liveUpdated') : t('liveOver'));
+        return;
+      }
       if (this.tries >= REJOIN_TRIES) {
-        this.entering = false;
-        this.leave();
-        this.on.left(errText(e));
+        this.giveUp(errText(e));
         return;
       }
       this.retry();
@@ -280,6 +324,14 @@ export class LiveRoomMatch {
     this.ended = true;
     this.playing = false;
     this.entering = false;
+    this.stopLoadTimer();
+    // Ended before this page got into it (a rejoin, a build still going), or with no places while away from it
+    // (the live server dropped it): nothing to show but that it's over.
+    if (!this.joined || (this.match === null && LiveRoomMatch.places(results).length === 0)) {
+      this.leave();
+      this.on.left(t('liveOver'));
+      return;
+    }
     this.calm();
     this.on.ended(results);
   }

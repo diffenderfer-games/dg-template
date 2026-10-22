@@ -366,3 +366,53 @@ describe('joining others: Play now, With friends, a code', () => {
     expect(h.hook.screen()).toBe('title');
   });
 });
+
+/** Let the browser's own tasks run (jsdom delivers a history back's popstate in a later task). */
+const browserTasks = (): Promise<void> => new Promise((resolve) => setTimeout(resolve, 30));
+
+describe('leaving a room', () => {
+  it("Back in the lobby (the phone's or the browser's) leaves the room, not the page: no seat is held", async () => {
+    const g = await boot({ patch: { backGuard: true } });
+    await browserTasks(); // (an earlier test's guard may still be taking its entry off)
+    g.press('online');
+    g.press('online-friends');
+    await g.settle();
+    expect(g.hook.screen()).toBe('lobby');
+    expect(history.state).toMatchObject({ kitBackGuard: true });
+    history.back();
+    await browserTasks();
+    await g.settle();
+    expect(g.hook.screen()).toBe('title');
+    expect(g.fake.log.count('room.leave')).toBe(1);
+    await browserTasks();
+    expect(history.state).not.toMatchObject({ kitBackGuard: true });
+  });
+
+  it("the pad's B and Esc in the lobby leave the room too (an Esc while typing in the chat doesn't)", async () => {
+    const g = await boot();
+    g.press('online');
+    g.press('online-friends');
+    await g.settle();
+    const chat = g.ui.querySelector<HTMLInputElement>('.kit-chat-input');
+    chat?.focus();
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
+    await g.settle();
+    expect(g.hook.screen()).toBe('lobby');
+    chat?.blur();
+    g.fake.input.pressBack();
+    await g.settle();
+    expect(g.hook.screen()).toBe('title');
+    expect(g.fake.log.count('room.leave')).toBe(1);
+  });
+
+  it('Leave in the lobby leaves the room with the hub', async () => {
+    const g = await boot();
+    g.press('online');
+    g.press('online-friends');
+    await g.settle();
+    g.press('lobby-leave');
+    await g.settle();
+    expect(g.hook.screen()).toBe('title');
+    expect(g.fake.log.count('room.leave')).toBe(1);
+  });
+});

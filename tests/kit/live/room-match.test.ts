@@ -1,17 +1,20 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { JsonObject } from '../../../src/kit/core/index.ts';
 import { LiveRoomMatch, type LiveRoomGame, type LiveStart } from '../../../src/kit/live/index.ts';
+import { LOAD_LIMIT_MS, refusalCode } from '../../../src/kit/live/room-match.ts';
 import { createFakeHub, fakeSeat, type FakeRoom } from '../../../src/kit/testing/index.ts';
 
 /** The live connection: `live.join(room)` (the hub's live server isn't in a unit test). */
 const joins: { room: string; close: () => void }[] = [];
 let failJoins = 0;
+/** What a failing join says (the live server's refusal: `code: words`). */
+let failWith = 'no_match: This game is over.';
 vi.mock('@diffenderfer-games/hub/live', async (original) => ({
   ...(await original<object>()),
   joinLiveRoom: (room: { info: { code: string } }) => {
     if (failJoins > 0) {
       failJoins -= 1;
-      return Promise.reject(Object.assign(new Error('no_match'), { code: 'live_unavailable' }));
+      return Promise.reject(new Error(failWith));
     }
     let onClose: (reason: string) => void = () => undefined;
     const match = {
@@ -72,6 +75,7 @@ const flush = (): Promise<void> => new Promise((r) => setTimeout(r, 0));
 beforeEach(() => {
   joins.length = 0;
   failJoins = 0;
+  failWith = 'no_match: This game is over.';
 });
 
 describe('LiveRoomMatch', () => {
@@ -213,5 +217,97 @@ describe('LiveRoomMatch after a reload', () => {
     expect(again).not.toBeNull();
     expect(joins).toHaveLength(1);
     expect(g.calls.filter((c) => c === 'play')).toHaveLength(1);
+  });
+});
+
+describe('LiveRoomMatch never leaves the player loading', () => {
+  it("reads the live server's refusal code", () => {
+    expect(refusalCode(new Error('no_match: This game is over.'))).toBe('no_match');
+    expect(refusalCode(new Error('version: This game was updated: reload the page.'))).toBe('version');
+    expect(refusalCode(new Error('no_match'))).toBe('no_match');
+    expect(refusalCode(new Error('Something else'))).toBeNull();
+    expect(refusalCode('no_match')).toBeNull();
+  });
+
+  it('a match the live server no longer has (a rejoin after it ended) takes the player back at once, with words', async () => {
+    const fake = createFakeHub({ user: { id: 2, username: 'bob', guest: false } });
+    const g = game();
+    const e = events();
+    const m = new LiveRoomMatch(fake, g.hooks, e.on);
+    failJoins = 1;
+    await m.join('ABCDE');
+    fake.rooms.current?.setInfo({ phase: 'playing' });
+    await flush();
+    await flush();
+    await flush();
+    expect(e.seen.at(-1)).toBe('left That match has ended.');
+    expect(fake.log.count('room.leave')).toBe(1);
+    expect(fake.mp.busy).toBe(false);
+  });
+
+  it('an out-of-date page is told to reload instead of trying again', async () => {
+    const fake = createFakeHub({ user: { id: 2, username: 'bob', guest: false } });
+    const e = events();
+    const m = new LiveRoomMatch(fake, game().hooks, e.on);
+    failJoins = 1;
+    failWith = 'version: This game was updated: reload the page.';
+    await m.join('ABCDE');
+    fake.rooms.current?.setInfo({ phase: 'playing' });
+    await flush();
+    await flush();
+    await flush();
+    expect(e.seen.at(-1)).toMatch(/^left .*Reload the page/);
+  });
+
+  it('a room that ends before this page got into its match says so instead of showing a result', async () => {
+    const fake = createFakeHub({ user: { id: 2, username: 'bob', guest: false } });
+    const g = game();
+    g.hooks.prepare = () => new Promise<void>(() => undefined); // still building
+    const e = events();
+    const m = new LiveRoomMatch(fake, g.hooks, e.on);
+    await m.join('ABCDE');
+    const room = fake.rooms.current;
+    room?.setInfo({ phase: 'playing' });
+    await flush();
+    room?.endedBy({ places: [], winnerId: null, error: 'abandoned' });
+    expect(e.seen).not.toContain('ended');
+    expect(e.seen.at(-1)).toBe('left That match has ended.');
+    expect(fake.log.count('room.leave')).toBe(1);
+  });
+
+  it(`a match not on screen within ${String(LOAD_LIMIT_MS / 1000)} s takes the player back`, async () => {
+    vi.useFakeTimers();
+    try {
+      const fake = createFakeHub({ user: { id: 2, username: 'bob', guest: false } });
+      const g = game();
+      g.hooks.prepare = () => new Promise<void>(() => undefined); // a build that never finishes
+      const e = events();
+      const m = new LiveRoomMatch(fake, g.hooks, e.on);
+      await m.join('ABCDE');
+      fake.rooms.current?.setInfo({ phase: 'playing' });
+      await vi.advanceTimersByTimeAsync(LOAD_LIMIT_MS - 1000);
+      expect(e.seen.at(-1)).toMatch(/^loading/);
+      await vi.advanceTimersByTimeAsync(1000);
+      expect(e.seen.at(-1)).toBe("left We couldn't get you into the match. Try again.");
+      expect(fake.log.count('room.leave')).toBe(1);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('a match that is on screen in time is never cut short by the limit', async () => {
+    vi.useFakeTimers();
+    try {
+      const fake = createFakeHub({ user: { id: 2, username: 'bob', guest: false } });
+      const e = events();
+      const m = new LiveRoomMatch(fake, game().hooks, e.on);
+      await m.join('ABCDE');
+      fake.rooms.current?.setInfo({ phase: 'playing' });
+      await vi.advanceTimersByTimeAsync(LOAD_LIMIT_MS * 2);
+      expect(e.seen.at(-1)).toBe('playing');
+      expect(fake.log.count('room.leave')).toBe(0);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });
