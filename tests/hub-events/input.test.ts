@@ -176,3 +176,36 @@ describe('the back guard (docs/kit/ui.md § "The back guard")', () => {
     calm.handle.session.toTitle();
   });
 });
+
+describe('button prompts through the booted game (docs/kit/input.md "Button prompts")', () => {
+  const key = (k: string): boolean => {
+    const e = new KeyboardEvent('keydown', { key: k, bubbles: true, cancelable: true });
+    window.dispatchEvent(e);
+    return e.defaultPrevented;
+  };
+
+  it("the kit's screens get chips; the source picks them; a bound key presses its control, never in active play", async () => {
+    const g = await bootGame();
+    const html = document.documentElement;
+    expect(html.dataset.prompts).toBe('keys');
+    g.fake.input.switchSource('gamepad');
+    expect(html.dataset.prompts).toBe('pad');
+    g.fake.input.switchSource('touch');
+    expect(html.dataset.prompts).toBe('none');
+    g.fake.input.switchSource('keyboard');
+    await g.start();
+    // In play: the pause screen's actions answer to nothing yet.
+    expect(key('r')).toBe(false);
+    expect(g.hook.screen()).toBe('play');
+    g.fake.input.tap('pause');
+    await g.frames(2);
+    expect(g.hook.screen()).toBe('pause');
+    await Promise.resolve();
+    const resume = document.querySelector('[data-testid="resume"]');
+    expect(resume?.getAttribute('data-action')).toBe('back');
+    expect(resume?.querySelector('.kit-glyph')).not.toBeNull();
+    // Paused: Esc presses Resume (bound to back).
+    expect(key('Escape')).toBe(true);
+    expect(g.hook.screen()).toBe('play');
+  });
+});

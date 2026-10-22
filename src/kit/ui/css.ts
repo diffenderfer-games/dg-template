@@ -48,6 +48,42 @@ html[data-embed] .kit-screen:not([data-screen="play"]) { padding-top: calc(var(-
   box-shadow: var(--kit-focus-shadow, 0 0 0 var(--kit-focus-gap, var(--hub-focus-gap, 2px)) var(--kit-focus-inner, var(--hub-focus-inner, rgba(13, 15, 20, 0.85))),
     0 0 0 calc(var(--kit-focus-gap, var(--hub-focus-gap, 2px)) + var(--kit-focus-width, var(--hub-focus-width, 3px))) var(--kit-focus-color, var(--hub-focus-color, #fff))); }
 html[data-hub-input="touch"] .kit-ui [data-nav][data-hub-focus] { box-shadow: none; outline: none; filter: none; }
+/* Button prompts (kit/input/glyphs.ts): a chip holds keycaps, Xbox and PlayStation glyphs; html[data-prompts]
+   (keys, pad, none) and html[data-pad-style] (xbox, ps) pick the one showing (kit/input/prompts.ts). Theme with
+   --kit-glyph-* (size, key face and ink, the face buttons' colours). */
+.kit-glyph { display: none; align-items: center; gap: 3px; flex: none; line-height: 1; pointer-events: none;
+  font: 800 calc(var(--kit-glyph-size, 22px) * 0.5) var(--kit-glyph-font, var(--kit-font)); letter-spacing: 0; text-transform: none; }
+html[data-prompts="keys"] .kit-glyph[data-keys="yes"], html[data-prompts="pad"] .kit-glyph[data-pad="yes"] { display: inline-flex; }
+.kit-glyph > span { display: none; align-items: center; gap: 3px; }
+html[data-prompts="keys"] .kit-glyph > .kit-g-keys { display: inline-flex; }
+html[data-prompts="pad"]:not([data-pad-style="ps"]) .kit-glyph > .kit-g-xbox { display: inline-flex; }
+html[data-prompts="pad"][data-pad-style="ps"] .kit-glyph > .kit-g-ps { display: inline-flex; }
+.kit-g-key { display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box;
+  min-width: var(--kit-glyph-size, 22px); height: var(--kit-glyph-size, 22px); padding: 0 5px; border-radius: 6px;
+  background: var(--kit-glyph-key, linear-gradient(180deg, #f4f6fb, #c9cfdc)); color: var(--kit-glyph-key-ink, #141824);
+  box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.28), 0 1px 0 rgba(0, 0, 0, 0.45); }
+.kit-g-key.wide { padding: 0 7px; font-size: calc(var(--kit-glyph-size, 22px) * 0.44); }
+.kit-g-face { display: inline-flex; align-items: center; justify-content: center; width: var(--kit-glyph-size, 22px);
+  height: var(--kit-glyph-size, 22px); border-radius: 50%; background: var(--kit-glyph-pad-bg, #141824);
+  box-shadow: inset 0 0 0 1.5px currentColor, 0 1px 0 rgba(0, 0, 0, 0.45); }
+.kit-g-face.kit-g-a { color: var(--kit-glyph-a, #6fd34f); } .kit-g-face.kit-g-b { color: var(--kit-glyph-b, #ff5a50); }
+.kit-g-face.kit-g-x { color: var(--kit-glyph-x, #4ea4ff); } .kit-g-face.kit-g-y { color: var(--kit-glyph-y, #ffd23f); }
+html[data-pad-style="ps"] .kit-g-face.kit-g-a { color: var(--kit-glyph-cross, #8fb4ff); }
+html[data-pad-style="ps"] .kit-g-face.kit-g-b { color: var(--kit-glyph-circle, #ff6f7d); }
+html[data-pad-style="ps"] .kit-g-face.kit-g-x { color: var(--kit-glyph-square, #f49ad2); }
+html[data-pad-style="ps"] .kit-g-face.kit-g-y { color: var(--kit-glyph-triangle, #4fe0bd); }
+.kit-g-shape { width: 62%; height: 62%; }
+.kit-g-word { display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box;
+  height: var(--kit-glyph-size, 22px); min-width: calc(var(--kit-glyph-size, 22px) * 1.3); padding: 0 6px;
+  border-radius: 7px 7px 5px 5px; background: var(--kit-glyph-pad-bg, #141824); color: var(--kit-glyph-pad-ink, #fff);
+  box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.55), 0 1px 0 rgba(0, 0, 0, 0.45); font-size: calc(var(--kit-glyph-size, 22px) * 0.42); }
+.kit-g-word.kit-g-trigger { border-radius: 4px 4px 9px 9px; }
+.kit-g-pad { display: inline-flex; color: var(--kit-glyph-pad-ink, #fff); }
+.kit-g-dpad { width: var(--kit-glyph-size, 22px); height: var(--kit-glyph-size, 22px); filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.6)); }
+.kit-g-dpad path:first-child { fill: var(--kit-glyph-pad-bg, #141824); stroke-width: 1.4; }
+.kit-btn { position: relative; }
+.kit-btn > .kit-glyph-on { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); }
+html[data-prompts="keys"] .kit-btn:has(> .kit-glyph-on[data-keys="yes"]), html[data-prompts="pad"] .kit-btn:has(> .kit-glyph-on[data-pad="yes"]) { padding-right: 46px; padding-left: 46px; }
 /* The back guard (kit/ui/back-guard.ts) in play: a drag plays, never scrolls or swipes the page away. */
 html.kit-back-guard, html.kit-back-guard body { overscroll-behavior: none; }
 html.kit-back-guard #app, html.kit-back-guard .kit-screen[data-screen="play"] { touch-action: none; }

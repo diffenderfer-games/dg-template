@@ -13,6 +13,8 @@
  * game's and never click a HUD button. The kit's CSS draws the focus look
  * (`--kit-focus-*`, kit/ui/css.ts), so the hub's ring is off (`ring`).
  *
+ * Back presses the control bound to `back` in the top modal or the screen, when there is one.
+ *
  * Escape on a keyboard is the same back, and it calls `preventDefault()` only
  * when something went back (or the game's own inputs read Esc, e.g. `pause`
  * in play): in the world's box an Esc nobody used leaves the game, so on the
@@ -22,11 +24,52 @@ import type { NavElement, NavTarget } from '@diffenderfer-games/hub';
 import type { HubLike } from '../core/hub-like.ts';
 import { closeTopModal, topModal } from '../ui/modal.ts';
 
-/** The navigable controls: the topmost modal's, else the screens'. Hidden and disabled ones are skipped. */
-export function navTargets(root: ParentNode): HTMLElement[] {
+/** Where navigation and bound controls are: the topmost open modal, else `root` (the screens). */
+export function navScope(root: ParentNode): ParentNode {
   const modals = root.querySelectorAll<HTMLElement>('[data-modal]');
-  const scope: ParentNode = modals.length > 0 ? (modals[modals.length - 1] ?? root) : root;
-  return [...scope.querySelectorAll<HTMLElement>('[data-nav]')].filter((el) => !isDisabled(el) && isShown(el));
+  return modals.length > 0 ? (modals[modals.length - 1] ?? root) : root;
+}
+
+/**
+ * The navigable controls: the topmost modal's, else the screens'. Hidden and disabled ones are
+ * skipped; the `confirm`-bound control comes first (the pad's first highlight). While a stepper
+ * (`data-nav-axis`) has focus, the controls beside it are left out, so left and right step it.
+ */
+export function navTargets(root: ParentNode): HTMLElement[] {
+  const all = [...navScope(root).querySelectorAll<HTMLElement>('[data-nav]')].filter(
+    (el) => !isDisabled(el) && isShown(el),
+  );
+  const confirm = all.findIndex((el) => el.getAttribute('data-action') === 'confirm');
+  const first = confirm > 0 ? all.splice(confirm, 1) : [];
+  const ordered = [...first, ...all];
+  const focused = typeof document === 'undefined' ? null : document.activeElement;
+  if (!(focused instanceof HTMLElement) || !focused.hasAttribute('data-nav-axis') || !ordered.includes(focused))
+    return ordered;
+  const a = focused.getBoundingClientRect();
+  if (a.height <= 0) return ordered;
+  return ordered.filter((el) => {
+    if (el === focused) return true;
+    const r = el.getBoundingClientRect();
+    return r.bottom <= a.top + 2 || r.top >= a.bottom - 2;
+  });
+}
+
+/** The control in the top modal (else the screens) bound to `back`, shown and enabled. */
+function backControl(root: ParentNode): HTMLElement | null {
+  const el = [...navScope(root).querySelectorAll<HTMLElement>('[data-action="back"]')].find(
+    (c) => !isDisabled(c) && isShown(c),
+  );
+  return el ?? null;
+}
+
+/** Is the player typing in a field? */
+function isTyping(): boolean {
+  const el = typeof document === 'undefined' ? null : document.activeElement;
+  return (
+    (el instanceof HTMLInputElement && el.type !== 'range') ||
+    el instanceof HTMLTextAreaElement ||
+    (el instanceof HTMLElement && el.isContentEditable)
+  );
 }
 
 function isDisabled(el: HTMLElement): boolean {
@@ -61,8 +104,15 @@ export type MenuNavSpec = {
  * closes the top modal unless it is locked. Returns the unsubscribe.
  */
 export function installMenuNav(hub: Pick<HubLike, 'input' | 'overlay'>, o: MenuNavSpec): () => void {
+  // Back presses the control bound to `back` (kit/input/glyphs.ts) when there is one, else closes the top modal or
+  // goes back on the screen.
   const back = (): boolean => {
     if (o.locked?.() === true) return false;
+    const bound = isTyping() ? null : backControl(o.root);
+    if (bound !== null) {
+      bound.click();
+      return true;
+    }
     if (topModal() !== null) return closeTopModal();
     return o.back();
   };

@@ -16,7 +16,11 @@ import { toast, banner, confetti, countUp } from '../kit/ui/index.ts';
 
 const el = h('div.panel', {}, h('p', {}, playerName), button('Go', start, { cls: 'kit-primary', testid: 'go' }));
 const sure = await confirm({ title: 'Leave?', yes: 'Leave', no: 'Stay' }); // true for yes
-openModal({ title: 'Colours', body: segmented(COLOURS, current, setColour, 'colour'), buttons: [{ label: 'Close', primary: true }] });
+openModal({
+  title: 'Colours',
+  body: segmented(COLOURS, current, setColour, 'colour'),
+  buttons: [{ label: 'Close', primary: true }],
+});
 toast('Saved', { kind: 'good' }); // or ctx.toast('Saved')
 ```
 
@@ -43,14 +47,14 @@ wants it back sets `nav: { hubRing: true }`). A focused control matches `:focus`
 pad navigation highlights it, `[data-hub-focus]`. Theme it with variables (they default to the hub's `--hub-focus-*`
 ring, so one set of colours themes both):
 
-| Variable | Default | What |
-|---|---|---|
-| `--kit-focus-color` | `--hub-focus-color`, `#fff` | the ring |
-| `--kit-focus-inner` | `--hub-focus-inner`, dark | the gap between the control and the ring |
-| `--kit-focus-width` / `--kit-focus-gap` | `3px` / `2px` | ring and gap widths |
-| `--kit-focus-shadow` | the two-tone ring from the four above | the whole `box-shadow` (e.g. a glow); `none` for no ring |
-| `--kit-focus-outline` / `--kit-focus-outline-offset` | `none` / `2px` | an outline instead of (or with) the shadow |
-| `--kit-focus-filter` | `none` | a `filter`, e.g. `drop-shadow(0 0 8px pink)` |
+| Variable                                             | Default                               | What                                                     |
+| ---------------------------------------------------- | ------------------------------------- | -------------------------------------------------------- |
+| `--kit-focus-color`                                  | `--hub-focus-color`, `#fff`           | the ring                                                 |
+| `--kit-focus-inner`                                  | `--hub-focus-inner`, dark             | the gap between the control and the ring                 |
+| `--kit-focus-width` / `--kit-focus-gap`              | `3px` / `2px`                         | ring and gap widths                                      |
+| `--kit-focus-shadow`                                 | the two-tone ring from the four above | the whole `box-shadow` (e.g. a glow); `none` for no ring |
+| `--kit-focus-outline` / `--kit-focus-outline-offset` | `none` / `2px`                        | an outline instead of (or with) the shadow               |
+| `--kit-focus-filter`                                 | `none`                                | a `filter`, e.g. `drop-shadow(0 0 8px pink)`             |
 
 Set them on `:root` for every control, or inside a control's own `:focus` rule for a per-control look
 (`.my-card:focus { --kit-focus-shadow: 0 0 0 2px #fff, 0 0 18px #f0a; }`). The hub's menu, its dialogs and its
@@ -94,19 +98,39 @@ screenshot runner and menu navigation go by `data-testid` and `data-nav`, never 
 structure, so a game may restyle any of it, move `.kit-menu` into its own panel, or
 replace a button's contents, as long as the buttons keep their test ids.
 
-| Screen | Markup (test ids in brackets) |
-| --- | --- |
-| title | `div.kit-title-screen.kit-dim` > `h1.kit-title` [`game-title`], `p.kit-tagline` (when there is a tagline), `div.kit-menu` > the buttons: `continue` (the first saved game) and `continue-<id>` (the others), `play`, `daily`, `race`, `race-browse`, `turns-new`, `online`, `quick-match`, `settings`, `howto` (only the features the game has) |
-| loading | `div.kit-loading` > `p.kit-tagline` |
-| play | `div` > `div.kit-corner` > `button.kit-btn.kit-pause-btn` [`pause`]; `div.kit-hud` [`hud`] (the game's `screens.hud` mounts into it) |
-| pause | `div.kit-dim` > `h2.kit-title`, `div.kit-menu` > [`resume`], [`restart`], [`settings`], [`quit`] |
-| result | `div.kit-dim` > `h2.kit-title` [`result-title`], `div.kit-result-body` (the game's `screens.result` fills it), `div.kit-menu` > [`play-again`], [`quit`] |
-| modals | `div.kit-modal` [`modal`, or the modal's own id: `howto`, `confirm`, `settings`…] > `div.kit-modal-sheet` > `h2.kit-modal-title`, `div.kit-modal-body`, `div.kit-modal-buttons` (`confirm-yes`, `confirm-no`, `howto-ok`) |
+| Screen  | Markup (test ids in brackets)                                                                                                                                                                                                                                                                                                                   |
+| ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| title   | `div.kit-title-screen.kit-dim` > `h1.kit-title` [`game-title`], `p.kit-tagline` (when there is a tagline), `div.kit-menu` > the buttons: `continue` (the first saved game) and `continue-<id>` (the others), `play`, `daily`, `race`, `race-browse`, `turns-new`, `online`, `quick-match`, `settings`, `howto` (only the features the game has) |
+| loading | `div.kit-loading` > `p.kit-tagline`                                                                                                                                                                                                                                                                                                             |
+| play    | `div` > `div.kit-corner` > `button.kit-btn.kit-pause-btn` [`pause`]; `div.kit-hud` [`hud`] (the game's `screens.hud` mounts into it)                                                                                                                                                                                                            |
+| pause   | `div.kit-dim` > `h2.kit-title`, `div.kit-menu` > [`resume`], [`restart`], [`settings`], [`quit`]                                                                                                                                                                                                                                                |
+| result  | `div.kit-dim` > `h2.kit-title` [`result-title`], `div.kit-result-body` (the game's `screens.result` fills it), `div.kit-menu` > [`play-again`], [`quit`]                                                                                                                                                                                        |
+| modals  | `div.kit-modal` [`modal`, or the modal's own id: `howto`, `confirm`, `settings`…] > `div.kit-modal-sheet` > `h2.kit-modal-title`, `div.kit-modal-body`, `div.kit-modal-buttons` (`confirm-yes`, `confirm-no`, `howto-ok`)                                                                                                                       |
 
 A kit button is `button.kit-btn[data-nav]` (`.kit-primary` for the main one) >
 `span.kit-btn-icon` (optional), `span.kit-btn-label`, `span.kit-btn-sub` (optional: the
 Continue row's label, "Done today"). Buttons in `.kit-menu` slide in one after another
 (`stagger`).
+
+## Button prompts
+
+Controls can show their shortcut and answer to it ([input.md](input.md#button-prompts)): `button(label, fn, {
+action: 'confirm' })`, a modal button's `action`, or `bindAction(el, action)`. The chip is `span.kit-glyph`
+(`aria-hidden`) holding `.kit-g-keys` (keycaps, `.kit-g-key`), `.kit-g-xbox` and `.kit-g-ps` (face buttons
+`.kit-g-face.kit-g-a|b|x|y`, shoulders and triggers `.kit-g-word`, the d-pad `.kit-g-dpad`); `html[data-prompts]`
+and `html[data-pad-style]` show one. Theme them:
+
+| Variable                                               | Default                  | What                           |
+| ------------------------------------------------------ | ------------------------ | ------------------------------ |
+| `--kit-glyph-size`                                     | `22px`                   | a chip's height                |
+| `--kit-glyph-key` / `--kit-glyph-key-ink`              | a light gradient / dark  | a keycap's face and letter     |
+| `--kit-glyph-pad-bg` / `--kit-glyph-pad-ink`           | dark / white             | a pad button's face and letter |
+| `--kit-glyph-a`, `-b`, `-x`, `-y`                      | green, red, blue, yellow | Xbox's face buttons            |
+| `--kit-glyph-cross`, `-circle`, `-square`, `-triangle` | blue, red, pink, teal    | PlayStation's                  |
+| `--kit-glyph-font`                                     | `--kit-font`             | the letters                    |
+
+A kit button (`.kit-btn`) carries its chip at its right edge (`.kit-glyph-on`) and pads both sides while it shows;
+place a chip elsewhere in your own buttons with CSS (`.my-btn > .kit-glyph`).
 
 ## Toasts
 
@@ -146,20 +170,20 @@ It prints one line per size and screen and exits 1 if any check failed. Run it a
 
 - `backGuard`, `pageBackGuard`, `historyGuard`, `edgeSwipe`, `EDGE_PX`, `BACK_GUARD_CLASS`: the back guard (above).
 
-
-| Export | What |
-|---|---|
-| `h(tag, attrs, ...kids)`, `append`, `clear` | The DOM builder (`'div.a.b'` adds classes; strings are text). |
-| `button`, `segmented`, `toggleRow`, `sliderRow` | Navigable controls with test ids. |
-| `openModal`, `confirm`, `topModal`, `closeTopModal` | Modals; `ModalHandle` has `close()` and `setLocked()`. |
-| `toast` | Short message with optional actions. |
-| `Screens` | One screen at a time with presence. |
-| `mountUi`, `ui()` | The `#ui` root, its clock and `reducedMotion`. |
-| `banner`, `countUp`, `confetti`, `stagger` | Juice. |
-| `KIT_CSS` | The kit's stylesheet. |
+| Export                                              | What                                                          |
+| --------------------------------------------------- | ------------------------------------------------------------- |
+| `h(tag, attrs, ...kids)`, `append`, `clear`         | The DOM builder (`'div.a.b'` adds classes; strings are text). |
+| `button`, `segmented`, `toggleRow`, `sliderRow`     | Navigable controls with test ids.                             |
+| `openModal`, `confirm`, `topModal`, `closeTopModal` | Modals; `ModalHandle` has `close()` and `setLocked()`.        |
+| `toast`                                             | Short message with optional actions.                          |
+| `Screens`                                           | One screen at a time with presence.                           |
+| `mountUi`, `ui()`                                   | The `#ui` root, its clock and `reducedMotion`.                |
+| `banner`, `countUp`, `confetti`, `stagger`          | Juice.                                                        |
+| `KIT_CSS`                                           | The kit's stylesheet.                                         |
 
 ## Tests
 
+- `tests/kit/input/prompts.test.ts`: the prompt chips on buttons and modals.
 - `tests/kit/ui/ui.test.ts`: `h()` escapes text, `Screens.show` and presence, locked modals, `confirm`, toast actions and timeouts, the same message replacing the one showing, navigable named controls, reduced-motion juice, the settings sheet.
 - `npm run ui:check` for real layouts.
 

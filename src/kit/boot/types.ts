@@ -13,6 +13,8 @@ import type { HubLike } from '../core/hub-like.ts';
 import type { JsonObject } from '../core/json.ts';
 import type { KitStrings } from '../core/strings.ts';
 import type { ControlsHandle, InputSpec } from '../input/controls.ts';
+import type { PromptBinding } from '../input/glyphs.ts';
+import type { PadStyle } from '../input/prompts.ts';
 import type { Region } from '../layout/index.ts';
 import type { ResumeSlot, ResumeSpec } from '../resume/index.ts';
 import type { SeededRng } from '../rng/index.ts';
@@ -190,6 +192,19 @@ export type NavHooks<P extends JsonObject, R extends JsonObject> = {
   hubRing?: boolean;
 };
 
+/**
+ * Button prompts (docs/kit/input.md § "Button prompts"): controls bound to actions show their key or pad
+ * button and answer to it.
+ */
+export type PromptOptions = {
+  /** Change the kit's actions or add the game's (merged over `DEFAULT_PROMPT_BINDINGS`). */
+  bindings?: Readonly<Record<string, Partial<PromptBinding>>>;
+  /** Pad glyphs: from the pad's id (`auto`, default), or always Xbox or PlayStation. */
+  padStyle?: PadStyle | 'auto';
+  /** Arrows move focus between the controls outside play (default true). */
+  arrows?: boolean;
+};
+
 /** The whole game, as `defineGame` takes it. */
 export type GameDefinition<P extends JsonObject, R extends JsonObject> = {
   /** Default: the hub's slug, else the page's first path segment. */
@@ -202,6 +217,8 @@ export type GameDefinition<P extends JsonObject, R extends JsonObject> = {
   input: InputSpec;
   /** Gamepad menus: when the kit navigates them, and whose focus look shows (docs/kit/input.md § "Menus"). */
   nav?: NavHooks<P, R>;
+  /** Button prompts and their bindings (default on); `false` turns them off. */
+  prompts?: PromptOptions | false;
   /**
    * The back guard in play (kit/ui/back-guard.ts; docs/kit/ui.md § "The back guard"): edge swipes
    * and the phone's Back pause instead of leaving. Default on, except for games that resume when

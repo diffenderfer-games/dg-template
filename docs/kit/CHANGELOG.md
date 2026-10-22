@@ -4,6 +4,31 @@ KIT doc. One entry per kit version; per module inside. A **major** version
 means a hook's signature changed: the entry says how to move a game over.
 `npm run kit:sync` prints the entries newer than a game's `kit.json`.
 
+## 1.24 (2026-10-21)
+
+- **input 1.5:** button prompts (`kit/input/glyphs.ts`, `prompts.ts`): controls bound to actions (`confirm`, `back`,
+  `alt`, `alt2`, `prev`/`next`, `page-prev`/`page-next`, the d-pad) show their key as a keycap, or the pad's button
+  (Xbox, or PlayStation from the pad's id) when a pad is in use, and nothing on touch, swapping live
+  (`html[data-prompts]`, `html[data-pad-style]`); pressing the key or pad button presses the control in the top modal
+  or the screen, outside active play, leaving the hub's menu, act and back buttons to the hub. Back (B, Esc) presses
+  the `back` control when there is one. Enter presses `confirm` when nothing has focus; arrows move focus as the
+  d-pad does; `axisControl` steppers step on left and right. The kit's own controls are bound by test id
+  (`KIT_ACTIONS`). `bindAction`, `glyph`, `axisControl`, `installPrompts`, `setPromptBindings`, `pressAction`,
+  `navScope`; `navTargets` puts the `confirm` control first and leaves out what's beside a focused stepper.
+- **ui 1.10:** `button(..., { action })`, `ModalButton.action`; the chips' CSS (`--kit-glyph-*`). **boot 1.13:**
+  `GameDefinition.prompts` (`bindings`, `padStyle`, `arrows`, or `false`); `defineGame` installs the prompts.
+- **testing 1.13:** `FakePad`'s `id` (`padHarness({ id })`: a PlayStation pad). **hub-events 1.11:** the prompts
+  through a booted game. **core 1.19:** `KIT_VERSION` 1.24. **docs 1.27:** this entry. **scripts 1.28:** the module
+  versions.
+
+### Moving a game over
+
+- Nothing breaks: the kit's screens get their chips. To make a game's own screens console-like, bind each screen's
+  primary to `confirm`, its way back to `back`, its main choice to `prev`/`next` (a stepper: `axisControl`) and its
+  extras to `alt`/`alt2` ([input.md](input.md#button-prompts)), and lay it out in reading order.
+- A game whose own keydown listener uses Q, E, F, R, Z, C or Enter on a menu screen: `preventDefault()` it there (the
+  kit then leaves the key alone), or rebind the action (`prompts.bindings`).
+
 ## 1.23 (2026-10-21)
 
 - **boot 1.12:** Back in the online lobby (the phone's, the browser's, the pad's B, Esc but not while typing in the chat)

@@ -16,7 +16,7 @@ import type { JsonObject } from '../core/json.ts';
 import { localStore, sessionStore, type Store } from '../core/store.ts';
 import { setKitStrings, t } from '../core/strings.ts';
 import { installDaily } from '../daily/index.ts';
-import { controlHints, defineControls, installMenuNav } from '../input/index.ts';
+import { controlHints, defineControls, installMenuNav, installPrompts, setPromptBindings } from '../input/index.ts';
 import { onWindow } from '../core/events.ts';
 import { isEmbedded } from '../core/env.ts';
 import { createKitAudio } from '../audio/kit-audio.ts';
@@ -249,6 +249,22 @@ export function defineGame<P extends JsonObject, R extends JsonObject>(
     // In play the game's inputs read Esc (`pause`): the loop acts on it, the kit marks it handled.
     ownsEscape: () => session.screen === 'play' && !session.paused && controls.usesKey('Escape'),
   });
+  // Button prompts: bound controls show their key or pad button and answer to it, outside active play.
+  const prompts = game.prompts === false ? null : (game.prompts ?? {});
+  if (prompts?.bindings !== undefined) setPromptBindings(prompts.bindings);
+  const stopPrompts =
+    prompts === null
+      ? () => undefined
+      : installPrompts(hub, {
+          root: ui.root,
+          active: () => session.screen !== 'play' || session.paused,
+          navActive: () => {
+            const state = navState();
+            return game.nav?.active?.(ctx, state) ?? state.byDefault;
+          },
+          padStyle: prompts.padStyle,
+          arrows: prompts.arrows,
+        });
   // 6. page lifecycle: keep the game in progress and the profile when the page hides or closes
   const onHide = (): void => {
     session.saveForLater(true);
@@ -276,6 +292,7 @@ export function defineGame<P extends JsonObject, R extends JsonObject>(
     // 8. control hints follow the device (keys, touch, pad): `html[data-controls]` for CSS and screens
     controlHints(hub, (kind) => (document.documentElement.dataset.controls = kind)),
     stopNav,
+    stopPrompts,
   ];
   // In the world's box (hub.md "Playing over the world"): `html[data-embed]` for CSS (no menu button corner to keep clear).
   if (isEmbedded()) document.documentElement.dataset.embed = '1';

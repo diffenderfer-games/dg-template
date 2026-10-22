@@ -19,7 +19,10 @@ const virtual = (width: number): VirtualDef[] => [
 export const controls: InputSpec = {
   groups: {
     play: {
-      inputs: { left: { keys: ['a', 'arrowleft'], touch: { stick: 'move', axis: 'x-' } }, pause: { keys: ['escape'], gamepad: { button: 9 } } },
+      inputs: {
+        left: { keys: ['a', 'arrowleft'], touch: { stick: 'move', axis: 'x-' } },
+        pause: { keys: ['escape'], gamepad: { button: 9 } },
+      },
       axes: { move: { x: ['left', 'right'], y: ['up', 'down'] } },
     },
   },
@@ -73,6 +76,75 @@ Call `ctx.controls.relayout(width)` from `ctx.onResize` if your touch layout dep
   over http (`http://192.168.x.x:5173`) sees no pads at all; test pads on `localhost` (or over HTTPS).
 - Test with a real hub input system and a fake pad: `padHarness()` ([testing.md](testing.md#a-gamepad-through-the-real-hub)).
 
+## Button prompts
+
+Make every screen feel like a console game: each control that has a shortcut **shows** it as a small chip
+(a keycap on a keyboard, the pad's button when a pad is in use, nothing on a touch screen) and **answers**
+to it, so players rely on the buttons rather than hunting with the focus.
+
+```ts
+import { bindAction, glyph, axisControl } from '../kit/input/index.ts';
+import { button } from '../kit/ui/controls.ts';
+
+button('Race!', go, { action: 'confirm' }); // Enter / A, with its chip
+bindAction(myBackButton, 'back'); // Esc / B
+bindAction(randomButton, 'alt2'); // R / Y
+bindAction(prevShip, 'prev'); // Q / LB (and 'next': E / RB)
+axisControl(shipRow, (dir) => cycleShip(dir)); // left/right and the d-pad step it while it has focus
+hint.append(glyph(['prev', 'next']), 'Ship'); // a chip on its own (a footer, a HUD hint)
+openModal({
+  title,
+  buttons: [
+    { label: 'Leave', action: 'back' },
+    { label: 'Stay', action: 'confirm' },
+  ],
+});
+```
+
+The actions (`DEFAULT_PROMPT_BINDINGS`):
+
+| Action                        | Keys   | Pad (Xbox / PlayStation) | Use it for                                        |
+| ----------------------------- | ------ | ------------------------ | ------------------------------------------------- |
+| `confirm`                     | Enter  | A / cross                | the screen's one primary action                   |
+| `back`                        | Esc    | B / circle               | back, leave, cancel                               |
+| `alt`                         | F      | X / square               | a secondary action                                |
+| `alt2`                        | R      | Y / triangle             | another (a random track, settings)                |
+| `prev`, `next`                | Q, E   | LB, RB / L1, R1          | cycle the screen's main choice (tabs, a carousel) |
+| `page-prev`, `page-next`      | Z, C   | LT, RT / L2, R2          | cycle a second choice (a colour), pages           |
+| `left`, `right`, `up`, `down` | arrows | the d-pad                |                                                   |
+| `pause`                       | Esc    | Menu / Options           | shown only (the session pauses)                   |
+
+`GameDefinition.prompts` changes them or adds the game's own (`{ bindings: { alt: { keys: ['x'] }, swap: { keys:
+['e'], pad: [3] } } }`), picks the pad glyphs (`padStyle: 'xbox' | 'ps' | 'auto'`), or turns arrows off
+(`arrows: false`); `prompts: false` turns the whole thing off. One control can carry its own keys:
+`bindAction(el, 'alt', { keys: ['s'] })`.
+
+How it behaves (`installPrompts`, which `defineGame` calls):
+
+- **The chips follow the last device**: a key or a mouse shows keycaps, a pad its glyphs, a finger nothing.
+  `html[data-prompts]` is `keys`, `pad` or `none`; `html[data-pad-style]` is `xbox`, or `ps` when the pad's id says
+  Sony, DualShock or DualSense. Every chip holds all three looks and CSS shows one, so they swap the moment a
+  controller is picked up, mid-screen, with nothing redrawn.
+- **Pressing works**: a bound key or pad button presses its control (`click()`) in the **top modal** (else the
+  current screen), only when it's shown and enabled, **never in active play** (the HUD's chips are hints; the game
+  reads its own inputs there), never under hub UI and never while typing in a field.
+- **The hub's buttons stay the hub's** (`hub.input.padButtons`): Select opens its menu; A presses the highlighted
+  control (the `confirm` one is highlighted first); B is the kit's back, which presses the `back` control when there
+  is one (Esc too), else closes the modal or goes back as before. So never bind `back` on the play screen.
+- **Enter** presses `confirm` when no control has focus; a focused button keeps its own Enter.
+- **Arrows move focus** between the controls as the d-pad does (spatially), outside play.
+- **Steppers** (`axisControl`): a focusable row whose left and right (arrows, the d-pad, the stick) step it while it
+  has focus, and whose act (Enter, A) presses `confirm`. Keep it alone in its row; while it has focus the controls
+  beside it are left out of the pad's moves.
+- **The kit's own controls** are bound as they appear (`KIT_ACTIONS`): Play again and the lobby's Start `confirm`;
+  Resume, the result's Quit, Leave and the dialogs' No and Close `back`; Restart `alt`; Settings and Invite `alt2`.
+  A game that rebuilds a button's contents (dressing it) gets its chip put back; `bindAction(el, a, { chip: false })`
+  binds with no chip (draw one yourself with `glyph()`).
+- **Looks**: [ui.md](ui.md#button-prompts) (`--kit-glyph-*`).
+
+Lay screens out for it: one primary (`confirm`), one way back (`back`), the main choice on the shoulders, a second on
+the triggers, extras on X and Y, all in reading order, so the focus order matches what the player sees.
+
 ## Helpers a game may use
 
 - `setHudInsets(hub, { top, bottom })`: keep auto-placed touch controls off your HUD bands. `defineGame` does not call it.
@@ -125,26 +197,32 @@ is a working example of all of it.
 
 ## Options / API
 
-| Export | What |
-|---|---|
-| `InputSpec` | `{ groups, virtual? }`: what the game declares. |
-| `defineControls(hub, spec, width)` | Define the groups; returns a `ControlsHandle`. |
-| `ControlsHandle.sync({ playing, paused?, extra? })` | Enable or disable groups, only on change (`paused`: the kit's `kit:resume`). |
-| `ControlsHandle.usesPadButton(buttons, group?)` | Does a group (default `play`) read any of these pad buttons? |
-| `padButtonsOf(mapping)`, `RESUME_GROUP`, `RESUME_INPUT` | A mapping's buttons as a list; the pause screen's resume group and input. |
-| `ControlsHandle.relayout(width)` | Re-define the touch layout if the width changed it. |
-| `ControlsHandle.usesKey(key)` | Does an enabled group read this key? (Esc in play is then the game's.) |
-| `installMenuNav(hub, { root, back, locked?, ownsEscape?, keys?, active?, ring? })` | Make the kit's menus navigable once, and Esc the same back; `back()` returns whether it went anywhere. Returns the unsubscribe. |
-| `navTargets(root)` | The navigable controls of the top modal or the screens. |
-| `canvasNavElements(buttons)` | Canvas buttons as nav targets. |
-| `controlHints(hub, cb)` | Call `cb('keys' \| 'touch' \| 'pad')` now and on every change; returns the unsubscribe. |
-| `setHudInsets(hub, bands)` | Tell the hub about HUD bands at the top or bottom. |
-| `repeatPress(read, opts)` | Held button to repeats (300 ms first, then every 90 ms by default). |
+| Export                                                                                                | What                                                                                                                            |
+| ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `InputSpec`                                                                                           | `{ groups, virtual? }`: what the game declares.                                                                                 |
+| `defineControls(hub, spec, width)`                                                                    | Define the groups; returns a `ControlsHandle`.                                                                                  |
+| `ControlsHandle.sync({ playing, paused?, extra? })`                                                   | Enable or disable groups, only on change (`paused`: the kit's `kit:resume`).                                                    |
+| `ControlsHandle.usesPadButton(buttons, group?)`                                                       | Does a group (default `play`) read any of these pad buttons?                                                                    |
+| `padButtonsOf(mapping)`, `RESUME_GROUP`, `RESUME_INPUT`                                               | A mapping's buttons as a list; the pause screen's resume group and input.                                                       |
+| `ControlsHandle.relayout(width)`                                                                      | Re-define the touch layout if the width changed it.                                                                             |
+| `ControlsHandle.usesKey(key)`                                                                         | Does an enabled group read this key? (Esc in play is then the game's.)                                                          |
+| `installMenuNav(hub, { root, back, locked?, ownsEscape?, keys?, active?, ring? })`                    | Make the kit's menus navigable once, and Esc the same back; `back()` returns whether it went anywhere. Returns the unsubscribe. |
+| `navTargets(root)`                                                                                    | The navigable controls of the top modal or the screens.                                                                         |
+| `canvasNavElements(buttons)`                                                                          | Canvas buttons as nav targets.                                                                                                  |
+| `controlHints(hub, cb)`                                                                               | Call `cb('keys' \| 'touch' \| 'pad')` now and on every change; returns the unsubscribe.                                         |
+| `setHudInsets(hub, bands)`                                                                            | Tell the hub about HUD bands at the top or bottom.                                                                              |
+| `bindAction(el, action, { keys?, pad?, chip? })`, `glyph(actions)`, `axisControl(el, step, { act? })` | Button prompts: bind a control, a chip on its own, a stepper.                                                                   |
+| `installPrompts(hub, { root, active?, navActive?, padStyle?, arrows? })`                              | Track the device for the chips and make bound controls answer (`defineGame` calls it).                                          |
+| `setPromptBindings`, `promptBinding`, `DEFAULT_PROMPT_BINDINGS`, `KIT_ACTIONS`, `bindKitControls`     | The actions' keys and pad buttons; the kit's controls' actions.                                                                 |
+| `promptMode()`, `setPromptMode`, `padStyleOf(id)`, `pressAction(root, action)`, `actionControl`       | The chips' mode; a pad's glyph style; press an action from code.                                                                |
+| `navScope(root)`                                                                                      | The top modal, else the screens (where navigation and bindings look).                                                           |
+| `repeatPress(read, opts)`                                                                             | Held button to repeats (300 ms first, then every 90 ms by default).                                                             |
 
 ## Tests
 
 - `tests/kit/input/input.test.ts`: enable and disable only on change, a sync while hub UI is open, the touch layout switching at 520 px, `usesKey`, nav targets, control hints, HUD insets, `repeatPress`.
 - `tests/hub-events/input.test.ts`: the hub input events against the game (FakeHub), when Esc is handled, Start resuming, the pad's menus off in play when A or B are the game's, the back guard.
+- `tests/kit/input/prompts.test.ts`: button prompts with a real hub and a fake pad: the chips' looks, the mode following keys, an Xbox or PlayStation pad and a finger, keys and pad buttons pressing their controls, the hub's A and B, the top modal only, nothing in active play, Back pressing `back`, steppers, arrows.
 - `tests/kit/testing/fake-pad.test.ts`: a fake pad through the real hub input system (dead zones, button lists, the active device, the kit's menus and focus).
 - `tests/hub/kit/embed.test.ts`: Esc in the world's box on a real hub (the title leaves, play pauses).
 

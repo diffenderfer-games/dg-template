@@ -27,7 +27,8 @@ export class FakePad implements Pick<
   Gamepad,
   'id' | 'index' | 'connected' | 'mapping' | 'timestamp' | 'axes' | 'buttons'
 > {
-  readonly id = 'Fake pad (STANDARD GAMEPAD)';
+  /** The browser's name for it (a PlayStation pad's has "DualSense" or "054c" in it). */
+  readonly id: string;
   readonly index: number;
   readonly connected = true;
   readonly mapping = 'standard';
@@ -35,8 +36,9 @@ export class FakePad implements Pick<
   axes: number[] = [0, 0, 0, 0];
   readonly buttons: FakeButton[] = Array.from({ length: BUTTONS }, () => new FakeButton());
 
-  constructor(index = 0) {
+  constructor(index = 0, id = 'Fake pad (STANDARD GAMEPAD)') {
     this.index = index;
+    this.id = id;
   }
 
   /** Hold button `i` (a trigger: `value` 0..1, pressed from 0.5). `value` 0 lets go. */
@@ -98,14 +100,14 @@ export type PadHarness = {
 };
 
 /** Plug `count` fake pads into a new real `InputSystem` (slug `game`), with the hub's frames run by hand. */
-export function padHarness(o: { count?: number; slug?: string } = {}): PadHarness {
+export function padHarness(o: { count?: number; slug?: string; id?: string } = {}): PadHarness {
   let frames: FrameRequestCallback[] = [];
   const raf = globalThis.requestAnimationFrame;
   globalThis.requestAnimationFrame = (cb) => {
     frames.push(cb);
     return frames.length;
   };
-  const pads = Array.from({ length: Math.max(1, o.count ?? 1) }, (_, i) => new FakePad(i));
+  const pads = Array.from({ length: Math.max(1, o.count ?? 1) }, (_, i) => new FakePad(i, o.id));
   const unplug = plugIn(...pads);
   const input = new InputSystem({ slug: o.slug ?? 'game', loadOverrides: () => null, saveOverrides: () => undefined });
   const frame = (n = 1): void => {

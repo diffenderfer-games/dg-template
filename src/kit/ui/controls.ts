@@ -6,10 +6,19 @@
  * Every control gets `data-nav` (the hub's autoNavigate finds it) and a
  * `data-testid` (scripts and suites press it by name).
  */
+import { bindAction } from '../input/glyphs.ts';
 import { h } from './dom.ts';
 
 /** Button options. */
-export type ButtonOpts = { cls?: string; sub?: string; testid?: string; icon?: string; disabled?: boolean };
+export type ButtonOpts = {
+  cls?: string;
+  sub?: string;
+  testid?: string;
+  icon?: string;
+  disabled?: boolean;
+  /** The action it answers to, with its prompt chip: `'confirm'`, `'back'`, `'alt'`… (kit/input/glyphs.ts). */
+  action?: string;
+};
 
 /** A navigable button: `button('Play', start, { testid: 'play' })`. */
 export function button(label: string, onClick: () => void, o: ButtonOpts = {}): HTMLButtonElement {
@@ -27,7 +36,7 @@ export function button(label: string, onClick: () => void, o: ButtonOpts = {}): 
     h('span.kit-btn-label', {}, label),
     o.sub === undefined ? null : h('span.kit-btn-sub', {}, o.sub),
   );
-  return b;
+  return o.action === undefined ? b : bindAction(b, o.action);
 }
 
 /** A row of mutually exclusive choices (garbage `seg`). */

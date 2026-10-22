@@ -18,6 +18,8 @@ export type ModalButton = {
   testid?: string;
   primary?: boolean;
   keepOpen?: boolean;
+  /** The action it answers to, with its prompt chip (kit/input/glyphs.ts): `'confirm'`, `'back'`… */
+  action?: string;
 };
 
 /** An open modal. */
@@ -80,7 +82,7 @@ export function openModal(o: {
           b.onClick?.();
           if (b.keepOpen !== true) handle.close();
         },
-        { cls: b.primary === true ? 'kit-primary' : undefined, testid: b.testid },
+        { cls: b.primary === true ? 'kit-primary' : undefined, testid: b.testid, action: b.action },
       ),
     );
   }
