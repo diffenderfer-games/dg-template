@@ -128,7 +128,8 @@ export function axisControl<E extends HTMLElement>(
   el.setAttribute('data-nav-axis', 'x');
   if (!el.matches('button, a[href], input')) el.tabIndex = 0;
   el.addEventListener(STEP_EVENT, (e) => {
-    if (e instanceof CustomEvent && (e.detail === -1 || e.detail === 1)) step(e.detail);
+    const dir: unknown = e instanceof CustomEvent ? e.detail : null;
+    if (dir === -1 || dir === 1) step(dir);
   });
   const act = (): void => {
     if (o.act) o.act();
