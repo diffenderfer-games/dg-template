@@ -333,7 +333,10 @@ interface Launch {
   (or "That game has ended.", or that it's full) and fires no launch.
 - **Back after a reload or a closed tab,** the hub sees the seat the player still holds
   in this game and fires a `join` launch with `via: 'rejoin'`. On any other page it
-  shows a "Your *game* game is still on" toast with **Rejoin**.
+  shows a "Your *game* game is still on" toast with **Rejoin**, only while the seat is
+  held: it goes when the seat's grace runs out (a lobby's is short). A seat the player
+  left (`room.leave()`), or in a room that ended, is never offered: leave the room when
+  the player backs out of your lobby, so Back doesn't leave a seat held.
 
 **Rules:**
 
@@ -1976,6 +1979,12 @@ function frame() {
   connection closes, and the room ends with
   `{ places: [], winnerId: null, error: 'sim_error' }` and nothing recorded:
   show "The game stopped" rather than a result, and don't rejoin.
+- **When everyone is gone:** a match nobody has been connected to for a minute
+  is dropped, and its room ends the same way with `error: 'abandoned'`, so the
+  hub stops offering its seats. A page that still tries to join a match the
+  live server no longer has (it ended, it was dropped, the server restarted)
+  is refused with `no_match`: take the player back with "That game has ended"
+  rather than trying again (the kit does).
 - **Step time:** `game.live.maxStepMs` (default 4, at most 20) is the time you
   expect a step to take on the server. It is a soft budget: steps over it are
   logged for the owner, never cut off, so a slow moment on the server doesn't
