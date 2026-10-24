@@ -5,6 +5,16 @@ three.js / plain-HTML renderer, and `src/kit/`, which already does every hub
 duty. Read [docs/getting-started.md](docs/getting-started.md), then
 [docs/game.md](docs/game.md) (this game's own notes; keep them there, not here).
 
+## A fresh clone or copy of the template
+
+If `src/starters/` exists, this folder is still the template, not a game
+(`npm run create` deletes it from every game it makes; `package.json` is also
+still named `dg-game`). Asked to make a game here, or given a game idea, use
+the **`new-game`** skill (`.claude/skills/new-game/`): it asks the open
+questions, then runs `npm run create` and builds the game in its own folder.
+Changing the template or kit itself is the exception: carry on as normal.
+To give an existing game its own themed UI, use the **`improve-ux`** skill.
+
 ## Where things live
 
 - **GAME** (yours): `src/game/`, `tests/game/`, `tests/kit-skips.json`,
