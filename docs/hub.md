@@ -1762,6 +1762,7 @@ repo.
   - `hub.social.openPlayer({userId}|{username})`, `openFriends()`, `openChat(id)`,
     `openInvite({userId?, mode?})`, `openSuggest()`, `openNotify({game?})`,
     `openPlayOnline()`, `openCreateTournament({game?})` (the new-tournament dialog, that game picked; feature version 7),
+    `openShareWithFilter(game)` ("Share with a filter": a picked-games link that opens that game, for players whose games aren't picked for them; feature version 8),
     `friends()`, `counts()`, `chatMode(userIds?)`, `on(ev, cb)`
   - `hub.mp.onLaunch(cb)`, `onJoinInfo(cb)`, `invite(userId, {mode?})`,
     `setBusy(busy, {label?})`, `ticket()`, `setJoinInfo(partyId, info)`, `party()`,
