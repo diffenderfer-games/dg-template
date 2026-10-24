@@ -67,7 +67,9 @@ hub.md [Avatars](../hub.md#avatars), and the designer in `avatar-designer.md` (i
   `defineAvatarElement()`). Every helper below calls it, so a `<dg-avatar>`
   made before the art is ready upgrades when it is.
 - `face(hub, who, size, { frame?, animate?, title? })`: a `<dg-avatar>` with
-  the player's look (from `who.look`, else their user id), the silhouette for a
+  the player's look (from `who.look`; with only a user id it fetches their avatar,
+  `mine()` for you and `of(id)` for others, and follows their changes; never the
+  id's stand-in that `hub.avatar.from({ userId })` gives), the silhouette for a
   hidden player (`data-face="silhouette"`). Beside a name it is decorative (no
   `title`). Lobby seats in `online-flow.ts` use it with each seat's `look`.
 - `nameAndFace`: a face and a name button that opens the player card.
@@ -93,17 +95,17 @@ hub.md [Avatars](../hub.md#avatars), and the designer in `avatar-designer.md` (i
 
 ## API
 
-| Name | What it is |
-|---|---|
-| `AvatarHooks` | `{ feelOn?, titleDemo? }` (`src/game/avatar.ts`) |
-| `Feel` | the seven feelings (the hub's `Feeling`) |
-| `Who` | `{ userId?, name, look?, hidden? }` |
-| `FaceOptions` | `{ frame?, animate?, title? }` |
-| `avatarRenderer(hub)` | load the renderer and register `<dg-avatar>`, once |
-| `face`, `nameAndFace`, `seatBadge` | build the elements |
-| `lookAtActive`, `feelOn`, `resultFaces`, `showFeel` | reactions |
-| `botLook(hub, seed)` | a computer player's avatar |
-| `titleDemo(hub, screen)` | the title bust and Edit avatar; returns the remover |
+| Name                                                | What it is                                          |
+| --------------------------------------------------- | --------------------------------------------------- |
+| `AvatarHooks`                                       | `{ feelOn?, titleDemo? }` (`src/game/avatar.ts`)    |
+| `Feel`                                              | the seven feelings (the hub's `Feeling`)            |
+| `Who`                                               | `{ userId?, name, look?, hidden? }`                 |
+| `FaceOptions`                                       | `{ frame?, animate?, title? }`                      |
+| `avatarRenderer(hub)`                               | load the renderer and register `<dg-avatar>`, once  |
+| `face`, `nameAndFace`, `seatBadge`                  | build the elements                                  |
+| `lookAtActive`, `feelOn`, `resultFaces`, `showFeel` | reactions                                           |
+| `botLook(hub, seed)`                                | a computer player's avatar                          |
+| `titleDemo(hub, screen)`                            | the title bust and Edit avatar; returns the remover |
 
 ## Tests
 

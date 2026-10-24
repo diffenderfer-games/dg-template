@@ -5,7 +5,8 @@
  *
  * Behaviour from hub.md "Avatars" and the client (core/avatar/hub-avatar.ts):
  * `from(seat)` reads the look a payload carries (no request); a payload with
- * no look falls back to the id's default; `''` is a hidden player (the
+ * no look gets the id's stand-in (`stand-in-<id>`), not the player's avatar
+ * (`of(id)` is that: `user-<id>`, `me-<id>` for you); `''` is a hidden player (the
  * silhouette); `change` fires when a look the page can see changes, yours
  * with your user id. Codes are `AV1` plus a readable name, not real looks
  * (`look` is null), and `load()` registers nothing unless a test asks
@@ -62,7 +63,7 @@ export class FakeAvatar implements AvatarLike {
     if (carrier.look !== undefined)
       return carrier.look === '' ? fakeAvatarRef('') : fakeAvatarRef(carrier.look.replace(/^AV1/, ''));
     const id = carrier.userId ?? carrier.id ?? carrier.uid;
-    return id === undefined ? fakeAvatarRef('') : this.byId(id);
+    return id === undefined ? fakeAvatarRef('') : fakeAvatarRef(`stand-in-${id}`, true);
   }
 
   bot(seed: string | number): AvatarRef {

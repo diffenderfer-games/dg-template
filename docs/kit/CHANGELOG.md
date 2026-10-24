@@ -4,6 +4,21 @@ KIT doc. One entry per kit version; per module inside. A **major** version
 means a hook's signature changed: the entry says how to move a game over.
 `npm run kit:sync` prints the entries newer than a game's `kit.json`.
 
+## 1.27 (2026-10-24)
+
+- **avatar 1.6:** `face(hub, { userId })` with no `look` shows the player's own avatar. It drew the hub's stand-in
+  for that id (`hub.avatar.from({ userId })`), so a HUD or result card showing "You" by user id drew a stranger.
+  Now it fetches the avatar (`mine()` for you, `of(id)` for others; your cached one at once) and follows their
+  changes while on the page. `face` also takes `hub.userId` (optional, so `Pick<HubLike, 'avatar'>` still works).
+- **testing 1.14:** the fake `hub.avatar.from({ userId })` gives the stand-in (`AV1stand-in-<id>`), as the hub does,
+  so a test of a face by user id sees the bug. **docs 1.30:** avatar.md, this entry. **core 1.22:** `KIT_VERSION`
+  1.27. **scripts 1.31:** the module versions.
+
+### Moving a game over
+
+- Nothing breaks. A game that worked round it (its own "my face" helper) can go back to
+  `face(ctx.hub, { userId: ctx.hub.userId() ?? undefined, name: 'You' })`.
+
 ## 1.26 (2026-10-22)
 
 - **resume 1.3:** a save the hub refuses (no game slug in the address, a state over 512 KB) warns once and is

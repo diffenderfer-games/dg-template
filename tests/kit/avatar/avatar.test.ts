@@ -14,16 +14,32 @@ import {
 import { createFakeHub } from '../../../src/kit/testing/index.ts';
 
 describe('kit/avatar', () => {
-  it('a face is <dg-avatar> with the player’s look; a hidden player is the silhouette', () => {
+  it('a face is <dg-avatar> with the player’s look; a hidden player is the silhouette', async () => {
     const hub = createFakeHub({ events: new EventTarget() });
     const f = face(hub, { userId: 4, name: 'Sam' });
     expect(f.tagName.toLowerCase()).toBe('dg-avatar');
-    expect(f.getAttribute('look')).toBe('AV1user-4');
+    await Promise.resolve();
+    expect(f.getAttribute('look')).toBe('AV1user-4'); // the player's avatar (of), never the id's stand-in
     expect(face(hub, { name: 'Ava', look: 'AV1ava' }).getAttribute('look')).toBe('AV1ava');
     const hidden = face(hub, { userId: 4, name: 'Sam', hidden: true });
     expect(hidden.dataset.face).toBe('silhouette');
     expect(hidden.getAttribute('look')).toBe('');
     expect(f.hasAttribute('title')).toBe(false); // beside a name it is decorative
+  });
+
+  it('your face by user id is your avatar at once, and follows your changes', () => {
+    const hub = createFakeHub({ events: new EventTarget() });
+    const me = hub.userId();
+    expect(me).not.toBeNull();
+    if (me === null) return;
+    const f = face(hub, { userId: me, name: 'You' });
+    document.body.append(f);
+    expect(f.getAttribute('look')).toBe(`AV1me-${me}`);
+    hub.avatar.change(me, 'new');
+    expect(f.getAttribute('look')).toBe('AV1new');
+    hub.avatar.change(me + 1, 'other');
+    expect(f.getAttribute('look')).toBe('AV1new');
+    f.remove();
   });
 
   it('loads the renderer once (hub.avatar.load, then defineAvatarElement) before any face draws', async () => {

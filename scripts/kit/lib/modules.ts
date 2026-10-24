@@ -23,8 +23,8 @@ function srcModule(name: string, version = '1.0'): KitModuleDef {
 
 /** Every module. */
 export const KIT_MODULES: Record<string, KitModuleDef> = {
-  core: srcModule('core', '1.21'),
-  testing: srcModule('testing', '1.13'),
+  core: srcModule('core', '1.22'),
+  testing: srcModule('testing', '1.14'),
   rng: srcModule('rng'),
   'daily-puzzle': srcModule('daily-puzzle', '1.1'),
   save: srcModule('save', '1.1'),
@@ -47,11 +47,11 @@ export const KIT_MODULES: Record<string, KitModuleDef> = {
   saved: srcModule('saved', '1.3'),
   turns: srcModule('turns', '1.9'),
   live: srcModule('live', '1.3'),
-  avatar: srcModule('avatar', '1.5'),
+  avatar: srcModule('avatar', '1.6'),
   world: srcModule('world', '1.7'),
   'hub-events': { version: '1.11', paths: ['tests/hub-events'] },
   'hub-suites': { version: '1.13', paths: ['tests/hub/_kit.ts', 'tests/hub/kit'] },
-  scripts: { version: '1.30', paths: ['scripts/kit', 'tests/scripts'] },
+  scripts: { version: '1.31', paths: ['scripts/kit', 'tests/scripts'] },
   ci: { version: '1.0', paths: ['.github/workflows/deploy.yml'] },
   agents: { version: '1.0', paths: ['.claude/agents'] },
   config: {
@@ -66,7 +66,7 @@ export const KIT_MODULES: Record<string, KitModuleDef> = {
     ],
   },
   docs: {
-    version: '1.29',
+    version: '1.30',
     paths: [
       'docs/kit/look.md',
       'docs/kit/look',

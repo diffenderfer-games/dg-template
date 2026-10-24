@@ -79,16 +79,42 @@ export type FaceOptions = {
   title?: string;
 };
 
-/** A face: `<dg-avatar>` with the player's look (the silhouette for a hidden player). Decorative beside a name. */
-export function face(hub: Pick<HubLike, 'avatar'>, who: Who, size = 40, o: FaceOptions = {}): HTMLElement {
-  const ref =
-    who.hidden === true
-      ? hub.avatar.from({ look: '' })
-      : hub.avatar.from({
-          ...(who.look === undefined ? {} : { look: who.look }),
-          ...(who.userId === undefined ? {} : { userId: who.userId }),
-        });
-  return avatarElement(hub, ref, size, o);
+/**
+ * A face: `<dg-avatar>` with the player's look (the silhouette for a hidden player). Decorative beside a name.
+ * With only a user id (no `look`), the hub's `from()` gives that id's stand-in face, not the player's
+ * avatar: so the face asks for the real one (`mine()` for you, `of(id)` for anyone else) and follows
+ * their changes while it is on the page.
+ */
+export function face(
+  hub: Pick<HubLike, 'avatar'> & Partial<Pick<HubLike, 'userId'>>,
+  who: Who,
+  size = 40,
+  o: FaceOptions = {},
+): HTMLElement {
+  if (who.hidden === true) return avatarElement(hub, hub.avatar.from({ look: '' }), size, o);
+  if (who.look !== undefined || who.userId === undefined) {
+    const ref = hub.avatar.from({
+      ...(who.look === undefined ? {} : { look: who.look }),
+      ...(who.userId === undefined ? {} : { userId: who.userId }),
+    });
+    return avatarElement(hub, ref, size, o);
+  }
+  const id = who.userId;
+  const isMe = id === hub.userId?.();
+  const first = (isMe ? hub.avatar.mineSync() : null) ?? hub.avatar.from({ look: '' });
+  const el = avatarElement(hub, first, size, o);
+  const show = (ref: AvatarRef): void => {
+    el.setAttribute('look', ref.hidden ? '' : ref.code);
+    el.dataset.face = ref.hidden || ref.code === '' ? 'silhouette' : 'avatar';
+  };
+  void (isMe ? hub.avatar.mine() : hub.avatar.of(id)).then(show, () => undefined);
+  let placed = false;
+  const off = hub.avatar.on('change', (c) => {
+    if (el.isConnected) placed = true;
+    else if (placed) return off();
+    if (c.userId === id) show(c.ref);
+  });
+  return el;
 }
 
 /** A face and a name that opens the player card (multiplayer.md §11). */
