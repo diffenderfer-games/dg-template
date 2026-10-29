@@ -16,15 +16,15 @@ Treat the idea as the brief. Fill in anything it leaves out with these defaults;
    - **Daily challenge**: how should the daily work? Offer 2–3 concrete designs that fit the idea (a seeded puzzle, a short timed run, a fixed starting position…), or none if the game doesn't suit one.
 
    Skip anything the idea already answers, and skip the call entirely if it answers all three. Use the answers as part of the brief in every later step. Start setup (step 2) while you wait.
-2. **Setup**: pull latest dg-template from origin and create the game with its `npm run create` (short kebab-case slug). Every dg-template doc (CLAUDE.md, HANDOFF.md, README.md, docs/*) applies and must be followed, including repo setup, but **don't read them into your own context**: send a subagent to read them all and return a brief of 10–15k tokens at most, covering:
-   - the hard rules;
-   - the hooks and APIs this kind of game uses, with file paths;
-   - what look.md, polish.md, devices.md and covers.md demand;
-   - the commands to run;
-   - the closest existing game to copy patterns from, and which of its files to open;
+2. **Setup**: pull latest dg-template from origin and create the game with its `npm run create` (short kebab-case slug). Every dg-template doc (CLAUDE.md, HANDOFF.md, README.md, docs/*) applies and must be followed, including repo setup. **Read them yourself, in your own context; never hand repo research to a subagent or Explore agent.** Summaries drop rules and details, and things get missed. Read every doc that applies in full:
+   - CLAUDE.md, HANDOFF.md, README.md and the docs index;
+   - look.md, polish.md, devices.md and covers.md;
+   - the docs for each feature the game has (skip ones it doesn't, e.g. the live and online docs for a solo game);
+   - the hooks and APIs this kind of game uses, at their source;
+   - the closest existing game to copy patterns from: its plan, game.md and the files that matter;
    - for each visual reference game from step 1, the files that hold the chosen aspects (UI, character drawing, animation, particles…).
 
-   Tell it which features the game has, so it skips docs for features it doesn't (for example the live and online docs for a solo game). Afterwards, open only the specific files you need, and grep or read ranges rather than whole files. When a command's output spills to a file, grep that file; never Read all of it.
+   Write down the hard rules and the commands to run in the plan (step 3) so they survive a `/compact`. For large source files beyond the docs, grep or read ranges. When a command's output spills to a file, grep that file; never Read all of it.
 3. **Plan**: write `docs/plans/<slug>.md` covering rules, modes, difficulty, online design, procedural systems, daily challenge, controls per device, visual style (naming the reference games and what each one is the reference for), age range, and cover concept. Then build it. Beyond step 1, don't stop to ask unless the idea is truly ambiguous.
    - **Risky idea?** (new tech, unproven fun, heavy 3D/realtime, big content needs) Plan a series of POCs, each validated with me before building on it.
    - **Remakes of a classic** (Space Invaders, Tetris…): keep the rules, but never copy the original's look (no pixel-grid sprites). Everything is drawn: procedurally generated vector art, animated part by part.
@@ -53,7 +53,7 @@ Treat the idea as the brief. Fill in anything it leaves out with these defaults;
     - Write each file once, completely, with Write. Don't heredoc several files in one shell command: quotes and backticks break it.
     - Batch each fix round into one step: edit, check and screenshot together, then look. Avoid look-one-line-then-fix turns.
     - Inspect art close up with a zoom driver and look at the contact sheet; don't re-read single shots you already checked.
-    - Hand side work (a review, a cost or log analysis, long waits) to background subagents.
+    - Hand side work (a review, a cost or log analysis, long waits) to background subagents, but never the reading of docs or code you'll implement from (see step 2).
     - Once the game is built and verified (checks pass, shots look right), bring `docs/game.md` and the plan up to date as the handoff. Then send a PushNotification asking me to run `/compact` before review fixes, deploy and the trailer.
 13. **Notify**: ANY time my input is needed, send a PushNotification. Never just wait silently. Ignore its result: it sometimes reports failure when the notification actually went through, so don't retry or report it as failed. This includes:
     - the up-front questions from step 1,
