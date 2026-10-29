@@ -4,6 +4,24 @@ KIT doc. One entry per kit version; per module inside. A **major** version
 means a hook's signature changed: the entry says how to move a game over.
 `npm run kit:sync` prints the entries newer than a game's `kit.json`.
 
+## 1.28 (2026-10-29)
+
+- **core 1.23:** `MANIFEST.id` is package.json's `game.id` (a renamed game's old name, its permanent key). `KIT_VERSION` 1.28.
+- **boot 1.14:** `defineGame` keys everything it stores on the game's id: `game.slug` if set, else `MANIFEST.id`, else
+  `hub.slug` (the id the host injects), else the address. A renamed game served at its new slug keeps its settings,
+  profile and saves, even where the host injected nothing (`npm run dev`).
+- **testing 1.15:** `FakeHub`'s slug defaults to `MANIFEST.id`, else `mygame`, so a renamed game's kit tests
+  (quick-chat keys `g:<slug>:<i>`) see the id the host injects. **docs 1.31:** core.md "The manifest", this entry.
+  **daily 1.3, hub-events 1.12:** their tests take the daily seed from the fake hub's id, not `mygame`, so they
+  pass in a game with `game.id`. **scripts 1.32:** the module versions.
+- A game that sets `game.id` / `game.slug` needs `@diffenderfer-games/hub` 2.0.0-next.18 or later (its `hub-doctor` accepts
+  `game.id`, `game.slug` and `game.formerSlugs`; next.17 rejects them).
+
+### Moving a game over
+
+- A renamed game sets `game.id` (its old folder name) and `game.slug` (the new public slug) in package.json, runs
+  `npm run kit:sync`, and drops any `slug: '<id>'` it pinned in `defineGame`.
+
 ## 1.27 (2026-10-24)
 
 - **avatar 1.6:** `face(hub, { userId })` with no `look` shows the player's own avatar. It drew the hub's stand-in

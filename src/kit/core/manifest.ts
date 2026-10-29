@@ -3,6 +3,9 @@
  * Source: dg-template src/kit/core/ (kit v1.0). Copy byte-identical; change it in the template first.
  * Docs: docs/kit/core.md § "The manifest"
  *
+ * It also gives the game's stable id (`game.id`, set by a renamed game to its
+ * old name), so the kit keys storage on the id even where the host injected none.
+ *
  * package.json is the one place a game declares its quick-chat phrases
  * (`game.multiplayer.quickChat`, `game.turns.quickChat`) and whether it plays
  * online games the hub runs (`game.turns`). Vite inlines only the `game` key
@@ -21,6 +24,8 @@ function phrases(block: unknown): string[] {
 
 /** What the kit reads from a `game` block. */
 export type ManifestFacts = {
+  /** `game.id`: the game's permanent key (a renamed game's old name), or `null` when it declares none (the id is then the folder name, which the host injects). */
+  id: string | null;
   /** `game.turns` is declared: the hub runs this game's rules (its online games). */
   turns: boolean;
   /** `game.turns.quickChat`: the game's own phrases in its online games. */
@@ -32,7 +37,9 @@ export type ManifestFacts = {
 /** Read a `game` block (pure; tests pass their own). */
 export function manifestFacts(block: unknown): ManifestFacts {
   const turns = field(block, 'turns');
+  const id = field(block, 'id');
   return {
+    id: typeof id === 'string' && /^[a-z0-9][a-z0-9-]*$/.test(id) ? id : null,
     turns: typeof turns === 'object' && turns !== null,
     turnsQuickChat: phrases(turns),
     roomQuickChat: phrases(field(block, 'multiplayer')),

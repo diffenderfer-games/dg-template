@@ -207,7 +207,11 @@ export type PromptOptions = {
 
 /** The whole game, as `defineGame` takes it. */
 export type GameDefinition<P extends JsonObject, R extends JsonObject> = {
-  /** Default: the hub's slug, else the page's first path segment. */
+  /**
+   * The game's id, the key of everything the kit stores. Default: package.json's `game.id`, else the hub's
+   * slug (the id the host injects), else the page's first path segment. Don't set it: a renamed game sets
+   * `game.id` in package.json instead.
+   */
   slug?: string;
   /** The title screen's words. */
   copy: { title: string; tagline?: string; howTo?: readonly string[] };

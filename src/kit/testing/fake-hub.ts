@@ -15,6 +15,7 @@
 import type { HubStatus, ResumeBlocker, SavedEntry } from '@diffenderfer-games/hub';
 import { dayKey } from '../core/clock.ts';
 import { emitWindow } from '../core/events.ts';
+import { MANIFEST } from '../core/manifest.ts';
 import type { HubLike } from '../core/hub-like.ts';
 import { CallLog } from './calls.ts';
 import { fakeClock, type FakeClock } from './fake-clock.ts';
@@ -34,6 +35,7 @@ export type PlannedFlags = { world?: boolean };
 
 /** How to build a FakeHub. */
 export type FakeHubOptions = {
+  /** The game's id (default: package.json's `game.id`, else `mygame`), as the host injects it. */
   slug?: string;
   /** The signed-in player (default: a claimed player, id 1). `null` = signed out. */
   user?: FakeUser | null;
@@ -70,7 +72,7 @@ export class FakeHub implements HubLike {
   private readonly statusListeners = new Set<(s: HubStatus) => void>();
 
   constructor(o: FakeHubOptions = {}) {
-    this.slug = o.slug ?? 'mygame';
+    this.slug = o.slug ?? MANIFEST.id ?? 'mygame';
     this.clock = o.clock ?? fakeClock();
     this.events = o.events ?? (typeof window === 'undefined' ? new EventTarget() : window);
     const userId = o.user === null ? 0 : (o.user?.id ?? 1);

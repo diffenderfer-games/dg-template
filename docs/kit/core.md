@@ -66,7 +66,16 @@ To change a kit word, pass `strings` in the game definition (`defineGame` calls 
 
 ### The manifest
 
-`manifest.ts` reads the game's own `game` block from package.json at build time (a named JSON import, so Vite bundles only that key): `MANIFEST.turns` (the game declares `game.turns`), `MANIFEST.turnsQuickChat` and `MANIFEST.roomQuickChat` (its quick-chat phrases). package.json stays the one place these are declared. Page code only: it is not in the core index, since Node can't import JSON without an import attribute.
+`manifest.ts` reads the game's own `game` block from package.json at build time (a named JSON import, so Vite bundles only that key): `MANIFEST.id` (`game.id`, or `null`), `MANIFEST.turns` (the game declares `game.turns`), `MANIFEST.turnsQuickChat` and `MANIFEST.roomQuickChat` (its quick-chat phrases). package.json stays the one place these are declared.
+
+**The game's id.** Everything the kit stores (settings, the profile, saves, quick-chat keys) is keyed on the game's
+id, the permanent key the hub keeps its data under: `game.slug` in `defineGame` if set, else `MANIFEST.id`, else
+`hub.slug` (the id the host injects), else the page's first path segment. A game that is renamed keeps its old name
+as `game.id` in package.json and gets a new `game.slug` (its public URL; HANDOFF.md "The game block"), so its data
+stays put even where the hub only has the address to go on (`npm run dev` at the new slug). Don't pin
+`game.slug` in `defineGame` for this. The test `FakeHub` carries the same id (`MANIFEST.id`, else `mygame`).
+
+Page code only: it is not in the core index, since Node can't import JSON without an import attribute.
 
 ### Planned hub APIs
 

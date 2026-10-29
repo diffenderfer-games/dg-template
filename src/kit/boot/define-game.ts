@@ -89,7 +89,9 @@ export function defineGame<P extends JsonObject, R extends JsonObject>(
   const store = o.store ?? localStore;
   const events = o.events ?? window;
   const search = o.search ?? location.search;
-  const slug = game.slug ?? hub.slug ?? location.pathname.split('/').filter(Boolean)[0] ?? 'game';
+  // The game's id: every key the kit stores. The hub's slug is the id the host injects; package.json's
+  // `game.id` covers a renamed game where the hub has only the address to go on (its public slug).
+  const slug = game.slug ?? MANIFEST.id ?? hub.slug ?? location.pathname.split('/').filter(Boolean)[0] ?? 'game';
   if (game.strings) setKitStrings(game.strings);
   const ui = mountUi(o.uiRoot, clock);
   const activity = createActivity();

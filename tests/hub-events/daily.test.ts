@@ -11,7 +11,7 @@ describeIf(HAS.daily, 'this game declares no daily (game.dailyChallenges)')(
       const g = await bootGame({ before: (f) => void f.daily.start('2026-10-15') });
       expect(g.hook.mode()).toBe('daily');
       expect(g.calls.named('newRun')).toEqual([
-        { name: 'newRun', args: [{ mode: 'daily', seed: seedForDay('mygame', '2026-10-15'), day: '2026-10-15' }] },
+        { name: 'newRun', args: [{ mode: 'daily', seed: seedForDay(g.fake.slug, '2026-10-15'), day: '2026-10-15' }] },
       ]);
     });
 

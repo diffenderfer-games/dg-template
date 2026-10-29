@@ -56,9 +56,35 @@ same origin, so:
 - There is no CORS to configure and no API host to hard-code.
 
 The SDK derives its base URL as `new URL('/_api', location.origin)` and your
-game's **slug** from the first path segment (or from the injected
-`window.__HUB__` config). If you ever need to override, see
-[Advanced](#advanced).
+game's **slug** (its id, see [Game ids and slugs](#game-ids-and-slugs)) from the
+injected `window.__HUB__` config, else the first path segment. If you ever
+need to override, see [Advanced](#advanced).
+
+### Game ids and slugs
+
+A game's **id** (`game.id`, default its folder under `apps/`) is the key the
+hub keeps everything under: saves, stats, boards, dailies, saved and online
+games, What's new, tickets and `HUB_APP_KEY`. The API and the client call it
+`slug`. Its public **slug** (`game.slug`, default the id) is only its URL,
+`/<slug>/`. A renamed game keeps its id and gets a new slug:
+
+```json
+"game": { "id": "uno", "slug": "last", "title": "Last!", "formerSlugs": [] }
+```
+
+- `/<id>/…` and `/<former slug>/…` redirect to `/<slug>/…` (301 for GET and HEAD,
+  308 otherwise), keeping the rest of the path and the query; sockets on the old
+  address are proxied as they are.
+- The host injects the id as `window.__HUB__.slug` and, when it differs,
+  `window.__HUB__.path` (`/last`). `GET /games` lists each game's `slug` (the id)
+  and `path` (`/<public slug>`): build links from `path`.
+- Any game name the API receives (a path, query, body or socket op) is mapped to
+  the id, so `/_api/games/last/saves` and `/_api/games/uno/saves` are the same saves.
+- The web manifest of a renamed game keeps `/<id>/` as its `id` with the new
+  scope, so a home-screen app installed from the old address stays the same app.
+- Every id, slug and former slug is unique across the catalog; a clash breaks the
+  game that doesn't own the name as its id, with an error naming both.
+  HANDOFF.md "Ids and slugs" has the rules.
 
 ---
 
@@ -72,6 +98,16 @@ The host injects a small bootstrap into your game's HTML automatically:
      and a service-worker registration (see "Offline & installable" below) -->
 <script type="module" src="/_hub/menu.js" defer></script>
 ```
+
+On a touch screen the menu also guards against leaving by accident: a swipe in
+from the edge (or the back button) opens the menu instead of going back, and a
+second back with the menu open leaves the game as usual. A game's own
+`history.back()` still leaves, and its own history entries keep working. The
+injected `html,body{overscroll-behavior-x:none}` stops the browser's sideways
+overscroll gestures. Nothing to do in your game.
+
+The drawer ends with links to the site's Privacy and Terms pages (`/privacy`,
+`/terms`) and the parents' page.
 
 `menu.js` renders a self-contained, style-isolated (Shadow DOM) menu button.
 Opening it gives the player: a **connection status** row (with a "Sync now"
@@ -2670,6 +2706,14 @@ game is hosted; the path-segment fallback only kicks in if it's absent.
 ---
 
 ## Changelog
+
+- **2026-10-29** — **Game ids and slugs.** `game.id` (the permanent key,
+  default the folder) and `game.slug` (the public URL, default the id), plus
+  `game.formerSlugs`: a game can be renamed without losing any data or links
+  (see [Game ids and slugs](#game-ids-and-slugs)). `window.__HUB__.path` and
+  the contract's `GameName` are new; hub-doctor accepts the new keys. The menu
+  now catches an accidental edge swipe back on touch screens. No change needed
+  in games that keep their name.
 
 - **2026-10-15** — **Backups.** Games that keep their own data on the box
   declare it in `game.data` (see
