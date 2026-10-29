@@ -37,7 +37,7 @@ export const KIT_MODULES: Record<string, KitModuleDef> = {
   input: srcModule('input', '1.6'),
   layout: srcModule('layout', '1.3'),
   loop: srcModule('loop', '1.1'),
-  ui: srcModule('ui', '1.10'),
+  ui: srcModule('ui', '1.11'),
   'settings-ui': srcModule('settings-ui'),
   race: srcModule('race', '1.2'),
   online: srcModule('online', '1.6'),

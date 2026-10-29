@@ -83,6 +83,22 @@ describe('screens, modals, toasts', () => {
     expect(ui().root.querySelector<HTMLElement>('.kit-screen')?.dataset.redraw).toBeUndefined();
   });
 
+  it('a screen drawn again keeps its scroll; a new one on a touch screen focuses without scrolling', () => {
+    const s = new Screens();
+    s.show('lobby', () => h('div', {}, 'L'));
+    const first = ui().root.querySelector<HTMLElement>('.kit-screen');
+    if (first) first.scrollTop = 240;
+    s.show('lobby', () => h('div', {}, 'L2'));
+    expect(ui().root.querySelector<HTMLElement>('.kit-screen')?.scrollTop).toBe(240);
+
+    document.documentElement.dataset['hubInput'] = 'touch';
+    const play = h('button', { 'data-autofocus': true });
+    const focus = vi.spyOn(play, 'focus');
+    s.show('title', () => h('div', {}, play));
+    expect(focus).toHaveBeenCalledWith({ preventScroll: true });
+    delete document.documentElement.dataset['hubInput'];
+  });
+
   it('a locked modal ignores back and Esc; buttons close it and run onClose once', () => {
     const onClose = vi.fn();
     const m = openModal({ title: 'Choose', locked: true, buttons: [{ label: 'OK', testid: 'ok' }], onClose });

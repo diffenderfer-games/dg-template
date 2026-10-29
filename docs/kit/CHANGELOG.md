@@ -8,6 +8,9 @@ means a hook's signature changed: the entry says how to move a game over.
 
 - **boot 1.15:** the online chooser (Play now / With friends / a code) closes when the player reaches a room another
   way, such as accepting an invite while it is open. It stayed up over the lobby. **hub-events 1.13:** a test for it.
+- **ui 1.11:** a screen drawn again (a lobby, on every change in the room) keeps where it was scrolled to; it
+  jumped back to its autofocus button. On a touch screen a new screen opens at its top: its autofocus control is
+  focused without scrolling to it, so a tall lobby shows its top, not Play.
   **core 1.24:** `KIT_VERSION` 1.29. **docs 1.33:** this entry. **scripts 1.34:** the module versions.
 
 ## 1.28 (2026-10-29)

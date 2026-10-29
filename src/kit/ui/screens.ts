@@ -5,7 +5,9 @@
  *
  * `show(name, build)` swaps the screen; the root gets `data-screen=<name>`
  * (CSS and the screenshot runner read it), and presence is reported for the
- * screen, coalesced (only when it changes; garbage `show()`).
+ * screen, coalesced (only when it changes; garbage `show()`). A screen drawn again
+ * keeps where it was scrolled to; on a touch screen a new one opens at its top (its
+ * autofocus control is focused without scrolling to it).
  */
 import type { PresenceInput } from '@diffenderfer-games/hub';
 import { ui } from './root.ts';
@@ -38,12 +40,14 @@ export class Screens {
     // animations, and focus on a part the new screen keeps (the chat box) stays put.
     const redraw = this.el !== null && this.name === name;
     const focused = document.activeElement;
+    const scrolled = redraw ? (this.el?.scrollTop ?? 0) : 0;
     this.el?.remove();
     const el = build();
     el.classList.add('kit-screen');
     el.dataset.screen = name;
     if (redraw) el.dataset.redraw = 'true';
     root.appendChild(el);
+    if (scrolled > 0) el.scrollTop = scrolled;
     root.dataset.screen = name;
     this.name = name;
     this.el = el;
@@ -53,7 +57,10 @@ export class Screens {
       this.setPresence(presence);
     }
     if (redraw && focused instanceof HTMLElement && el.contains(focused)) focused.focus({ preventScroll: true });
-    else el.querySelector<HTMLElement>('[data-autofocus]')?.focus();
+    else
+      el.querySelector<HTMLElement>('[data-autofocus]')?.focus({
+        preventScroll: document.documentElement.dataset['hubInput'] === 'touch',
+      });
     return el;
   }
 }
