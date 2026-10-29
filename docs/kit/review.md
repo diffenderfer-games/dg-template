@@ -16,7 +16,8 @@ the screenshots and the code. Run it, fix what it reports, then hand over.
 - **A test link for the owner's phone.** Run the game on a free port
   (`npm run local`, or `npm run dev -- --host`) and give two URLs: the
   machine's LAN address (`http://192.168.x.x:<port>/<slug>/`) and its Tailscale
-  name (`http://gandalf.tail9e7055.ts.net:<port>/<slug>/`). A server bound to
+  IP (`http://100.100.4.74:<port>/<slug>/`; not the ts.net name, which Vite's
+  host check blocks). A server bound to
   `127.0.0.1` can't be reached from the phone: bind to all addresses or put a
   forwarder in front. Always serve the game under `/<slug>/` (the template's
   `vite.config.ts` does it for `npm run dev`): the hub client reads the slug

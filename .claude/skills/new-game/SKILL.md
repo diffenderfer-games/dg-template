@@ -46,7 +46,7 @@ Treat the idea as the brief. Fill in anything it leaves out with these defaults;
 10. **Cover**: a really good cover using the template's cover script and sizes.
 11. **Review**: run it bound to the LAN and give both playtest links:
     - `http://192.168.50.112:<port>` (local Wi-Fi)
-    - `http://gandalf.tail9e7055.ts.net:<port>` (Tailscale)
+    - `http://100.100.4.74:<port>` (Tailscale IP; never the ts.net name, which Vite blocks)
 
     Include in-game screenshots and the cover. Save a project memory pointing to the plan doc.
 12. **Work cheaply** (every turn re-reads the whole context, so context size is the main cost):

@@ -34,7 +34,7 @@ The goal: the game's menus, modals, HUD and kit screens look like they were made
 
 6. **Check it**: run the game's typecheck, lint and tests per its CLAUDE.md. Screenshot every screen and every modal on the inventory at phone portrait, phone landscape, tablet and desktop, plus each control type in each of its states (a pad focus ring included). Tick off the inventory as you go: anything still stock is a failure, not a nice-to-have. Build one contact sheet with **before vs after** side by side and look at it (Read). Fix in batched rounds: edit, check, re-shoot, then look.
 
-7. **Hand off**: update the plan's Visual style section with the UI look (name, metaphor, rules, files), and the project memory. Run it bound to the LAN and give both links: `http://192.168.50.112:<port>` and `http://gandalf.tail9e7055.ts.net:<port>`. Show the contact sheet and the old vs new cover. Commit locally; **don't push or deploy until I approve** (check `origin..HEAD` before any push).
+7. **Hand off**: update the plan's Visual style section with the UI look (name, metaphor, rules, files), and the project memory. Run it bound to the LAN and give both links: `http://192.168.50.112:<port>` and `http://100.100.4.74:<port>` (Tailscale IP). Show the contact sheet and the old vs new cover. Commit locally; **don't push or deploy until I approve** (check `origin..HEAD` before any push).
 
 **Notify**: send a PushNotification any time my input is needed (the three pitches, the review, blockers). Ignore its result; don't retry it.
 
