@@ -96,11 +96,11 @@
       }
     },
     "daily": {
-      "version": "1.2",
+      "version": "1.3",
       "files": {
         "docs/kit/daily.md": "e658c367a34dd1d183e04a00d8295f842502ddecfe5e263844a4620bdd29bea6",
         "src/kit/daily/index.ts": "4c9e0101be2acf0cdb29991fa66e391cb6c0999f4a936c1fb5252980cbeb3075",
-        "tests/kit/daily/daily.test.ts": "2f091abb69017532f4364fa9d5afae11df8b79ecae3bab4c82fd1a36b2fa6d7c"
+        "tests/kit/daily/daily.test.ts": "1416dd800588e943afbe417764114757b6949b2a04b79bcfa2441bba510e6942"
       }
     },
     "daily-puzzle": {
@@ -130,7 +130,7 @@
       "version": "1.31",
       "files": {
         "docs/getting-started.md": "85e6fd835b0c3d015b2dd93b83736b2b2bc3b408f8e01b8fe354eab23d7e75f6",
-        "docs/kit/CHANGELOG.md": "d5a7c4cd29f85946a26adfdbd0375ffe4b6d866a457bce88650f436bcba65b55",
+        "docs/kit/CHANGELOG.md": "cbf3cdd2625f00c11e49f368eefe7f862842b3a3b5110a0fcf216e4ca51d2462",
         "docs/kit/README.md": "b8bac2da690f22d9906bf8b39426eef2ced9e0a8aadcbbf9d711ec4b59b3af26",
         "docs/kit/card-games.md": "f29c0144ab9e7869a14dc5328b2e77cd30f74158122fe3dc3d3fa8912358e3ab",
         "docs/kit/covers.md": "e00687c1e2dbde8cbfb1c6b4fa94bc260e671a4b0d7d0fe71199bd76178eaad7",
@@ -163,12 +163,12 @@
       }
     },
     "hub-events": {
-      "version": "1.11",
+      "version": "1.12",
       "files": {
         "tests/hub-events/_support/harness.ts": "282e22677931a8ea23e75967cc7d442016fd0ce63a451a9b5eb90e8f4b92da5f",
         "tests/hub-events/_support/planned.ts": "f1d15c90427d79921e0deb1bdb001aa65d3e01d61aa2c4b39972551778865c1e",
         "tests/hub-events/_support/toys.ts": "81d79f5d0560abfacadf0fe33057316214236df9abcd99ec2773605740131d95",
-        "tests/hub-events/daily.test.ts": "800c575b378c946782794bd4972a06af01260c978c647b4b27f0d3cb83e949f5",
+        "tests/hub-events/daily.test.ts": "215f46f272f8c0628543eb981393adb604d53d390578522ecb754facaea13474",
         "tests/hub-events/input.test.ts": "8b2eb9e9cbb7b9f72647f4cd2a0e6ed9e1ab64b712aef414ca9949f113eb6bfe",
         "tests/hub-events/online.test.ts": "3606682d8538ca0c939966f2379535ee2cf4a0fc895673a71b26bc80f6b69abd",
         "tests/hub-events/overlay.test.ts": "3ea8246ec1fcd59009485ff2e06f674bcf53f57146a551ecca7d4ad71c07fc0b",
@@ -334,7 +334,7 @@
         "scripts/kit/lib/json-file.ts": "dbf7615f262a4cfaed24444d157ce3a1eb43c38139abf22910b5de63fc39fabc",
         "scripts/kit/lib/kit-manifest.ts": "3dd9b442e44bf0f265bdbd3f78332ebce23cf7a058ef6cfc00bea39d1121916d",
         "scripts/kit/lib/kit-skips.ts": "64c564f5bcd174f422c955b23ba42b51c6c7ea8b0e525f371890f24486aa7b67",
-        "scripts/kit/lib/modules.ts": "c8076712b8102254f27f2b9930debc9fdfc4272817944193585168c949024c8c",
+        "scripts/kit/lib/modules.ts": "0ba4a774efbadc1b7ca142c4f8f7bb62b3ccf252eff8ed9f7975378a9a3743b8",
         "scripts/kit/lib/paths.ts": "eff533c813a780dae8389146613b04f627ffa275d46045c98b30bad5149ab9be",
         "scripts/kit/lib/ports.ts": "33b1e358794f2e50f8119c958e0ed857d0c6dc7fe5d3708d97486cae16affdad",
         "scripts/kit/lib/procs.ts": "092866a7f4f02faf47b7b7c6280ff7152b3ba66fe3c505ec52b36089b0609b10",
@@ -411,7 +411,7 @@
         "src/kit/testing/phases.ts": "6746124ee9ad75af8b0a89b5dcb298ad79dc337fae584ffd2be2ff9485d52585",
         "src/kit/testing/sim.ts": "0777cb76dc7026a0573c1b85b86bc02892e48369b813ad6a9274fc160901a254",
         "tests/kit/testing/contract.test.ts": "7616472b70ab2825e05252adc1084eb4c1a26404fa8e0217d4b840214b971451",
-        "tests/kit/testing/fake-hub.test.ts": "6f65dd163514a000dfbdadb8b90c1569701aea6301993f1698451329c4c86267",
+        "tests/kit/testing/fake-hub.test.ts": "8a3cacd56a7e075d02585a332e271376d0ededdb36e528c23a193d215e2ffebf",
         "tests/kit/testing/fake-pad.test.ts": "eb51b25366bb4a571fe7064a290366218f24ad9fc99a5ce05ca7c8ae851394f3",
         "tests/kit/testing/sim.test.ts": "90b2e9bf6a7caa1f83b06bf2de0bf448767644a1c2f01a0e6ef988966c7a6907"
       }

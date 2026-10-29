@@ -1,6 +1,7 @@
 import { describe, expect, expectTypeOf, it } from 'vitest';
 import type { HubLike } from '../../../src/kit/core/index.ts';
 import { createFakeHub, fakeClock } from '../../../src/kit/testing/index.ts';
+import { seedForDay } from '../../../src/kit/rng/index.ts';
 
 describe('FakeHub: behaves like the hub client (fidelity)', () => {
   it('is a HubLike', () => {
@@ -82,7 +83,7 @@ describe('FakeHub: behaves like the hub client (fidelity)', () => {
     const seeds: number[] = [];
     fake.daily.define({ play: (c) => seeds.push(c.seed) });
     await clock.settle();
-    expect(seeds).toEqual([1106517459]);
+    expect(seeds).toEqual([seedForDay(fake.slug, '2026-10-15')]);
     expect(fake.daily.active?.day).toBe('2026-10-15');
     await fake.daily.complete({ score: 3 });
     expect(fake.daily.active).toBeNull();

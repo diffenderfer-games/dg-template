@@ -9,7 +9,7 @@ let notes: string[];
 
 function install(over: Partial<DailyOptions> = {}) {
   return installDaily(fake, {
-    slug: 'mygame',
+    slug: fake.slug,
     clock: fake.clock,
     events: fake.events,
     onPlay: (s) => played.push(s),
@@ -39,7 +39,7 @@ describe('daily adapter', () => {
     d.ready();
     d.ready();
     expect(played).toEqual([
-      { day: '2026-10-15', seed: seedForDay('mygame', '2026-10-15'), recorded: true, saved: null },
+      { day: '2026-10-15', seed: seedForDay(fake.slug, '2026-10-15'), recorded: true, saved: null },
     ]);
   });
 
@@ -72,7 +72,7 @@ describe('daily adapter', () => {
     d.ready();
     await fake.daily.start('2026-10-14');
     expect(notes).toEqual(['offline']);
-    expect(played[0]).toMatchObject({ day: '2026-10-14', seed: seedForDay('mygame', '2026-10-14'), recorded: false });
+    expect(played[0]).toMatchObject({ day: '2026-10-14', seed: seedForDay(fake.slug, '2026-10-14'), recorded: false });
     expect(d.complete({})).toBe(false);
     expect(fake.log.count('daily.complete')).toBe(0);
   });

@@ -12,7 +12,9 @@ means a hook's signature changed: the entry says how to move a game over.
   profile and saves, even where the host injected nothing (`npm run dev`).
 - **testing 1.15:** `FakeHub`'s slug defaults to `MANIFEST.id`, else `mygame`, so a renamed game's kit tests
   (quick-chat keys `g:<slug>:<i>`) see the id the host injects. **docs 1.31:** core.md "The manifest", this entry.
-  **scripts 1.32:** the module versions.
+  **daily 1.3, hub-events 1.12:** their tests take the daily seed from the fake hub's id, not `mygame`, so they
+  pass in a game with `game.id`. **scripts 1.32:** the module versions.
+- Needs `@diffenderfer-games/hub` 2.0.0-next.17 or later (it accepts `game.id`, `game.slug` and `game.formerSlugs`).
 
 ### Moving a game over
 
