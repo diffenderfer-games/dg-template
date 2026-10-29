@@ -4,6 +4,12 @@ KIT doc. One entry per kit version; per module inside. A **major** version
 means a hook's signature changed: the entry says how to move a game over.
 `npm run kit:sync` prints the entries newer than a game's `kit.json`.
 
+## 1.29 (2026-10-29)
+
+- **boot 1.15:** the online chooser (Play now / With friends / a code) closes when the player reaches a room another
+  way, such as accepting an invite while it is open. It stayed up over the lobby. **hub-events 1.13:** a test for it.
+  **core 1.24:** `KIT_VERSION` 1.29. **docs 1.33:** this entry. **scripts 1.34:** the module versions.
+
 ## 1.28 (2026-10-29)
 
 - **core 1.23:** `MANIFEST.id` is package.json's `game.id` (a renamed game's old name, its permanent key). `KIT_VERSION` 1.28.

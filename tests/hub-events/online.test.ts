@@ -365,6 +365,16 @@ describe('joining others: Play now, With friends, a code', () => {
     expect(h.ui.querySelector('[data-testid="online-who"]')).toBeNull();
     expect(h.hook.screen()).toBe('title');
   });
+
+  it('an invite taken while the chooser is open closes it: the lobby is not covered', async () => {
+    const g = await boot();
+    g.press('online');
+    expect(g.ui.querySelector('[data-testid="online-who"]')).not.toBeNull();
+    g.fake.mp.launch({ kind: 'join', room: 'INV1' });
+    await g.settle();
+    expect(g.hook.screen()).toBe('lobby');
+    expect(g.ui.querySelector('[data-testid="online-who"]')).toBeNull();
+  });
 });
 
 /** Let the browser's own tasks run (jsdom delivers a history back's popstate in a later task). */

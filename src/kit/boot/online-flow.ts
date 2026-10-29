@@ -70,6 +70,8 @@ export class OnlineFlow {
   private chat: { room: HubRoom; mode: string; el: HTMLElement } | null = null;
   /** The session is in online mode for this flow (a reclaimed seat enters it when its room shows). */
   private entered = false;
+  /** The Play now / With friends sheet, while it is open (a room reached another way, an invite, closes it). */
+  private chooser: ModalHandle | null = null;
 
   constructor(hub: HubLike, game: RoomGame, clock: Clock, screens: Screens, host: OnlineFlowHost) {
     this.hub = hub;
@@ -128,6 +130,7 @@ export class OnlineFlow {
 
   /** Online mode, once (the session leaves a daily or race for it). */
   private enter(): void {
+    this.closeChooser();
     if (this.entered) return;
     this.entered = true;
     this.host.enter();
@@ -181,9 +184,8 @@ export class OnlineFlow {
    * code (a room's; an online game's link too when the game has them, through `joinCode`).
    */
   choose(joinCode: { kinds: JoinKinds; go(target: JoinTarget): void }): void {
-    let sheet: ModalHandle | null = null;
     const pick = (go: () => void) => (): void => {
-      sheet?.close();
+      this.closeChooser();
       go();
     };
     const body = h(
@@ -208,12 +210,21 @@ export class OnlineFlow {
       ),
       joinCodeForm(joinCode.kinds, (target) => pick(() => joinCode.go(target))()),
     );
-    sheet = openModal({
+    this.chooser = openModal({
       title: t('onlineWho'),
       testid: 'online-who',
       body,
       buttons: [{ label: t('back'), testid: 'online-who-back' }],
+      onClose: () => {
+        this.chooser = null;
+      },
     });
+  }
+
+  private closeChooser(): void {
+    const sheet = this.chooser;
+    this.chooser = null;
+    sheet?.close();
   }
 
   /** Play now: join a public room waiting in its lobby with a free seat, else host one anyone can join. */

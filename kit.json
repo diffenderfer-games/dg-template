@@ -1,5 +1,5 @@
 {
-  "kitVersion": "1.28",
+  "kitVersion": "1.29",
   "modules": {
     "agents": {
       "version": "1.0",
@@ -31,14 +31,14 @@
       }
     },
     "boot": {
-      "version": "1.14",
+      "version": "1.15",
       "files": {
         "docs/kit/boot.md": "e8b42888ad121ea75cb0eebd39fa81689800344d6bd8b9055aca66e525b603bb",
         "src/kit/boot/context.ts": "4d889d45e7a474f9721cdd8d8058a652dcc0979de3467dc7bb196974d0d98f1b",
         "src/kit/boot/define-game.ts": "55c1e02761f3ef31a64be32fc276a4cf404404001024f99be0ed7422b2e8fd68",
         "src/kit/boot/index.ts": "43e7d5a563cae9c97f05053ddd48ab82f92eaa60cccbea28569fd5e1c5813140",
         "src/kit/boot/joining.ts": "378a292843ba10da9fb7e0f395f58148017a349180a5fd7a16fa730ce9cbef9c",
-        "src/kit/boot/online-flow.ts": "adfaba261646f8642f96a1d82658666b7802db6ac9b5c05da59f0ad09cc49455",
+        "src/kit/boot/online-flow.ts": "5b1e51c705775fa04d13117854c28e087c44bd561677cd437e1a062983571f03",
         "src/kit/boot/router.ts": "b057518cd71a0f27cc696f38cd819c968cb4777215f28396cea0e765b67f160f",
         "src/kit/boot/screens.ts": "ea81773c074d5da358a468bc370274bc901abeac993e3f5870f3758920f0fadb",
         "src/kit/boot/session.ts": "08031f726b0064468cfada29f7f6f8987b6d2930c57f23d4d6aa4bbcbd7f949a",
@@ -66,7 +66,7 @@
       }
     },
     "core": {
-      "version": "1.23",
+      "version": "1.24",
       "files": {
         "docs/kit/core.md": "8522fe49e526ae0d8b30e0eaee9208f08ec381a1f6b5f960fcca3e016d4eff00",
         "src/kit/core/activity.ts": "23f686d66feef6a8180f5b8c488222a63ea59d5c2cefb1e88923c61164fff0eb",
@@ -83,7 +83,7 @@
         "src/kit/core/planned.ts": "1a2c2a845a628483b29cafd60b6c7872bae414da3fbcec07642b9d05eb1a497e",
         "src/kit/core/store.ts": "e30b5673a73c64df1446ed156467f2a20f548c465de86c779e21d9cccd008e20",
         "src/kit/core/strings.ts": "26d6d1f72124d459c5d632174801c8a4f25f3f125334a153cecb995742ed3e01",
-        "src/kit/core/version.ts": "74bff78276b2534c68bad5f2227b3e52aec384fa54a72b11d8708871d92fbdad",
+        "src/kit/core/version.ts": "65e0607419fdbe775fb8d3d4aa54cca3b4bd93cf649ca1dbb8c5da4a7ed5b42a",
         "src/kit/core/wording.ts": "0c3cf1eb2062f307a9acd6a7aea90f8f954e72db30978ea192bf1a5ae46997b3",
         "tests/kit/core/activity.test.ts": "395c9759a8ea916d53865a6c528c207feeeaf1e51f5079d8c406f9114f81b614",
         "tests/kit/core/async.test.ts": "a445e5d51617e9cdf7e84403d1b854db96ef63905e9fe030f4a13178e68a339a",
@@ -127,10 +127,10 @@
       }
     },
     "docs": {
-      "version": "1.32",
+      "version": "1.33",
       "files": {
         "docs/getting-started.md": "85e6fd835b0c3d015b2dd93b83736b2b2bc3b408f8e01b8fe354eab23d7e75f6",
-        "docs/kit/CHANGELOG.md": "32f724de2c672de4f1588a4170dd31b162ece5ed930cbe7eeb07218aa688e543",
+        "docs/kit/CHANGELOG.md": "b977258953adcdeaadc549a1a5e016f3435fa8fb10c6cdfc42a0416a72b79ca0",
         "docs/kit/README.md": "b8bac2da690f22d9906bf8b39426eef2ced9e0a8aadcbbf9d711ec4b59b3af26",
         "docs/kit/card-games.md": "f29c0144ab9e7869a14dc5328b2e77cd30f74158122fe3dc3d3fa8912358e3ab",
         "docs/kit/covers.md": "e00687c1e2dbde8cbfb1c6b4fa94bc260e671a4b0d7d0fe71199bd76178eaad7",
@@ -163,14 +163,14 @@
       }
     },
     "hub-events": {
-      "version": "1.12",
+      "version": "1.13",
       "files": {
         "tests/hub-events/_support/harness.ts": "282e22677931a8ea23e75967cc7d442016fd0ce63a451a9b5eb90e8f4b92da5f",
         "tests/hub-events/_support/planned.ts": "f1d15c90427d79921e0deb1bdb001aa65d3e01d61aa2c4b39972551778865c1e",
         "tests/hub-events/_support/toys.ts": "81d79f5d0560abfacadf0fe33057316214236df9abcd99ec2773605740131d95",
         "tests/hub-events/daily.test.ts": "215f46f272f8c0628543eb981393adb604d53d390578522ecb754facaea13474",
         "tests/hub-events/input.test.ts": "8b2eb9e9cbb7b9f72647f4cd2a0e6ed9e1ab64b712aef414ca9949f113eb6bfe",
-        "tests/hub-events/online.test.ts": "3606682d8538ca0c939966f2379535ee2cf4a0fc895673a71b26bc80f6b69abd",
+        "tests/hub-events/online.test.ts": "c224e52f90fcb7e58850542fe6ae3e39d8d12a38c6a8983d17a146caf7e3f594",
         "tests/hub-events/overlay.test.ts": "3ea8246ec1fcd59009485ff2e06f674bcf53f57146a551ecca7d4ad71c07fc0b",
         "tests/hub-events/planned.test.ts": "4c03ef6384c37a1259da86c547322d8df119a440caf76a7c0acdd78c6e8617b9",
         "tests/hub-events/progress.test.ts": "86d3629ca392c76d862e29512e6172d84e29fe2b761b2d3b9bce0fff9f3b12c8",
@@ -316,7 +316,7 @@
       }
     },
     "scripts": {
-      "version": "1.33",
+      "version": "1.34",
       "files": {
         "scripts/kit/build-live.ts": "99727744429e0a938ec078fcfaa31b56fa16ee07cc9a0075ff45fdc55898dad7",
         "scripts/kit/build-rules.ts": "532e7f69691e24ec758d281f6e3597c5dfa0738a8bf9182ac17bb424e02d67e1",
@@ -334,7 +334,7 @@
         "scripts/kit/lib/json-file.ts": "dbf7615f262a4cfaed24444d157ce3a1eb43c38139abf22910b5de63fc39fabc",
         "scripts/kit/lib/kit-manifest.ts": "3dd9b442e44bf0f265bdbd3f78332ebce23cf7a058ef6cfc00bea39d1121916d",
         "scripts/kit/lib/kit-skips.ts": "64c564f5bcd174f422c955b23ba42b51c6c7ea8b0e525f371890f24486aa7b67",
-        "scripts/kit/lib/modules.ts": "71266698e71b2d536ba4faa8124d04ed0017f23fdf70ce7d3ffcfbb934dfa248",
+        "scripts/kit/lib/modules.ts": "f46a01a042e31646c0b23765df64fad0d89409e207a985d4730c6279f3797fe1",
         "scripts/kit/lib/paths.ts": "eff533c813a780dae8389146613b04f627ffa275d46045c98b30bad5149ab9be",
         "scripts/kit/lib/ports.ts": "33b1e358794f2e50f8119c958e0ed857d0c6dc7fe5d3708d97486cae16affdad",
         "scripts/kit/lib/procs.ts": "092866a7f4f02faf47b7b7c6280ff7152b3ba66fe3c505ec52b36089b0609b10",
