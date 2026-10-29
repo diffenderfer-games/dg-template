@@ -51,7 +51,7 @@ export const KIT_MODULES: Record<string, KitModuleDef> = {
   world: srcModule('world', '1.7'),
   'hub-events': { version: '1.12', paths: ['tests/hub-events'] },
   'hub-suites': { version: '1.13', paths: ['tests/hub/_kit.ts', 'tests/hub/kit'] },
-  scripts: { version: '1.32', paths: ['scripts/kit', 'tests/scripts'] },
+  scripts: { version: '1.33', paths: ['scripts/kit', 'tests/scripts'] },
   ci: { version: '1.0', paths: ['.github/workflows/deploy.yml'] },
   agents: { version: '1.0', paths: ['.claude/agents'] },
   config: {
