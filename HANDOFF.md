@@ -24,15 +24,46 @@ You need to:
 
 ## How the catalog mounts apps
 
-Every app is served under `/<slug>/` where `slug` = the `apps/` directory name.
-The slug must match `^[a-z0-9][a-z0-9-]*$` (lowercase, URL-safe). Anything else
-is skipped silently. The slug is the *folder name in `apps/`*, not the npm
-`name` field.
+Every app is served under `/<slug>/`, where `slug` is the `apps/` directory
+name unless the game block sets `game.slug` (below). Names must match
+`^[a-z0-9][a-z0-9-]*$` (lowercase, URL-safe); a folder that doesn't is skipped
+silently. The default is the *folder name in `apps/`*, not the npm `name` field.
 
 The host strips the `/<slug>` prefix and forwards the rest to the app, so the
 app sees requests as if mounted at root — **but** the browser still sees
 `/slug/...` in URLs, so any absolute asset path the app emits (`/assets/foo.js`,
 `<img src="/sprite.png">`, `fetch('/data.json')`) will hit the wrong place.
+
+### Ids and slugs (renaming a game)
+
+A game has two names, both in its `game` block:
+
+- **`id`**: the permanent internal key. Saves, stats, leaderboards, daily
+  completions, saved and online games, What's new, `HUB_APP_KEY`, the backup
+  and the deploy's `/_host/rebuild/<id>` call all use it, so it never changes
+  once a game has players. It defaults to the folder name and is never shown to
+  players or put in links. The client gets it from the host
+  (`window.__HUB__.slug`) and sends it on every call.
+- **`slug`**: the public URL name, `/<slug>/`. It defaults to the id. Links,
+  the catalog, share images, the sitemap and canonical tags use only it.
+
+To **rename** a game, keep its folder (and the deploy's rebuild call) and set:
+
+```json
+"game": { "id": "uno", "slug": "last", "title": "Last!" }
+```
+
+`/uno/…` then redirects (301) to `/last/…` with the rest of the path and the
+query (the browser keeps the `#hash`), so bookmarks, shared and invite links
+and home-screen apps installed from the old address keep working; nothing
+stored moves. Renamed again later? Keep the id, change `slug`, and list the
+old one in `"formerSlugs": ["last"]` (each redirects the same way). Every id,
+slug and former slug must be unique across the catalog (one game's slug can't
+be another's id): a clash breaks the game that doesn't own the name as its id,
+with a scan error naming both. A name the hub API receives in a path, query,
+body or socket op is mapped to the id, so an old link or cached bundle that
+sends the slug still finds the game's data. Kit games: see docs/kit/core.md
+"The manifest" (the kit keys its storage on `game.id` too).
 
 ---
 
@@ -125,8 +156,8 @@ String substitution in command strings:
 | token           | meaning                                                  |
 | --------------- | -------------------------------------------------------- |
 | `{{PORT}}`      | Port assigned to this app (process type; static only if you ask for it) |
-| `{{GAME_PATH}}` | Public prefix, e.g. `/mygame`                            |
-| `{{GAME_SLUG}}` | Slug alone, e.g. `mygame`                                |
+| `{{GAME_PATH}}` | Public prefix, e.g. `/mygame` (`/<game.slug>` for a renamed game) |
+| `{{GAME_SLUG}}` | The game's id, e.g. `mygame` (its key; see "Ids and slugs") |
 
 Equivalent env vars are also injected into the spawned process:
 
