@@ -19,8 +19,9 @@ const PAGE = 'https://diffenderfer.games/my-game/';
 /**
  * A browser's history for one page: pushState drops what's ahead, back is
  * asynchronous (the popstate comes later), and a back past the page's first
- * entry leaves the page (`left`). Capturing popstate listeners run first, and
- * one may stop the rest (the hub's guard, `hub` counts what it heard).
+ * entry leaves the page (`left`). Popstate listeners run in the order they were
+ * added, capture or not (as on a real window), and one may stop the rest: `hub`
+ * counts what a listener added after the guard's (the hub's guard) would hear.
  */
 function fakeWindow(url = PAGE) {
   const entries: { state: unknown; url: string }[] = [{ state: null, url }];
@@ -35,7 +36,7 @@ function fakeWindow(url = PAGE) {
         stopped = true;
       },
     };
-    for (const l of [...listeners.filter((x) => x.capture), ...listeners.filter((x) => !x.capture)]) {
+    for (const l of listeners) {
       if (stopped) return;
       l.listener(e);
     }

@@ -432,7 +432,7 @@
       "version": "1.12",
       "files": {
         "docs/kit/ui.md": "769f75f5a004861d445a6225649a0ebae215a635d8b06de017dea715a1e12540",
-        "src/kit/ui/back-guard.ts": "b65da4ce175a62c06e029952fac028b01e4b7146d8ef37534e84f3f4ff07c411",
+        "src/kit/ui/back-guard.ts": "2137820505dcad6024eeb934194f94343aab63aa360225be39b85bab4d29ce8f",
         "src/kit/ui/controls.ts": "7f58cc6d91c9f240e0ebbb80b9de73f1a7f1f8634bde35ba25c12a99550e374e",
         "src/kit/ui/css.ts": "3e6b74846a78ebcb17e347985123a9dd5e7de4c13c99c0d02fb28b2f143a148a",
         "src/kit/ui/dom.ts": "ad6dcc0f40b6fee09d36c4887c49b209a13265e89cf659fbb8785b668a8dcf7c",
@@ -443,7 +443,7 @@
         "src/kit/ui/screens.ts": "24918027bfb6375989227a7f887db18c05ff9fea2e4053e98e0c834007c8439a",
         "src/kit/ui/share.ts": "f6f72398d3f9e978e06d53445b89b4f0a45c0edcc7f09e54b2466a1227076ca7",
         "src/kit/ui/toast.ts": "4dde07c5827090c824101c5d75b94ee74f28734b2a088eb84c2d7a4943796dc2",
-        "tests/kit/ui/back-guard.test.ts": "b124834cd304ee289fa744e69b26a866e10a5ba6f20f11b40b5ce75b7c14bd11",
+        "tests/kit/ui/back-guard.test.ts": "41138f589e210e4c930754ba80b8bb54fcf5372762b6306d989dc96248d32514",
         "tests/kit/ui/share.test.ts": "d0ce30bd83a19a07c8c6bd8ed307e1d0366149f158f5e88b6f8410c8576ec958",
         "tests/kit/ui/ui.test.ts": "c0591f534634e96ca2393aa0e5d4c272001d0e7c7571167d38b66969bbd9cb25"
       }

@@ -14,7 +14,8 @@
  *   the guard: each one opens a `CloseWatcher` (Chrome's Back closes it instead of navigating) and
  *   adds a cushion entry (up to `CUSHIONS`) over the guard's own. A Back caught by either does
  *   nothing at all: a stray swipe mid-stroke must not interrupt play (the pause button is there).
- *   A cushion's popstate is stopped before the hub's own guard sees it.
+ *   A cushion's popstate is stopped before the hub's own guard sees it (the guard's listener is added as the game
+ *   boots, before the hub's menu script adds its own).
  * - Under those, one history entry is pushed (once) on top of the page's: a Back that gets that
  *   far lands on the page's own entry instead of leaving; the entry goes back on and `onBack`
  *   runs (the kit's pause, which asks "Leave race?" / "Leave match?" where a game can't pause).
@@ -98,7 +99,6 @@ export function historyGuard(win: GuardWindow, log: (line: string) => void = () 
   let popTimer = 0;
   /** The address when the guard came off (the hub may tidy it meanwhile). */
   let leftAt = '';
-  let listening = false;
 
   const push = (extra: Record<string, unknown> = {}): void => {
     const state: unknown = win.history.state;
@@ -141,17 +141,17 @@ export function historyGuard(win: GuardWindow, log: (line: string) => void = () 
     back();
   };
 
+  // Now, as the game boots: listeners on window run in the order they were added (capture or not), and this must run
+  // before the hub's own guard (its menu script loads after the game), or the hub answers a cushion's Back first by
+  // opening its menu and pushing an untapped entry over the cushions.
+  win.addEventListener('popstate', onPop, true);
+
   return {
     get active(): boolean {
       return active;
     },
     on(onBack) {
       back = onBack;
-      if (!listening) {
-        listening = true;
-        // Capture: before the hub's guard (on window, bubbling), so a cushion's popstate can be kept from it.
-        win.addEventListener('popstate', onPop, true);
-      }
       if (active) return;
       active = true;
       if (!popping && !ours(win.history.state)) push();
