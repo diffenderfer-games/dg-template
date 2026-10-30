@@ -12,8 +12,32 @@ const A_IN_PLAY = {
   },
 };
 
-/** Let the browser's own tasks run (jsdom delivers a history back's popstate in a later task). */
-const browserTasks = (): Promise<void> => new Promise((resolve) => setTimeout(resolve, 30));
+/**
+ * Wait until every history move already asked for has landed. jsdom delivers a back's popstate in
+ * a later task, and an earlier test's guard may still be taking its entry off: traversals run in
+ * order, so a probe entry pushed and gone back from is popped only after all of those.
+ */
+function historyIdle(): Promise<void> {
+  return new Promise((resolve) => {
+    const probe = { kitTestProbe: true };
+    history.pushState(probe, '');
+    const done = (): void => {
+      removeEventListener('popstate', done);
+      resolve();
+    };
+    addEventListener('popstate', done);
+    history.back();
+  });
+}
+
+/** Wait (on the browser's tasks) until `ok()` holds, failing after `ms` with `what`. */
+async function until(ok: () => boolean, what: string, ms = 3000): Promise<void> {
+  const end = Date.now() + ms;
+  while (!ok()) {
+    if (Date.now() > end) throw new Error(`timed out waiting for ${what}`);
+    await new Promise((resolve) => setTimeout(resolve, 5));
+  }
+}
 
 const guarded = (): boolean => document.documentElement.classList.contains(BACK_GUARD_CLASS);
 
@@ -153,12 +177,12 @@ describe('the back guard (docs/kit/ui.md § "The back guard")', () => {
   });
 
   it('a back while playing pauses instead of leaving the page', async () => {
+    await historyIdle(); // (an earlier test's guard may still be taking its entry off)
     const g = await bootGame({ patch: { backGuard: true } });
     await g.start();
     expect(history.state).toMatchObject({ kitBackGuard: true });
-    await browserTasks(); // (an earlier test's guard may still be taking its entry off)
     history.back();
-    await browserTasks();
+    await until(() => g.hook.screen() === 'pause', 'the back to pause the game');
     await g.settle();
     expect(g.hook.screen()).toBe('pause');
     expect(history.state).toMatchObject({ kitBackGuard: true });

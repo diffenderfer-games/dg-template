@@ -14,7 +14,7 @@ the screenshots and the code. Run it, fix what it reports, then hand over.
   page for a choice between options. Pushing deploys
   ([repo-setup.md](../repo-setup.md)), so a push is a release.
 - **A test link for the owner's phone.** Run the game on a free port
-  (`npm run local`, or `npm run dev -- --host`) and give two URLs: the
+  (`npm run local`, or a built bundle: `npm run build` then `vite preview --host`) and give two URLs: the
   machine's LAN address (`http://192.168.x.x:<port>/<slug>/`) and its Tailscale
   IP (`http://100.100.4.74:<port>/<slug>/`; not the ts.net name, which Vite's
   host check blocks). A server bound to
@@ -29,6 +29,24 @@ the screenshots and the code. Run it, fix what it reports, then hand over.
   what to look at.
 - When a fix is asked for, check it on the screen where it was seen (a phone
   shot for a phone bug) before saying it's done.
+
+## Previews and labs
+
+- **Phone links serve a built bundle, never `npm run dev`.** Vite's dev client reloads the page
+  when its socket comes back, and a phone drops the socket whenever the page goes to the
+  background, so the player comes back to a reload (and, with no hub, to the title with no
+  Continue). It also reloads on every file another agent saves. `npm run local` (a real hub on a
+  build) is the default; a plain `vite preview` of `dist/` is next.
+- **Labs and preview pages are live.** A page the owner opens to judge a piece (a character, a
+  level, a tool) plays it: controls, a restart, the bot driving it. A freeze-frame of one moment
+  hides how it moves and feels; take stills from the same page with a query (`&t=<s>&snap=1`).
+- **Heavy generation runs in a Web Worker.** Anything that takes more than a frame (a level, a
+  puzzle, a long simulation) is built off the main thread, kept per seed (memory and IndexedDB,
+  keyed by a fingerprint of the generator so a changed generator never serves an old result),
+  and, for the ones players open first, prebuilt into `public/` with a script. Start building
+  the next likely one early (today's daily as the game opens, the next level after a clear), and
+  show a loading card only when it isn't ready. The rules take the built thing as an argument and
+  wait for it, so the saved game holds the seed, never the result.
 
 ## Scope
 

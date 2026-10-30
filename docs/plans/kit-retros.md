@@ -16,6 +16,18 @@ kit, what changed in the docs and CLAUDE.md. Newest first.
 
 ---
 
+## Dillo Dash (`dillo-dash`, not deployed yet)
+
+- **Date:** 2026-10-30
+- **Game:** a speed platformer with a puzzle layer: generated levels across realms (surface coaster, dungeons, waterways, mines, canopy, cliffs, villages), tools (rope, boomerang, slingshot), a boss every 4th level.
+- **Renderer / features:** pixi; daily, race (ghosts from race stats), avatar; `--no-online --no-turns`.
+- **Easy:** the hooks, saves and Continue with a plain-JSON run; races carrying a ghost's pose in the stats; dressing the kit's screens from `theme.css` and a `dress.ts` watcher; `npm run cover` with a showcase driver.
+- **Worked around:** generation that takes seconds (a worker, an IndexedDB cache keyed by a source fingerprint, prebuilt levels in `public/`, and rules that wait for the level); the kit's music has no message channel to the core, so moods go over a BroadcastChannel; phone testing on `npm run dev` lost the game whenever the phone backgrounded the page (Vite's dev client reloads, and there's no hub to continue from); a flaky back-guard test with fixed 30 ms waits.
+- **Moved into the kit:** the back-guard test waits on conditions (kit 1.31).
+- **Docs / CLAUDE.md changes:** review.md § "Previews and labs" (built bundles for phone links, live labs, heavy generation in a worker). Candidates: a `send` on `ctx.audio` for music moods, an `ctx.audio` level-check script that renders every SFX offline through a phone-speaker filter.
+
+---
+
 ## Fish Flap (`fish-flap`, not deployed yet)
 
 - **Date:** 2026-10-22

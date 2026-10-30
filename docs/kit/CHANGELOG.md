@@ -4,6 +4,14 @@ KIT doc. One entry per kit version; per module inside. A **major** version
 means a hook's signature changed: the entry says how to move a game over.
 `npm run kit:sync` prints the entries newer than a game's `kit.json`.
 
+## 1.31 (2026-10-30)
+
+- **hub-events 1.14:** "a back while playing pauses instead of leaving the page" waits on the actual conditions (every
+  history move already asked for has landed; the game reached the pause screen) instead of two fixed 30 ms waits,
+  which failed under a loaded machine. **docs 1.35:** review.md § "Previews and labs": phone links serve a built
+  bundle (Vite's dev client reloads a backgrounded phone's page), labs are live pages, heavy generation runs in a
+  Web Worker with a cache and prebuilt files. **core 1.26:** `KIT_VERSION` 1.31. **scripts 1.36:** the module versions.
+
 ## 1.30 (2026-10-30)
 
 - **ui 1.12:** the back guard holds against Android's Back. Chrome's Back skips history entries added without a tap
