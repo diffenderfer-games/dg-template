@@ -98,7 +98,9 @@ export function createThreeStage(host: HTMLElement, slug: string): ThreeStage {
   if (preset.bloom) {
     composer = new EffectComposer(renderer);
     composer.addPass(new RenderPass(scene, camera));
-    bloom = new UnrealBloomPass(new Vector2(1, 1), 0.6, 0.4, 0.85);
+    // only real glows bloom (emissive lights, neon): a low threshold lights white ground and washes
+    // the whole screen out on fast machines (Macs get this preset)
+    bloom = new UnrealBloomPass(new Vector2(1, 1), 0.45, 0.35, 1.6);
     composer.addPass(bloom);
     composer.addPass(new OutputPass());
   }
