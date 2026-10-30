@@ -4,6 +4,17 @@ KIT doc. One entry per kit version; per module inside. A **major** version
 means a hook's signature changed: the entry says how to move a game over.
 `npm run kit:sync` prints the entries newer than a game's `kit.json`.
 
+## 1.30 (2026-10-30)
+
+- **ui 1.12:** the back guard holds against Android's Back. Chrome's Back skips history entries added without a tap
+  in between, and the guard (and the hub's) put theirs back untapped, so a second edge swipe left the game. Now
+  each tap or key in play opens a `CloseWatcher` and adds a cushion history entry (up to `CUSHIONS`); a Back caught
+  by either does nothing (no pause) and is kept from the hub's guard. `?navlog=1` shows what happened on a phone.
+  `GuardWindow` now needs `history.go` and passes popstate listeners an event (`PopEvent`).
+  **boot 1.16:** the `backGuard` option's doc. **core 1.25:** `KIT_VERSION` 1.30. **docs 1.34:** ui.md, this entry.
+  **scripts 1.35:** the module versions.
+- A game that built its own Back cushion (Flow Lab's `src/game/back-cushion.ts`) drops it.
+
 ## 1.29 (2026-10-29)
 
 - **boot 1.15:** the online chooser (Play now / With friends / a code) closes when the player reaches a room another

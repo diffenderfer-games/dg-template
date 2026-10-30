@@ -225,7 +225,7 @@ export type GameDefinition<P extends JsonObject, R extends JsonObject> = {
   prompts?: PromptOptions | false;
   /**
    * The back guard in play (kit/ui/back-guard.ts; docs/kit/ui.md § "The back guard"): edge swipes
-   * and the phone's Back pause instead of leaving. Default on, except for games that resume when
+   * and the phone's Back stay in the game (a stray swipe does nothing; one past every guard pauses). Default on, except for games that resume when
    * hub UI closes (`resumeOnClose`: turn-based and idle). `false` turns it off; options tune it.
    */
   backGuard?: boolean | BackGuardOptions;

@@ -62,17 +62,26 @@ on-screen keyboard keep the hub's ring (tune that with `--hub-focus-*`).
 
 ## The back guard
 
-In play, a swipe from the screen's side (iOS Safari's back/forward) or the phone's Back doesn't leave the game: it
-pauses (a race or a match asks "Leave race?" / "Leave match?", the kit's `pause()`). `kit/ui/back-guard.ts`:
+In play, a swipe from the screen's side (iOS Safari's back/forward) or the phone's Back doesn't leave the game. A
+stray swipe does nothing at all (the pause button is there to leave); only a Back past every layer below pauses (a
+race or a match asks "Leave race?" / "Leave match?", the kit's `pause()`). `kit/ui/back-guard.ts`:
 
 - on from the first frame of play until the result screen or the title; `html.kit-back-guard` gives `#app` and the play
   screen `touch-action: none` and the page no overscroll, so a drag plays;
 - a `touchstart` within 24 px of the left or right side is cancelled unless it is on a control (a button, a link,
   `[role=button]`, the hub's buttons through their shadow roots), since cancelling it would cancel the control's click;
-- Back can't always be cancelled (Android's gesture), so **one** history entry is pushed over the page's for play; a
-  back lands on the page's own entry, the entry goes back on and the game pauses (nothing if the pause screen, a
-  question or hub UI is already up). At the result or the title the entry comes off (`history.back()`, keeping an
-  address the hub tidied meanwhile), so Back in the menus leaves as before.
+- Android's Back (the edge swipe, the button) can't be cancelled, and Chrome's Back **skips history entries a page
+  added without a tap in between**: a guard that puts its entry back right after a Back loses it to the next swipe.
+  So the player's own taps and keys build the guard. Each one opens a `CloseWatcher` (Chrome 120+: Back closes it
+  instead of navigating; the next tap opens another) and adds a cushion entry, up to `CUSHIONS` (4), over the
+  guard's own. A Back caught by either does nothing; a cushion's popstate is stopped (a capturing listener) before
+  the hub's own back guard hears it.
+- Under those, **one** history entry is pushed over the page's for play; a Back that gets that far lands on the
+  page's own entry, the entry goes back on and the game pauses (nothing if the pause screen, a question or hub UI
+  is already up). At the result or the title every entry comes off at once (`history.go`, keeping an address the
+  hub tidied meanwhile), so Back in the menus leaves as before.
+- `?navlog=1` on the address shows what the guard did, top left, and keeps it across a reload: open the game
+  that way on the phone, swipe, and read it (or come back with Forward).
 
 In the online lobby and on a live match's loading screen only the history half is on (the lobby scrolls): Back
 leaves the room, as the lobby's Leave does (on the loading screen it asks "Leave match?" first), instead of leaving

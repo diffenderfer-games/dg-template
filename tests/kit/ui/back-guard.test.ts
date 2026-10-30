@@ -4,10 +4,13 @@ import { describe, expect, it } from 'vitest';
 import {
   BACK_GUARD_CLASS,
   backGuard,
+  CUSHIONS,
+  cushionDepth,
   EDGE_PX,
   edgeSwipe,
   historyGuard,
   type GuardWindow,
+  type PopEvent,
 } from '../../../src/kit/ui/back-guard.ts';
 
 const WIDTH = 400;
@@ -16,13 +19,37 @@ const PAGE = 'https://diffenderfer.games/my-game/';
 /**
  * A browser's history for one page: pushState drops what's ahead, back is
  * asynchronous (the popstate comes later), and a back past the page's first
- * entry leaves the page (`left`).
+ * entry leaves the page (`left`). Capturing popstate listeners run first, and
+ * one may stop the rest (the hub's guard, `hub` counts what it heard).
  */
 function fakeWindow(url = PAGE) {
   const entries: { state: unknown; url: string }[] = [{ state: null, url }];
   let at = 0;
   let left = false;
-  const listeners: (() => void)[] = [];
+  const listeners: { listener: (e: PopEvent) => void; capture: boolean }[] = [];
+  let hub = 0;
+  const pop = (): void => {
+    let stopped = false;
+    const e: PopEvent = {
+      stopImmediatePropagation: () => {
+        stopped = true;
+      },
+    };
+    for (const l of [...listeners.filter((x) => x.capture), ...listeners.filter((x) => !x.capture)]) {
+      if (stopped) return;
+      l.listener(e);
+    }
+    if (!stopped) hub += 1;
+  };
+  const travel = (delta: number): void => {
+    pending.push(() => {
+      if (at + delta < 0) left = true;
+      else {
+        at += delta;
+        pop();
+      }
+    });
+  };
   const pending: (() => void)[] = [];
   const here = (): string => entries[at]?.url ?? url;
   const resolve = (u: string | URL | null | undefined): string => new URL(u ?? here(), here()).href;
@@ -40,13 +67,10 @@ function fakeWindow(url = PAGE) {
         entries[at] = { state: structuredClone(state), url: resolve(u) };
       },
       back(): void {
-        pending.push(() => {
-          if (at === 0) left = true;
-          else {
-            at -= 1;
-            for (const l of listeners) l();
-          }
-        });
+        travel(-1);
+      },
+      go(delta = 0): void {
+        travel(delta);
       },
     },
     location: {
@@ -54,8 +78,8 @@ function fakeWindow(url = PAGE) {
         return here();
       },
     },
-    addEventListener(_type: 'popstate', listener: () => void): void {
-      listeners.push(listener);
+    addEventListener(_type: 'popstate', listener: (e: PopEvent) => void, capture = false): void {
+      listeners.push({ listener, capture });
     },
     setTimeout: (): number => 0,
     clearTimeout: (): void => {},
@@ -77,6 +101,10 @@ function fakeWindow(url = PAGE) {
     },
     get left(): boolean {
       return left;
+    },
+    /** Popstates the hub's guard (a bubbling listener after the kit's) would have heard. */
+    get hub(): number {
+      return hub;
     },
   };
 }
@@ -304,5 +332,93 @@ describe('backGuard (history and options)', () => {
     expect(document.documentElement.classList.contains(BACK_GUARD_CLASS)).toBe(true);
     noEdges.stop();
     page.settle();
+  });
+});
+
+describe('cushions and the CloseWatcher (Android Back skips entries pushed without a tap)', () => {
+  const tap = (): void => {
+    document.dispatchEvent(new Event('pointerup', { bubbles: true }));
+  };
+
+  it('each tap in play adds a cushion, up to CUSHIONS; a Back onto one does nothing and the hub never hears it', () => {
+    const page = fakeWindow();
+    const guard = backGuard(document, page.win);
+    const b = backs();
+    guard.start(b.onBack);
+    for (let i = 0; i < CUSHIONS + 3; i++) tap();
+    expect(page.length).toBe(2 + CUSHIONS);
+    expect(cushionDepth(page.win.history.state)).toBe(CUSHIONS);
+    const heard = page.hub;
+    page.back();
+    page.back();
+    expect(b.count).toBe(0);
+    expect(page.hub).toBe(heard);
+    expect(cushionDepth(page.win.history.state)).toBe(CUSHIONS - 2);
+    // the next tap tops it up again
+    tap();
+    expect(cushionDepth(page.win.history.state)).toBe(CUSHIONS - 1);
+    guard.stop();
+    page.settle();
+  });
+
+  it('a Back past every cushion still pauses and stays on the page', () => {
+    const page = fakeWindow();
+    const guard = backGuard(document, page.win);
+    const b = backs();
+    guard.start(b.onBack);
+    tap();
+    page.back();
+    page.back();
+    expect(b.count).toBe(1);
+    expect(page.left).toBe(false);
+    guard.stop();
+    page.settle();
+  });
+
+  it('stop takes every entry off at once, so Back in the menus leaves', () => {
+    const page = fakeWindow();
+    page.win.history.replaceState({ hub: 'x' }, '');
+    const guard = backGuard(document, page.win);
+    guard.start(backs().onBack);
+    tap();
+    tap();
+    guard.stop();
+    page.settle();
+    expect(page.win.history.state).toEqual({ hub: 'x' });
+    tap();
+    expect(page.win.history.state).toEqual({ hub: 'x' });
+    page.back();
+    expect(page.left).toBe(true);
+  });
+
+  it('a tap opens a CloseWatcher (one at a time); its close does nothing; stop destroys it', () => {
+    const made: { onclose: (() => void) | null; destroyed: boolean; destroy(): void }[] = [];
+    class FakeWatcher {
+      onclose: (() => void) | null = null;
+      destroyed = false;
+      constructor() {
+        made.push(this);
+      }
+      destroy(): void {
+        this.destroyed = true;
+      }
+    }
+    const page = fakeWindow();
+    const win = { ...page.win, CloseWatcher: FakeWatcher };
+    const guard = backGuard(document, win);
+    const b = backs();
+    guard.start(b.onBack);
+    tap();
+    tap();
+    expect(made.length).toBe(1);
+    made[0]?.onclose?.();
+    expect(b.count).toBe(0);
+    tap();
+    expect(made.length).toBe(2);
+    guard.stop();
+    page.settle();
+    expect(made[1]?.destroyed).toBe(true);
+    tap();
+    expect(made.length).toBe(2);
   });
 });
