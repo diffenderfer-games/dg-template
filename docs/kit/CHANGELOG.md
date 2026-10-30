@@ -4,6 +4,13 @@ KIT doc. One entry per kit version; per module inside. A **major** version
 means a hook's signature changed: the entry says how to move a game over.
 `npm run kit:sync` prints the entries newer than a game's `kit.json`.
 
+## 1.32 (2026-10-30)
+
+- **testing 1.16:** `FakeHub` no longer imports `core/manifest.ts` (package.json), so it loads under plain Node again: the
+  hub suite `tests/hub/kit/fake-parity.test.ts` failed to start since 1.28 (`ERR_IMPORT_ATTRIBUTE_MISSING`). Its
+  slug defaults to `mygame`; **hub-events 1.15:** the harness passes `MANIFEST.id` (a renamed game's id) itself.
+  **core 1.27:** `KIT_VERSION` 1.32. **docs 1.36:** this entry. **scripts 1.37:** the module versions.
+
 ## 1.31 (2026-10-30)
 
 - **hub-events 1.14:** "a back while playing pauses instead of leaving the page" waits on the actual conditions (every

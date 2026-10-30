@@ -15,6 +15,7 @@ import { game as block } from '../../../package.json';
 import { field, isJson, isJsonObject, type Json, type JsonObject } from '../../../src/kit/core/json.ts';
 import { defineGame, type GameDefinition, type GameHandle } from '../../../src/kit/boot/index.ts';
 import { createStore } from '../../../src/kit/core/index.ts';
+import { MANIFEST } from '../../../src/kit/core/manifest.ts';
 import type { KitStrings } from '../../../src/kit/core/strings.ts';
 import { setKitStrings } from '../../../src/kit/core/strings.ts';
 import {
@@ -107,7 +108,7 @@ export async function bootGame(
   document.body.append(app, ui);
   delete document.body.dataset.ready;
   setKitStrings(o.strings ?? {});
-  const fake = createFakeHub({ events: new EventTarget(), ...o.fake });
+  const fake = createFakeHub({ events: new EventTarget(), slug: MANIFEST.id ?? undefined, ...o.fake });
   o.before?.(fake);
   const calls = new CallLog();
   const base = createGame(() => ({
