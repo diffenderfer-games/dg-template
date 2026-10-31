@@ -29,6 +29,27 @@ To give an existing game its own themed UI, use the **`improve-ux`** skill.
 
 Map of the kit: [docs/kit/README.md](docs/kit/README.md).
 
+## What makes a diffenderfer game
+
+The owner's definition. Every game has all of these; leave one out only where the game truly can't have it, and
+then say why in `docs/plans/<slug>.md`.
+
+- **Kid friendly**: words, pictures and play fit the `ages` in `package.json`; no violent words.
+- **Endless play**, procedural wherever possible: everything comes from a seed, so it never runs out.
+- **At least one online form** of the game: turns, live, race or a shared daily, through the hub ([docs/kit/online.md](docs/kit/online.md), [docs/kit/race.md](docs/kit/race.md)).
+- **A unique UI themed to the game**: its own named look, never the kit's stock scaffold (the **`improve-ux`** skill; [docs/kit/look.md](docs/kit/look.md)).
+- **Graphics settings for level of detail** in 3D games ([docs/kit/settings-ui.md](docs/kit/settings-ui.md)).
+- **Daily challenges**, if the game can have them ([docs/kit/daily.md](docs/kit/daily.md)).
+- **Leaderboards** ([docs/kit/scores.md](docs/kit/scores.md)).
+- **Great cover art** ([docs/kit/covers.md](docs/kit/covers.md)).
+- **The player's avatar** wherever it fits ([docs/kit/avatar.md](docs/kit/avatar.md)).
+- **Phone, tablet, desktop and gamepad support**, each designed from the start ([docs/kit/devices.md](docs/kit/devices.md)).
+- **Juicy, well-animated UI**: every screen, modal and button moves ([docs/kit/look.md](docs/kit/look.md), [docs/kit/polish.md](docs/kit/polish.md)).
+- **Particle effects** in the game itself.
+- **Well-spaced UI**: nothing overlaps or feels squished, at every screen size ([docs/kit/polish.md](docs/kit/polish.md), [docs/kit/layout.md](docs/kit/layout.md)).
+- **Haptic feedback** where it matters, never overused ([docs/kit/haptics.md](docs/kit/haptics.md)).
+- **Sound effects and custom music** ([docs/kit/audio.md](docs/kit/audio.md)).
+
 ## What the owner expects
 
 Read these before drawing anything, and again before asking for a review:
@@ -99,6 +120,7 @@ Stop what you start (`npm run clean:procs`).
 
 ## Definition of done
 
+- It has everything in [What makes a diffenderfer game](#what-makes-a-diffenderfer-game), or the plan says why an item can't apply.
 - Every screen and animation meets [docs/kit/look.md](docs/kit/look.md) (one UI style and its motion, in the game's own colours; the kit's default look is only a scaffold), every modal and page included.
 - It passes [docs/kit/polish.md](docs/kit/polish.md), and [docs/kit/card-games.md](docs/kit/card-games.md) or [docs/kit/playing-together.md](docs/kit/playing-together.md) where they apply.
 - `npm run check` passes (so `kit:check` is clean and `hub-doctor` is happy). Kit tests that don't apply to the game don't block it: features it doesn't declare skip on their own, and any other kit test that doesn't fit is listed with its reason in `tests/kit-skips.json` (never deleted, never edited, never a test of a feature the game has): [docs/kit/testing.md](docs/kit/testing.md#kit-tests-that-dont-apply). Keep the test contract (`snap().score`, `addScore`, `solve`) working.
