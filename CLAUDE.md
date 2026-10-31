@@ -49,6 +49,9 @@ then say why in `docs/plans/<slug>.md`.
 - **Well-spaced UI**: nothing overlaps or feels squished, at every screen size ([docs/kit/polish.md](docs/kit/polish.md), [docs/kit/layout.md](docs/kit/layout.md)).
 - **Haptic feedback** where it matters, never overused ([docs/kit/haptics.md](docs/kit/haptics.md)).
 - **Sound effects and custom music** ([docs/kit/audio.md](docs/kit/audio.md)).
+- **Heavy work off the main thread**: anything intense runs in a Web Worker. Whatever can be done at build
+  time is done there (generated data, baked art, precomputed tables), never on the player's device. Work in the
+  game that can take more than a few seconds shows a progress bar.
 
 ## What the owner expects
 
