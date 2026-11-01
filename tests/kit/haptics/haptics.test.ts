@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, expect, it } from 'vitest';
-import { haptic, hapticsSupported, makeBuzz } from '../../../src/kit/haptics/index.ts';
+import { haptic, hapticsSupported, makeBuzz, menuTaps } from '../../../src/kit/haptics/index.ts';
 
 describe('haptics', () => {
   it('Android: vibrate 4 ms, or 12 ms when strong', () => {
@@ -41,5 +41,31 @@ describe('haptics', () => {
     t = 100;
     buzz();
     expect(fired).toEqual([false, true]);
+  });
+
+  it('menu taps: buttons and nav controls tick; disabled, opted-out and plain taps do not', () => {
+    const el = (tag: string, id: string, parent: HTMLElement, attr?: string): HTMLElement => {
+      const e = document.createElement(tag);
+      e.id = id;
+      if (attr !== undefined) e.setAttribute(attr, '');
+      parent.append(e);
+      return e;
+    };
+    const root = document.createElement('div');
+    el('span', 'a-label', el('button', 'a', root));
+    el('div', 'n', root, 'data-nav');
+    el('button', 'd', root, 'disabled');
+    el('button', 'g', el('div', 'opt-out', root, 'data-no-haptic'));
+    el('p', 'p', root);
+    document.body.append(root);
+    let buzzes = 0;
+    const off = menuTaps(root, () => buzzes++);
+    for (const id of ['a-label', 'n', 'd', 'g', 'p'])
+      document.getElementById(id)?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    expect(buzzes).toBe(2);
+    off();
+    document.getElementById('a')?.click();
+    expect(buzzes).toBe(2);
+    root.remove();
   });
 });

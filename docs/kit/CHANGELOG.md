@@ -4,6 +4,14 @@ KIT doc. One entry per kit version; per module inside. A **major** version
 means a hook's signature changed: the entry says how to move a game over.
 `npm run kit:sync` prints the entries newer than a game's `kit.json`.
 
+## 1.33 (2026-10-31)
+
+- **haptics 1.1:** menu buttons give a light buzz. `menuTaps(root, buzz)` listens for clicks on the `#ui` layer; a
+  `button`, `[role=button]` or `[data-nav]` press (tap, Enter or gamepad; not disabled) ticks through `ctx.haptic`, so
+  it follows the Vibration setting and the throttle. Gameplay controls in `#ui` opt out with `data-no-haptic`.
+  **boot 1.17:** `defineGame` turns it on. **core 1.28:** `KIT_VERSION` 1.33. **docs 1.37:** haptics.md, this entry.
+  **scripts 1.38:** the module versions.
+
 ## 1.32 (2026-10-30)
 
 - **testing 1.16:** `FakeHub` no longer imports `core/manifest.ts` (package.json), so it loads under plain Node again: the

@@ -20,7 +20,7 @@ import { controlHints, defineControls, installMenuNav, installPrompts, setPrompt
 import { onWindow } from '../core/events.ts';
 import { isEmbedded } from '../core/env.ts';
 import { createKitAudio } from '../audio/kit-audio.ts';
-import { hapticsSupported, makeBuzz } from '../haptics/index.ts';
+import { hapticsSupported, makeBuzz, menuTaps } from '../haptics/index.ts';
 import { installLaunches } from '../online/launch.ts';
 import { installPause } from '../pause/index.ts';
 import { installRace } from '../race/index.ts';
@@ -302,6 +302,8 @@ export function defineGame<P extends JsonObject, R extends JsonObject>(
   // 9. sound and buzz: unlock on gestures, follow the settings, suspend when hidden
   const audio = createKitAudio({ hooks: game.audio, settings, clock });
   const haptic = makeBuzz({ enabled: () => settings.data.haptics, now: () => clock.now() });
+  // Menu buttons tick (a game's gameplay controls in #ui opt out with `data-no-haptic`).
+  const offMenuTaps = menuTaps(ui.root, haptic);
 
   const ctx = buildContext({
     hub,
@@ -344,6 +346,7 @@ export function defineGame<P extends JsonObject, R extends JsonObject>(
     profile.dispose();
     backGuard?.stop();
     for (const off of offs) off();
+    offMenuTaps();
     document.removeEventListener('visibilitychange', onVisibility);
     removeEventListener('pagehide', onHide);
     events.removeEventListener('hub:reset', onReset);

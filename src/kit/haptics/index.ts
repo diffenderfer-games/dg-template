@@ -78,3 +78,24 @@ export function makeBuzz(o: {
     fire(strong);
   };
 }
+
+/** Is this press on a menu control? A button, `[role=button]` or `[data-nav]` that isn't disabled or inside `[data-no-haptic]`. */
+export function isMenuControl(target: EventTarget | null): boolean {
+  if (!(target instanceof Element)) return false;
+  const el = target.closest('button, [role="button"], [data-nav]');
+  if (el === null || el.closest('[data-no-haptic]') !== null) return false;
+  if (el instanceof HTMLButtonElement && el.disabled) return false;
+  return el.getAttribute('aria-disabled') !== 'true';
+}
+
+/**
+ * A light buzz for every menu-button press under `root` (the `#ui` layer: kit screens and a game's own menus).
+ * Listens to `click`, so taps, Enter and gamepad presses all count. Returns the off switch.
+ */
+export function menuTaps(root: HTMLElement, buzz: (strong?: boolean) => void): () => void {
+  const onClick = (e: Event): void => {
+    if (isMenuControl(e.target)) buzz();
+  };
+  root.addEventListener('click', onClick, true);
+  return () => root.removeEventListener('click', onClick, true);
+}

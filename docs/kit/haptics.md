@@ -18,6 +18,7 @@ That is all most games need. To check a real device, run `npm run dev` and open 
 
 ## What the kit does for you
 
+- Menu buttons tick by themselves: `defineGame` listens for clicks on the `#ui` layer (`menuTaps`), and any `button`, `[role=button]` or `[data-nav]` press there (a tap, Enter or a gamepad press; not disabled) gives a light buzz. That covers the kit's screens and a game's own menus in `#ui`. Gameplay controls that live in `#ui` (a keypad, board cells) opt out with a `data-no-haptic` attribute on them or a parent.
 - `defineGame` builds `ctx.haptic` with `makeBuzz`: it does nothing when the Vibration setting is off (`settings.data.haptics`), and drops buzzes closer than 40 ms apart.
 - On Android it calls `navigator.vibrate(4)` or `(12)`.
 - On iOS (a touch device without `vibrate`) it creates the hidden switch and its label once (ids start with `kit-haptic`) and clicks the label; a strong buzz clicks twice.
@@ -32,18 +33,20 @@ That is all most games need. To check a real device, run `npm run dev` and open 
 
 ## Options / API
 
-| Export | What |
-|---|---|
-| `haptic(strong?, env?)` | One buzz now, ignoring the setting and the throttle. |
-| `makeBuzz({ enabled, now, minGapMs?, fire? })` | A settings-gated, throttled buzz function (`ctx.haptic`). |
-| `hapticsSupported(env?)` | Can this device buzz at all? |
-| `HapticsEnv` | `{ nav, doc, idPrefix? }`: what the buzz touches (fakes in tests). |
+| Export                                         | What                                                                                                               |
+| ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `haptic(strong?, env?)`                        | One buzz now, ignoring the setting and the throttle.                                                               |
+| `makeBuzz({ enabled, now, minGapMs?, fire? })` | A settings-gated, throttled buzz function (`ctx.haptic`).                                                          |
+| `menuTaps(root, buzz)`                         | A light buzz for every menu-control click under `root`; returns the off switch (`defineGame` calls it on `#ui`).   |
+| `isMenuControl(target)`                        | Is this click on a menu control (button, `[role=button]`, `[data-nav]`; not disabled or under `[data-no-haptic]`)? |
+| `hapticsSupported(env?)`                       | Can this device buzz at all?                                                                                       |
+| `HapticsEnv`                                   | `{ nav, doc, idPrefix? }`: what the buzz touches (fakes in tests).                                                 |
 
 `hapticsSupported` can be used to hide the Vibration row on devices that cannot buzz. The standard sheet does not do this today.
 
 ## Tests
 
-- `tests/kit/haptics/haptics.test.ts`: Android 4 ms and 12 ms, no vibrate and no touch (nothing, no throw), the iOS label clicked once or twice, the buzz following the setting and being throttled.
+- `tests/kit/haptics/haptics.test.ts`: Android 4 ms and 12 ms, no vibrate and no touch (nothing, no throw), the iOS label clicked once or twice, the buzz following the setting and being throttled, menu taps (buttons and nav controls tick; disabled, `data-no-haptic` and non-controls don't).
 
 ## Hub API used:
 
