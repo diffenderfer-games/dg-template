@@ -4,6 +4,12 @@ KIT doc. One entry per kit version; per module inside. A **major** version
 means a hook's signature changed: the entry says how to move a game over.
 `npm run kit:sync` prints the entries newer than a game's `kit.json`.
 
+## 1.34 (2026-11-01)
+
+- **core 1.29:** `tests/kit/core/manifest.test.ts` expects `FakeHub`'s default slug `mygame` (since 1.32 the harness passes
+  the game id itself); it failed in every game that declares `game.id`. `KIT_VERSION` 1.34. **docs 1.38:** this entry.
+  **scripts 1.39:** the module versions.
+
 ## 1.33 (2026-10-31)
 
 - **haptics 1.1:** menu buttons give a light buzz. `menuTaps(root, buzz)` listens for clicks on the `#ui` layer; a

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { manifestFacts, MANIFEST } from '../../../src/kit/core/manifest.ts';
+import { manifestFacts } from '../../../src/kit/core/manifest.ts';
 import { FakeHub } from '../../../src/kit/testing/index.ts';
 
 describe('manifest: the game block the kit reads', () => {
@@ -10,8 +10,8 @@ describe('manifest: the game block the kit reads', () => {
     expect(manifestFacts(undefined).id).toBeNull();
   });
 
-  it("the fake hub carries the game's id, as the host injects it", () => {
-    expect(new FakeHub().slug).toBe(MANIFEST.id ?? 'mygame');
+  it('the fake hub defaults its slug (the harness passes the game id)', () => {
+    expect(new FakeHub().slug).toBe('mygame');
     expect(new FakeHub({ slug: 'other' }).slug).toBe('other');
   });
 });
