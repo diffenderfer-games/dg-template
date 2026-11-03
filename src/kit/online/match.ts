@@ -23,6 +23,7 @@ import type { TableLaunch } from '../core/planned.ts';
 import { t } from '../core/strings.ts';
 import { randomSeed } from '../rng/index.ts';
 import { closedText } from './errors.ts';
+import { lobbyReadiness } from './ready.ts';
 import type { HostMatch, OnlineGame } from './types.ts';
 import { envelope, fits, freshest, parseEnvelope, successorOf } from './wire.ts';
 
@@ -41,6 +42,8 @@ export type MatchEvents = {
   left(text: string | null): void;
   /** A seat went away / came back / is gone (the computer plays it meanwhile). */
   seat(userId: number, status: 'away' | 'back' | 'gone'): void;
+  /** The hub closed the room a while after it ended (the player may still be on the results); without it, `left`. */
+  closedAfterEnd?(): void;
 };
 
 /** A match in a hub room. */
@@ -129,7 +132,7 @@ export class OnlineMatch {
       room.on('seat', (s) => this.onSeat(s.userId, s.status)),
       room.on('abandoned', (a) => this.onSeat(a.userId, 'gone')),
       room.on('ended', (e) => this.onEnded(e.results)),
-      room.on('closed', (c) => this.gone(closedText(c.reason))),
+      room.on('closed', (c) => this.onClosed(c.reason)),
       room.on('kicked', () => this.gone(t('kicked'))),
     ];
     this.reportPresence();
@@ -139,6 +142,40 @@ export class OnlineMatch {
   private detach(): void {
     for (const off of this.offs) off();
     this.offs = [];
+  }
+
+  /** Move to another room (a rematch's): the old room's listeners go, the match starts afresh in the new one's lobby. */
+  adopt(room: HubRoom): void {
+    this.calm();
+    this.host = null;
+    this.view = null;
+    this.backups = [];
+    this.sentPrivate.clear();
+    this.privateViews = false;
+    this.computerSeats.clear();
+    this.table = undefined;
+    this.attach(room);
+  }
+
+  /** A guest says it is ready (or not). */
+  ready(on: boolean): void {
+    const room = this.room;
+    if (room && !this.isHost && room.info.phase === 'lobby') fireAndForget(room.ready(on));
+  }
+
+  /** Whether the match has ended (the result screen shows). */
+  get over(): boolean {
+    return this.ended;
+  }
+
+  private onClosed(reason: string): void {
+    if (this.ended && reason === 'ended' && this.on.closedAfterEnd !== undefined) {
+      this.detach();
+      this.room = null;
+      this.on.closedAfterEnd();
+      return;
+    }
+    this.gone(closedText(reason));
   }
 
   private onRoom(info: RoomInfo): void {
@@ -221,6 +258,8 @@ export class OnlineMatch {
   start(): void {
     const room = this.room;
     if (!room || !this.isHost || this.playing) return;
+    // The hub starts a room only once every guest is ready (or seated a minute): never a match it refused.
+    if (lobbyReadiness(room.info, 0, this.clock.now()).waiting.length > 0) return;
     fireAndForget(room.start());
     const seats = room.info.seats.map((s) => s.userId);
     this.host = this.game.start({

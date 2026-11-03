@@ -129,8 +129,12 @@ export function defineGame<P extends JsonObject, R extends JsonObject>(
     screens,
     today,
     actions: {
-      settings: () =>
-        settingsSheet({ settings, haptics: hapticsSupported(), rows: () => game.settingsRows?.(ctx) ?? [] }),
+      settings: (o) =>
+        settingsSheet({
+          settings,
+          haptics: hapticsSupported(),
+          rows: () => game.settingsRows?.(ctx, { online: o?.online === true }) ?? [],
+        }),
       howTo: () => howToModal(game.copy.howTo ?? []),
     },
   });

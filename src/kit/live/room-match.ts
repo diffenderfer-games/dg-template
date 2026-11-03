@@ -58,6 +58,8 @@ export type LiveRoomEvents = {
   left(text: string | null): void;
   /** Something didn't work (words for a toast); the player stays where they are. */
   problem(text: string): void;
+  /** The hub closed the room a while after it ended (the player may still be on the results); without it, `left`. */
+  closedAfterEnd?(): void;
 };
 
 /** A live game's room and its match. */
@@ -148,12 +150,11 @@ export class LiveRoomMatch {
       room.on('room', (info) => this.onRoom(info)),
       room.on('state', () => this.on.lobby(room.info, this.isHost)),
       room.on('ended', (e) => this.onEnded(e.results)),
-      room.on('closed', (c) => this.gone(closedText(c.reason))),
+      room.on('closed', (c) => this.onClosed(c.reason)),
       room.on('kicked', () => this.gone(t('kicked'))),
     ];
-    // My choices in my seat; being here is being ready (the host can start once everyone is).
+    // My choices in my seat. Guests press Ready themselves (the lobby's I'm ready!).
     fireAndForget(room.seat(this.game.seat()));
-    if (!this.isHost) fireAndForget(room.ready(true));
     this.shareOptions();
     this.reportPresence();
     if (room.info.phase === 'playing') this.enter();
@@ -164,6 +165,36 @@ export class LiveRoomMatch {
     for (const off of this.offs) off();
     this.offs = [];
     this.stopLoadTimer();
+  }
+
+  /** Move to another room (a rematch's): any match stops, the old room's listeners go, the new one's lobby shows. */
+  adopt(room: HubRoom): void {
+    this.stopMatch();
+    this.calm();
+    this.tries = 0;
+    this.attach(room);
+  }
+
+  /** A guest says it is ready (or not). */
+  ready(on: boolean): void {
+    const room = this.room;
+    if (room && !this.isHost && room.info.phase === 'lobby') fireAndForget(room.ready(on));
+  }
+
+  /** Whether the match has ended (the result screen shows). */
+  get over(): boolean {
+    return this.ended;
+  }
+
+  private onClosed(reason: string): void {
+    if (this.ended && reason === 'ended' && this.on.closedAfterEnd !== undefined) {
+      this.stopMatch();
+      this.detach();
+      this.room = null;
+      this.on.closedAfterEnd();
+      return;
+    }
+    this.gone(closedText(reason));
   }
 
   private stopLoadTimer(): void {

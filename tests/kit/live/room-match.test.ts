@@ -94,12 +94,14 @@ describe('LiveRoomMatch', () => {
     expect(fake.log.named('room.start')[0]?.args).toEqual([{ track: 42 }]);
   });
 
-  it('a guest says it is ready and builds, joins and plays once the room plays', async () => {
+  it('a guest presses Ready itself (never on joining) and builds, joins and plays once the room plays', async () => {
     const fake = createFakeHub({ user: { id: 2, username: 'bob', guest: false } });
     const g = game();
     const e = events();
     const m = new LiveRoomMatch(fake, g.hooks, e.on);
     await m.join('ABCDE');
+    expect(fake.log.count('room.ready')).toBe(0);
+    m.ready(true);
     expect(fake.log.named('room.ready')[0]?.args).toEqual([true]);
     const room = fake.rooms.current;
     if (!room) throw new Error('no room');

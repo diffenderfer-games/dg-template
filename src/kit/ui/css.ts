@@ -139,6 +139,43 @@ html[data-controls="touch"] #ui[data-screen="play"] .kit-toasts { bottom: auto; 
 .kit-seat .kit-tagline { margin: 0 0 0 auto; font-size: 13px; }
 .kit-seat[data-due="true"] { box-shadow: inset 0 0 0 2px var(--kit-accent); }
 .kit-seat > .kit-seat-remove { margin-left: auto; min-height: 40px; padding: 4px 12px; font-size: 14px; }
+/* The room's lobby (kit/online): the code panel, the status line, seat chips, I'm ready!, the rematch panel. */
+.kit-lobby { justify-content: flex-start; }
+.kit-room-code-panel { display: flex; flex-direction: column; align-items: center; gap: 6px; width: min(360px, 100%);
+  box-sizing: border-box; padding: 14px 16px; border-radius: calc(var(--kit-radius) + 6px); background: var(--kit-panel);
+  border: 1px solid rgba(255,255,255,0.12); box-shadow: 0 10px 30px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.08); }
+.kit-room-code-label { font: 700 12px var(--kit-font); letter-spacing: 0.3em; text-transform: uppercase; color: var(--kit-muted); }
+.kit-room-code { font: 900 clamp(30px, 10vw, 44px) ui-monospace, Menlo, Consolas, monospace; letter-spacing: 0.28em;
+  margin-right: -0.28em; color: var(--kit-accent); text-shadow: 0 0 18px rgba(74, 222, 128, 0.35); }
+.kit-room-code-how { margin: 0; font-size: 13px; color: var(--kit-muted); overflow-wrap: anywhere; }
+.kit-room-code-buttons { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 4px; }
+.kit-room-code-buttons .kit-btn { min-height: 44px; padding: 6px 14px; font-size: 15px; }
+.kit-lobby-status { margin: 0; font-weight: 700; font-size: 16px; width: min(360px, 100%); overflow-wrap: anywhere; }
+.kit-lobby-status[data-go="true"] { color: var(--kit-accent); }
+.kit-lobby-rematch { margin: 0; padding: 4px 12px; border-radius: 999px; background: rgba(56, 214, 255, 0.15);
+  color: var(--kit-accent-2); font-weight: 800; font-size: 14px; }
+.kit-lobby .kit-seats { width: min(360px, 100%); }
+.kit-seat-name { flex: 1; min-width: 0; display: flex; align-items: center; gap: 4px; overflow: hidden; }
+.kit-seat-name > span:last-child, .kit-seat-player { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.kit-crown { flex: none; font-size: 16px; }
+.kit-seat .kit-seat-player { min-height: 40px; padding: 4px 10px; font-size: 16px; background: transparent; border-color: transparent; }
+.kit-lobby .kit-btn:disabled { opacity: 0.55; filter: saturate(0.5); cursor: default; }
+.kit-chip { flex: none; display: inline-flex; align-items: center; min-height: 26px; padding: 0 10px; border-radius: 999px;
+  font: 700 12px var(--kit-font); white-space: nowrap; background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.14); color: var(--kit-muted); }
+.kit-seat-chip[data-kind="ready"], .kit-seat-chip[data-kind="auto"] { background: rgba(74, 222, 128, 0.18); border-color: var(--kit-accent); color: var(--kit-accent); }
+.kit-seat-chip[data-kind="host"] { color: #ffd23f; border-color: rgba(255, 210, 63, 0.5); }
+.kit-seat-chip[data-kind="away"] { color: var(--kit-warn); border-color: rgba(255, 181, 71, 0.5); }
+.kit-seat[data-ready="ready"], .kit-seat[data-ready="auto"] { box-shadow: inset 3px 0 0 var(--kit-accent); }
+.kit-seat > .kit-seat-host { flex: none; min-height: 36px; padding: 2px 10px; font-size: 13px; }
+.kit-btn.kit-ready[aria-pressed="true"] { background: rgba(74, 222, 128, 0.18); color: var(--kit-accent); border-color: var(--kit-accent); }
+.kit-pulse { animation: kit-pulse 1.4s cubic-bezier(.2, .9, .3, 1.1) infinite; }
+.kit-rematch { display: flex; flex-direction: column; align-items: center; gap: 8px; width: min(360px, 100%); animation: kit-pop .32s ease-out both; }
+.kit-rematch-line { margin: 0; font-size: 14px; color: var(--kit-muted); overflow-wrap: anywhere; }
+.kit-rematch-line:empty { display: none; }
+.kit-rematch[data-closed="true"] .kit-rematch-line { color: var(--kit-warn); }
+@keyframes kit-pulse { 0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.5); }
+  50% { transform: scale(1.04) translateY(-2px); box-shadow: 0 0 0 8px rgba(74, 222, 128, 0); } }
+@media (prefers-reduced-motion: reduce) { .kit-pulse, .kit-rematch { animation: none; } }
 .kit-progress { width: min(260px, 70vw); height: 6px; border-radius: 3px; overflow: hidden; background: rgba(255, 255, 255, 0.12); }
 .kit-progress > i { display: block; height: 100%; width: 0; background: var(--kit-accent); transition: width 0.25s ease-out; }
 .kit-loading-leave { margin-top: 14px; min-width: 140px; }

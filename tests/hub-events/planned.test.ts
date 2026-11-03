@@ -72,7 +72,7 @@ describe('planned hub APIs', () => {
         table: { id: 't1', type: 'quick', title: 'Quick (3 coins)', options: { coins: 3 } },
       });
       await g.settle();
-      g.fake.rooms.current?.addSeat(2);
+      g.fake.rooms.current?.addSeat(2, { ready: true });
       g.press('lobby-start');
       await g.frames(10);
       const view = g.fake.rooms.current?.sent.find((m) => JSON.stringify(m.data).includes('"view"'));

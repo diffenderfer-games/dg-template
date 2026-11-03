@@ -27,7 +27,11 @@ import { face } from '../avatar/index.ts';
 import { MANIFEST } from '../core/manifest.ts';
 import { chatPanel, gamePhrases, roomChat } from '../online/chat.ts';
 import { errText } from '../online/errors.ts';
-import { lobbyScreen } from '../online/lobby.ts';
+import { lobbyScreen, lobbyTicks, tickLobby } from '../online/lobby.ts';
+import { rematchOf, roomExtras } from '../online/ready.ts';
+import { confirm } from '../ui/modal.ts';
+import { shareLink } from '../ui/share.ts';
+import { nameIn, rematchPanel, type RematchPanel } from './rematch-panel.ts';
 import { OnlineMatch } from '../online/match.ts';
 import type { OnlineGame } from '../online/types.ts';
 import { LiveRoomMatch } from '../live/room-match.ts';
@@ -70,10 +74,18 @@ export class OnlineFlow {
   private chat: { room: HubRoom; mode: string; el: HTMLElement } | null = null;
   /** The session is in online mode for this flow (a reclaimed seat enters it when its room shows). */
   private entered = false;
-  /** The Play now / With friends sheet, while it is open (a room reached another way, an invite, closes it). */
+  /** The Play now / Make a room sheet, while it is open (a room reached another way, an invite, closes it). */
   private chooser: ModalHandle | null = null;
+  private readonly clock: Clock;
+  /** The lobby's once-a-second countdown, while it has one. */
+  private tick: (() => void) | null = null;
+  /** The result screen's Rematch panel and its listener on the ended room. */
+  private rematch: { panel: RematchPanel; off: () => void } | null = null;
+  /** The code of the rematch room this page moved into (its lobby says so). */
+  private rematchCode: string | null = null;
 
   constructor(hub: HubLike, game: RoomGame, clock: Clock, screens: Screens, host: OnlineFlowHost) {
+    this.clock = clock;
     this.hub = hub;
     this.game = game;
     this.screens = screens;
@@ -92,6 +104,7 @@ export class OnlineFlow {
     };
     const left = (text: string | null): void => {
       this.entered = false;
+      this.dropRematch();
       if (text !== null) toast(text, { kind: 'warn' });
       host.toTitle();
     };
@@ -104,13 +117,15 @@ export class OnlineFlow {
             ended: (results) => this.liveEnded(game.live, results),
             left,
             problem: (text) => toast(text, { kind: 'warn' }),
+            closedAfterEnd: () => this.rematch?.panel.update(null),
           })
         : new OnlineMatch(hub, game.online, clock, {
             lobby,
             playing,
-            ended: (results) => host.showResult(this.won(results)),
+            ended: (results) => this.addRematch(host.showResult(this.won(results))),
             left,
             seat: () => undefined,
+            closedAfterEnd: () => this.rematch?.panel.update(null),
           });
   }
 
@@ -126,6 +141,48 @@ export class OnlineFlow {
     const el = this.host.showResult(this.won(results));
     const start = this.match instanceof LiveRoomMatch ? this.match.matchStart : null;
     if (el) live.result?.(el, LiveRoomMatch.places(results), start);
+    this.addRematch(el);
+  }
+
+  /** The result screen gets the Rematch panel (a hub with `rematch`), kept current with the ended room. */
+  private addRematch(el: HTMLElement | null): void {
+    this.dropRematch();
+    const room = this.match.room;
+    if (el === null || room === null) return;
+    const go = roomExtras(room).rematch;
+    if (go === undefined) return;
+    const me = this.match.me;
+    const seats = room.info.seats;
+    const panel = rematchPanel({
+      me,
+      seats,
+      press: async () => {
+        const next = await go();
+        this.dropRematch();
+        this.rematchCode = next.info.code;
+        this.match.adopt(next);
+        this.showLobby();
+      },
+    });
+    let told = rematchOf(room.info) !== null;
+    const off = room.on('room', (info) => {
+      panel.update(info);
+      const r = rematchOf(info);
+      if (r === null || told) return;
+      told = true;
+      if (r.hostId !== me && !r.userIds.includes(me) && this.host.screen === 'result')
+        toast(t('rematchToast', { name: nameIn(seats, r.hostId) }));
+    });
+    panel.update(room.info);
+    this.rematch = { panel, off };
+    const menu = el.querySelector('.kit-menu');
+    if (menu) menu.before(panel.el);
+    else el.append(panel.el);
+  }
+
+  private dropRematch(): void {
+    this.rematch?.off();
+    this.rematch = null;
   }
 
   /** Online mode, once (the session leaves a daily or race for it). */
@@ -324,10 +381,18 @@ export class OnlineFlow {
             chat,
             extra: this.liveLobby(),
             face: (seat) => face(this.hub, { userId: seat.userId, name: seat.name, look: seat.look }, 32),
+            now: this.clock.now(),
+            watching: room.me.spectator,
+            rematch: this.rematchCode === room.info.code,
           },
           {
             start: () => this.match.start(),
             leave: () => this.host.toTitle(),
+            ready: (on) => this.match.ready(on),
+            share: () => void this.shareInvite(),
+            ...(roomExtras(room).setHost === undefined
+              ? {}
+              : { makeHost: (userId: number) => void this.makeHost(userId) }),
             invite: () => this.hub.social.openInvite(),
             bell: () => this.hub.social.openNotify(this.hub.slug === null ? {} : { game: this.hub.slug }),
             player: (userId) => this.hub.social.openPlayer({ userId }),
@@ -344,6 +409,7 @@ export class OnlineFlow {
       },
     );
     this.host.guard();
+    this.keepTicking();
   }
 
   /** One frame of the match. */
@@ -361,11 +427,64 @@ export class OnlineFlow {
   /** Leave the room (and revoke nothing: invite links expire with the room). */
   leave(): void {
     this.entered = false;
+    this.dropRematch();
+    this.rematchCode = null;
+    this.stopTick();
     this.match.leave();
   }
 
   /** Make an invite link for this room (the hub's dialog also offers it). */
   inviteLink(): void {
     fireAndForget(this.hub.mp.inviteLink());
+  }
+
+  /** The lobby's Invite link: a link to this room, handed on through `shareLink` (never printed). */
+  private async shareInvite(): Promise<void> {
+    try {
+      const link = await this.hub.mp.inviteLink();
+      const url = typeof location === 'undefined' ? link.url : new URL(link.url, location.href).href;
+      await shareLink({ url, title: t('lobbyShareTitle'), text: t('turnsShareText') });
+    } catch (e) {
+      toast(errText(e), { kind: 'warn' });
+    }
+  }
+
+  /** The host hands the host role to `userId`, after asking. */
+  private async makeHost(userId: number): Promise<void> {
+    const room = this.match.room;
+    const setHost = room === null ? undefined : roomExtras(room).setHost;
+    if (room === null || setHost === undefined) return;
+    const name = nameIn(room.info.seats, userId);
+    const yes = await confirm({
+      title: t('makeHostTitle', { name }),
+      body: t('makeHostBody'),
+      yes: t('makeHost'),
+      no: t('cancel'),
+    });
+    if (!yes || this.match.room !== room) return;
+    try {
+      await setHost(userId);
+    } catch (e) {
+      toast(errText(e), { kind: 'warn' });
+    }
+  }
+
+  /** Tick the lobby's countdowns once a second while it shows one; a wait that is over draws it again. */
+  private keepTicking(): void {
+    if (this.tick !== null) return;
+    const el = this.screens.element;
+    if (el === null || this.host.screen !== 'lobby' || !lobbyTicks(el)) return;
+    this.tick = this.clock.after(1000, () => {
+      this.tick = null;
+      const now = this.screens.element;
+      if (now === null || this.host.screen !== 'lobby' || this.match.room === null) return;
+      if (tickLobby(now, this.clock.now())) this.showLobby();
+      else this.keepTicking();
+    });
+  }
+
+  private stopTick(): void {
+    this.tick?.();
+    this.tick = null;
   }
 }

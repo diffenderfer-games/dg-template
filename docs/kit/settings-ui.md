@@ -8,6 +8,10 @@ Source: `src/kit/settings-ui/` (KIT: copy byte-identical; change it in the templ
 
 Return DOM rows from `settingsRows`. They are added under the standard ones, in the order given.
 
+During a room's match the sheet also opens from "Leave the game?" (its Settings button) while the match goes
+on: the hook then gets a second argument `{ online: true }` (`settingsRows(ctx, where)`). Leave out rows that
+would change or restart the match there.
+
 ```ts
 import { segmented, toggleRow } from '../kit/ui/controls.ts';
 

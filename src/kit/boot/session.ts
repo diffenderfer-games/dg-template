@@ -30,7 +30,7 @@ import { randomSeed, SeededRng } from '../rng/index.ts';
 import { recordResult } from '../scores/index.ts';
 import { h } from '../ui/dom.ts';
 import type { BackGuard } from '../ui/back-guard.ts';
-import { closeTopModal, confirm, topModal } from '../ui/modal.ts';
+import { closeTopModal, confirm, openModal, topModal } from '../ui/modal.ts';
 import type { Screens } from '../ui/screens.ts';
 import { toast } from '../ui/toast.ts';
 import type { RunningAudio } from '../audio/kit-audio.ts';
@@ -477,12 +477,31 @@ export class Session<P extends JsonObject, R extends JsonObject> {
         return;
       }
       this.askingLeave = true;
-      const words = racing
-        ? { title: t('leaveRace'), body: t('leaveRaceBody') }
-        : { title: t('leaveMatch'), body: t('leaveMatchBody') };
-      void confirm({ ...words, yes: t('leave'), no: t('stay') }).then((yes) => {
-        this.askingLeave = false;
-        if (yes) this.toTitle();
+      if (racing) {
+        void confirm({ title: t('leaveRace'), body: t('leaveRaceBody'), yes: t('leave'), no: t('stay') }).then(
+          (yes) => {
+            this.askingLeave = false;
+            if (yes) this.toTitle();
+          },
+        );
+        return;
+      }
+      // A room's match: Stay, Settings (the sheet opens over the match, which goes on) or Leave.
+      let answer: 'stay' | 'settings' | 'leave' = 'stay';
+      openModal({
+        title: t('leaveMatch'),
+        body: t('leaveMatchBody'),
+        testid: 'confirm',
+        buttons: [
+          { label: t('stay'), testid: 'confirm-no' },
+          { label: t('leaveMatchSettings'), testid: 'confirm-settings', onClick: () => (answer = 'settings') },
+          { label: t('leave'), testid: 'confirm-yes', primary: true, onClick: () => (answer = 'leave') },
+        ],
+        onClose: () => {
+          this.askingLeave = false;
+          if (answer === 'leave') this.toTitle();
+          else if (answer === 'settings') this.d.actions.settings({ online: true });
+        },
       });
       return;
     }

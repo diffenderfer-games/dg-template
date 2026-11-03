@@ -40,6 +40,16 @@ async function startMatch(a: Player, b: Player): Promise<string> {
   await b.page.evaluate((c) => window.__game?.online?.join(c), code);
   await waitScreen(b, 'lobby');
   await until(async () => (await seats(a)) === 2, 'two seats');
+  // Guests press Ready (kit 1.35); Play is on once the host's lobby shows it.
+  await b.tid('lobby-ready');
+  await until(
+    () =>
+      a.page.evaluate(() => {
+        const play = document.querySelector('[data-testid="lobby-start"]');
+        return play instanceof HTMLButtonElement && !play.disabled ? true : null;
+      }),
+    'everyone ready',
+  );
   await a.tid('lobby-start');
   await Promise.all([waitScreen(a, 'play', MATCH_LOAD_MS), waitScreen(b, 'play', MATCH_LOAD_MS)]);
   return code;

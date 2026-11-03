@@ -263,8 +263,11 @@ export type GameDefinition<P extends JsonObject, R extends JsonObject> = {
   solve?(run: R): void;
   /** Extra test drivers (src/game/test-hook.ts). */
   testHook?(ctx: GameContext<P, R>): GameHookDrivers['extra'];
-  /** The game's own settings rows. */
-  settingsRows?(ctx: GameContext<P, R>): HTMLElement[];
+  /**
+   * The game's own settings rows. `where.online`: the sheet opened during a room's match (from the
+   * Leave the game? question); the match goes on, so leave out rows that would change it.
+   */
+  settingsRows?(ctx: GameContext<P, R>, where?: { online: boolean }): HTMLElement[];
 
   screens?: ScreenHooks<P, R>;
   daily?: DailyHooks<R>;

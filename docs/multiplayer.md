@@ -448,7 +448,8 @@ const rooms: RoomInfo[] = await hub.rooms.list({ mode? });           // public r
 
 // the room handle (HubRoom)
 room.info      // RoomInfo: { id, code, game, mode?, hostId, public, phase: 'lobby'|'playing'|'ended',
-               //   maxPlayers, model: 'host'|'relay', seats: RoomSeat[], spectators, chatMode: 'on'|'quick'|'off' }
+               //   maxPlayers, model: 'host'|'relay', seats: RoomSeat[], spectators, chatMode: 'on'|'quick'|'off',
+               //   rematch?: { code, hostId, userIds } }  (rematch: on an ended room once someone started one)
 room.state     // shared state object (≤32 KB)
 room.me        // { userId, host: boolean, spectator: boolean }
 
@@ -461,7 +462,7 @@ room.on('abandoned', ({ userId, reason }) => …)      // a seat's grace ran out
 room.on('kicked', ({ roomId }) => …)                 // you were kicked (banned for the room's lifetime)
 room.on('ended', ({ room, results }) => …)           // once: the host ended the match; results = what it passed to end()
 room.on('closed', ({ reason }) => …)                 // 'empty'|'ended'|'other_tab'|'moved'|'removed'|'gone' ('host_left' no longer happens)
-room.seats()                                         // RoomSeat[]: { userId, name, avatar, ready, connected, graceEndsAt?, data? }
+room.seats()                                         // RoomSeat[]: { userId, name, avatar, ready, connected, graceEndsAt?, data?, joinedAt? }
 const held = await hub.rooms.reclaim();              // the seat I still hold in this game, taken back (or null)
 
 await room.ready(true);                  // lobby ready flag
@@ -472,18 +473,29 @@ await room.setState(patch, { replace? });// host (or anyone in relay model): sha
 const shown = await room.chat(text);     // moderated free text → the delivered (maybe softened) text
 await room.quick('gg');                  // a quick-chat phrase id
 await room.kick(userId);                 // host only
+await room.setHost?.(userId);            // host, in the lobby: hand the host role to a seated, connected player
+const next = await room.rematch?.();     // after 'ended': join the rematch room (or open it as host); returns the new room
 await room.end(results?);                // host: playing → ended; records "recent players"
 await room.leave();
 ```
 
 All methods reject with `HubError` / `ContentRejectedError` / `OfflineError`.
 
+**Rematch.** After a match ended, `room.rematch()` keeps the group together: the first player to ask
+opens a new lobby (same game, mode, seats and visibility) as its host; everyone who asks after joins
+that same room. The ended room shows it as `info.rematch` (`{ code, hostId: who started it, userIds:
+who is in it now }`, kept up to date) so the results screen can say "Ann started a rematch · 3 in".
+The old match's host gets the host role back if they join while it is still a lobby. If the rematch
+room already started or is full, asking again opens a fresh one. The ended room still closes 2
+minutes after the end (`closed` `ended`). `setHost` and `rematch` are optional on the handle:
+older hubs don't have them.
+
 | Error `code` | When |
 |---|---|
 | `room_not_found` (404) | Unknown or ended room, or someone in it blocked you (indistinguishable on purpose). |
 | `room_full`, `in_progress` (409) | New seats only exist in the lobby phase, up to `maxPlayers`. |
 | `banned` (403) | You were kicked from this room. |
-| `not_ready` (409) | `start()` needs ≥ `players[0]` seats and every other seat ready and connected. |
+| `not_ready` (409) | `start()` needs ≥ `players[0]` seats and every other seat connected and ready, or seated for a minute (`joinedAt`, `ROOM_AUTO_READY_MS`): one idle player can't hold a lobby up. |
 | `content_rejected` (422) | `chat()` refused: see [§10](#10-chat-in-your-game). |
 | `suspended` (403) | The account is suspended. Show "Online play isn't available" and stay single-player. |
 

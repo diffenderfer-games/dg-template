@@ -103,9 +103,11 @@ export class FakeHub implements HubLike {
       },
     });
     this.race = new FakeRace(this.log, host);
+    const clock = this.clock;
     this.rooms = new FakeRooms(this.log, {
       slug: this.slug,
       userId,
+      now: () => clock.now(),
       get offline() {
         return hubOffline();
       },

@@ -126,12 +126,12 @@ the page does; the kit runs the rest (`LiveRoomMatch`, in the online flow):
 
 | Step | The kit | The game |
 |---|---|---|
-| Title | The online button: Play now, With friends, a code; invites and Join | |
-| Lobby | Seats with faces, chat, Invite, Start (host) | `seat()` (my choices), `options()` (the host's), `describe(options)` |
+| Title | The online button: Play now, Make a room, a code; invites and Join | |
+| Lobby | The room code, seats with faces and ready chips, chat, Invite, I'm ready! (guests press it: kit 1.35 no longer marks them ready on joining), Make host, Play (host, once everyone is ready or seated a minute) | `seat()` (my choices), `options()` (the host's), `describe(options)` |
 | Start | `room.start({ options })`: the hub places the match on its live server | |
 | Loading | A loading screen with a bar and Leave | `prepare(start, progress)`: build the world for `start.options` |
 | Play | `live.join(room, { sim })`, again after a drop | `play(match, start)`, `frame(dt)` (input), `render()` (draw `match.view()`) |
-| End | The hub's `{ places, winnerId }`: the result screen | `result(el, places, start)`; `stop()` when the player leaves |
+| End | The hub's `{ places, winnerId }`: the result screen, with Rematch (a new room's lobby for everyone who joins; [online.md](online.md)) | `result(el, places, start)`; `stop()` when the player leaves |
 
 ```ts
 // src/game/live.ts

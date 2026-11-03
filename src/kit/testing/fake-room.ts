@@ -25,6 +25,7 @@ import type {
 import { Emitter } from '../core/emitter.ts';
 import type { RoomsLike } from '../core/hub-like.ts';
 import type { CallLog } from './calls.ts';
+import { rematchOf } from '../online/ready.ts';
 import { fakeRoomInfo, fakeSeat } from './fake-room-info.ts';
 
 /** An error shaped like the hub's `HubError` (the kit reads `code`, `status`, `hint`, `retryAfterMs`). */
@@ -74,7 +75,43 @@ export class FakeRoom implements HubRoom {
 
   ready(isReady: boolean): Promise<void> {
     this.log.record('room.ready', isReady);
+    const me = this.me.userId;
+    this.setInfo({ seats: this.info.seats.map((s) => (s.userId === me ? { ...s, ready: isReady } : s)) });
     return Promise.resolve();
+  }
+
+  // ---- the newer hub's calls (left off with `older`) ----------------------------
+
+  /** The rematch room `rematch()` resolves (set by FakeRooms). */
+  rematchRoom: (() => Promise<HubRoom>) | null = null;
+
+  /** Host only, in the lobby: hand the host role to a seated, connected player (absent on an older hub). */
+  setHost?: (userId: number) => Promise<void>;
+  /** On an ended room: join its rematch room, or start it (absent on an older hub). */
+  rematch?: () => Promise<HubRoom>;
+
+  /** The newer hub's calls on this room (FakeRooms leaves them off with `older`). */
+  newer(): this {
+    this.setHost = (userId) => this.fakeSetHost(userId);
+    this.rematch = () => this.fakeRematch();
+    return this;
+  }
+
+  private fakeSetHost(userId: number): Promise<void> {
+    this.log.record('room.setHost', userId);
+    if (!this.me.host || this.info.phase !== 'lobby') return Promise.reject(fakeHubError('not_host', { status: 403 }));
+    if (!this.info.seats.some((s) => s.userId === userId && s.connected))
+      return Promise.reject(fakeHubError('not_seated', { status: 409 }));
+    this.setInfo({ hostId: userId });
+    return Promise.resolve();
+  }
+
+  private fakeRematch(): Promise<HubRoom> {
+    this.log.record('room.rematch');
+    if (this.info.phase !== 'ended' || this.rematchRoom === null)
+      return Promise.reject(fakeHubError('not_ended', { status: 409 }));
+    this.left = true;
+    return this.rematchRoom();
   }
 
   seat(seatData: Json): Promise<void> {
@@ -154,9 +191,22 @@ export class FakeRoom implements HubRoom {
     this.events.emit('room', this.info);
   }
 
-  /** Another player sits down. */
-  addSeat(userId: number): void {
-    this.setInfo({ seats: [...this.info.seats, fakeSeat(userId)] });
+  /** Another player sits down (`extra`: `ready`, `joinedAt`…). */
+  addSeat(userId: number, extra: Parameters<typeof fakeSeat>[1] = {}): void {
+    this.setInfo({ seats: [...this.info.seats, fakeSeat(userId, extra)] });
+  }
+
+  /** Another player's seat changes (`ready`, `connected`, `joinedAt`). */
+  patchSeat(userId: number, patch: Parameters<typeof fakeSeat>[1]): void {
+    this.setInfo({ seats: this.info.seats.map((s) => (s.userId === userId ? { ...s, ...patch } : s)) });
+  }
+
+  /** Someone started (or joined) this ended room's rematch: `info.rematch`, as the newer hub sends it. */
+  rematchBy(hostId: number, userIds: number[], code = 'REMAT'): void {
+    const patch: Partial<RoomInfo> & { rematch: { code: string; hostId: number; userIds: number[] } } = {
+      rematch: { code, hostId, userIds },
+    };
+    this.setInfo(patch);
   }
 
   /** A relayed message from `from`. */
@@ -206,12 +256,50 @@ export class FakeRooms implements RoomsLike {
   listError = false;
   /** Codes whose `join` fails with `room_full` (taken meanwhile). */
   readonly full = new Set<string>();
+  /** An older hub: rooms without `setHost`, `rematch` or seats' `joinedAt`. */
+  older = false;
   private readonly log: CallLog;
-  private readonly host: { readonly slug: string; readonly userId: number; readonly offline: boolean };
+  private readonly host: {
+    readonly slug: string;
+    readonly userId: number;
+    readonly offline: boolean;
+    readonly now?: () => number;
+  };
 
-  constructor(log: CallLog, host: { readonly slug: string; readonly userId: number; readonly offline: boolean }) {
+  constructor(
+    log: CallLog,
+    host: { readonly slug: string; readonly userId: number; readonly offline: boolean; readonly now?: () => number },
+  ) {
     this.log = log;
     this.host = host;
+  }
+
+  /** My seat, with `joinedAt` on a newer hub. */
+  private mySeat(): RoomSeat {
+    return this.older ? fakeSeat(this.host.userId) : fakeSeat(this.host.userId, { joinedAt: this.host.now?.() ?? 0 });
+  }
+
+  /** A room for this page: the newer hub's calls unless `older`; `rematch()` joins or starts the rematch room. */
+  private room(me: RoomSelf, info: RoomInfo): FakeRoom {
+    const room = new FakeRoom(this.log, me, info);
+    if (this.older) return room;
+    room.newer();
+    room.rematchRoom = () => {
+      const r = rematchOf(room.info);
+      const userId = this.host.userId;
+      const hostId = r === null ? userId : r.hostId;
+      const others = r === null ? [] : r.userIds.filter((id) => id !== userId);
+      const next = fakeRoomInfo({
+        id: 'room-rematch',
+        code: r?.code ?? 'REMAT',
+        game: this.host.slug,
+        hostId,
+        seats: [...others.map((id) => fakeSeat(id, { joinedAt: this.host.now?.() ?? 0 })), this.mySeat()],
+      });
+      this.current = this.room({ userId, host: hostId === userId, spectator: false }, next);
+      return Promise.resolve(this.current);
+    };
+    return room;
   }
 
   create(options: RoomCreateOptions = {}): Promise<HubRoom> {
@@ -220,11 +308,11 @@ export class FakeRooms implements RoomsLike {
     const info = fakeRoomInfo({
       game: this.host.slug,
       hostId: this.host.userId,
-      seats: [fakeSeat(this.host.userId)],
+      seats: [this.mySeat()],
       public: options.public === true,
       ...(options.mode === undefined ? {} : { mode: options.mode }),
     });
-    this.current = new FakeRoom(this.log, { userId: this.host.userId, host: true, spectator: false }, info);
+    this.current = this.room({ userId: this.host.userId, host: true, spectator: false }, info);
     return Promise.resolve(this.current);
   }
 
@@ -244,13 +332,9 @@ export class FakeRooms implements RoomsLike {
       code: listed?.code ?? codeOrId,
       game: this.host.slug,
       hostId,
-      seats: [...(listed?.seats ?? [fakeSeat(hostId)]), fakeSeat(this.host.userId)],
+      seats: [...(listed?.seats ?? [fakeSeat(hostId)]), this.mySeat()],
     });
-    this.current = new FakeRoom(
-      this.log,
-      { userId: this.host.userId, host: false, spectator: options.spectate === true },
-      info,
-    );
+    this.current = this.room({ userId: this.host.userId, host: false, spectator: options.spectate === true }, info);
     return Promise.resolve(this.current);
   }
 

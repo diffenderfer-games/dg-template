@@ -23,7 +23,8 @@ export type ScreenActions = {
   online: () => void;
   /** Play online: an online game the hub runs (kit/turns), the default way to play online. */
   turns: () => void;
-  settings: () => void;
+  /** The settings sheet; `online`: opened during a room's match (the match goes on; the game may leave rows out). */
+  settings: (o?: { online?: boolean }) => void;
   howTo: () => void;
   pause: () => void;
   resume: () => void;

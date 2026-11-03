@@ -40,8 +40,18 @@ someone is already waiting. The kit's choosers do this for every game:
 - **Live rooms** (the `online` button, `online-who`): **Play now**
   (`online-play-now`) joins a public room waiting in its lobby
   (`hub.rooms.list()`, a free seat, not the player's own) or else hosts one
-  anyone can join (`public`, and `public` in presence). **With friends**
-  (`online-friends`) hosts a private room to invite them into, as before.
+  anyone can join (`public`, and `public` in presence). **Make a room**
+  (`online-friends`) hosts a private room for friends, classmates or anyone
+  with the code: the lobby shows the code in big letters and "Anyone can
+  join: Play online → Join with a code", so a group that aren't friends in
+  the app gets in by reading it out, or through the Invite link.
+- **Ready, then Play.** Guests press I'm ready!; the host's Play is on once
+  every guest is ready (or seated a minute). Everyone sees who is ready (the
+  seat chips) and what happens next (the status line). The host can hand the
+  host role to someone else (Make host).
+- **Keep playing together.** After a room's game, Rematch makes one new room
+  for everyone who presses it (the first to press hosts; the original host
+  gets it back on joining), and the others are told someone started one.
 - **Join with a code** in both choosers (`join-code`, `join-code-go`): a
   room's 5-letter code (the lobby shows it, `room-code`), or an online game's
   invite link pasted whole (or its key). Anything else says "That code

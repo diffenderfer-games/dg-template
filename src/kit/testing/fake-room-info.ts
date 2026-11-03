@@ -10,8 +10,8 @@ export function fakePlayer(id: number, username = `Player${id}`): PlayerLite {
   return { id, username, avatar: `a${id}`, look: `AV1user-${id}`, guest: false };
 }
 
-/** A seat in a room. */
-export function fakeSeat(userId: number, extra: Partial<RoomSeat> = {}): RoomSeat {
+/** A seat in a room (`joinedAt`: when the player sat down, as the newer hub says). */
+export function fakeSeat(userId: number, extra: Partial<RoomSeat> & { joinedAt?: number } = {}): RoomSeat {
   return {
     userId,
     name: `Player${userId}`,

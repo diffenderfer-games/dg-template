@@ -25,7 +25,7 @@ async function hostAndStart(g: Booted): Promise<FakeRoom> {
   g.press('online-friends');
   await g.settle();
   const room = roomOf(g);
-  room.addSeat(2);
+  room.addSeat(2, { ready: true });
   g.press('lobby-start');
   await g.frames(2);
   return room;
@@ -84,7 +84,7 @@ describe('launches (multiplayer.md §6)', () => {
     g.fake.mp.launch({ kind: 'host', partyId: 't1', tournament: { id: 1, title: 'Cup', match: 'm1', opponent: null } });
     await g.settle();
     const room = roomOf(g);
-    room.addSeat(2);
+    room.addSeat(2, { ready: true });
     g.press('lobby-start');
     room.endedBy({ winners: [1] });
     expect(g.hook.screen()).toBe('result');

@@ -4,6 +4,30 @@ KIT doc. One entry per kit version; per module inside. A **major** version
 means a hook's signature changed: the entry says how to move a game over.
 `npm run kit:sync` prints the entries newer than a game's `kit.json`.
 
+## 1.35 (2026-11-02)
+
+- **online 1.7:** a clearer lobby for every room game (kit/online and kit/live): the room code in big letters with
+  "Anyone can join: Play online → Join with a code", Invite link (`lobby-share`, through `shareLink`) beside Invite
+  friends (`lobby-invite`), a status line (`lobby-status`) saying what happens next, and per seat a crown on the host
+  and a chip (`seat-status-<id>`: Host, Ready ✓, Not ready / Ready in 0:42, Away). **Guests press Ready**
+  (`lobby-ready`, a pulsing toggle; the first focus): Play (`lobby-start`) is on only when enough players sit and
+  every guest is connected and ready, or seated a minute (`AUTO_READY_MS`, with a 3 s margin; the hub's
+  `seat.joinedAt`). **Behaviour change:** kit/live no longer marks guests ready on joining. The host hands the host
+  role over (`make-host-<id>`, a hub with `room.setHost`). **Rematch** on the online result screen (`rematch`): the
+  first to press hosts the rematch room, everyone else joins it ("Ann started a rematch · 2 in", a toast); the old
+  room closing after it ended keeps the results. All feature-detected (`online/ready.ts` `roomExtras`): an older hub
+  has no Make host, no Rematch, and Play follows the ready flags. The chooser's With friends is now **Make a room**
+  ("Friends, classmates, anyone with the code", still `online-friends`). New strings (`lobby*`, `seat*`,
+  `rematch*`, `makeHost*`, `cancel`, `someone`, `leaveMatchSettings`).
+- **boot 1.18, settings-ui 1.1, ui 1.13, live 1.4:** Leave the game? during a room's match has a third button, Settings (`confirm-settings`): the settings
+  sheet opens and the match goes on. `settingsRows(ctx, { online })` tells the game's rows where they show.
+  `ui/screens.ts`: a redrawn screen keeps the focus on the control with the same test id.
+- **testing 1.17:** `FakeRoom` has `setHost`, `rematch`, `addSeat(id, extra)`, `patchSeat`, `rematchBy`; `ready()` sets
+  the seat's flag; seats carry `joinedAt`; `FakeRooms.older` makes an older hub's rooms. **hub-events:**
+  1.16 `lobby.test.ts`; **hub-suites 1.14:** the online suite's guest presses Ready. **core 1.30:** strings,
+  `KIT_VERSION` 1.35. **docs 1.39:** online.md, live.md, playing-together.md, settings-ui.md, this entry.
+  **scripts 1.40:** the module versions.
+
 ## 1.34 (2026-11-01)
 
 - **core 1.29:** `tests/kit/core/manifest.test.ts` expects `FakeHub`'s default slug `mygame` (since 1.32 the harness passes

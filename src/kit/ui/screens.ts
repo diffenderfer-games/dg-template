@@ -12,6 +12,13 @@
 import type { PresenceInput } from '@diffenderfer-games/hub';
 import { ui } from './root.ts';
 
+/** The control in `el` with the same test id as `was` (not `was` itself), or null. */
+function sameControl(el: HTMLElement, was: HTMLElement): HTMLElement | null {
+  const id = was.dataset['testid'];
+  if (id === undefined || el.contains(was)) return null;
+  return [...el.querySelectorAll<HTMLElement>('[data-testid]')].find((c) => c.dataset['testid'] === id) ?? null;
+}
+
 /** A screen manager over the UI root. */
 export class Screens {
   private name = '';
@@ -56,7 +63,10 @@ export class Screens {
       this.lastPresence = presence;
       this.setPresence(presence);
     }
+    const again = redraw && focused instanceof HTMLElement ? sameControl(el, focused) : null;
     if (redraw && focused instanceof HTMLElement && el.contains(focused)) focused.focus({ preventScroll: true });
+    // A control drawn anew (a lobby's button on a change in the room) keeps the focus by its test id.
+    else if (again !== null) again.focus({ preventScroll: true });
     else
       el.querySelector<HTMLElement>('[data-autofocus]')?.focus({
         preventScroll: document.documentElement.dataset['hubInput'] === 'touch',
