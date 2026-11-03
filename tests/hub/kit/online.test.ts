@@ -406,3 +406,42 @@ e2e(
   },
   { skip, timeout: 120_000 },
 );
+
+e2e(
+  'lobby: the guest presses Ready (everyone sees it), and the host hands the host role over with Make host',
+  e,
+  async (t) => {
+    const a = await onGame(t);
+    const b = await onGame(t);
+    await Promise.all([ready(a), ready(b)]);
+    await a.tid('online');
+    await a.tid('online-friends');
+    await waitScreen(a, 'lobby');
+    const code = await until(() => room(a), 'a room code');
+    await b.page.evaluate((c) => window.__game?.online?.join(c), code);
+    await waitScreen(b, 'lobby');
+    await until(async () => (await seats(a)) === 2, 'two seats');
+    const guestChip = (p: Player): Promise<string | null> =>
+      p.page.evaluate(() => {
+        const chips = [...document.querySelectorAll<HTMLElement>('.kit-seat-chip')];
+        return chips.find((c) => c.dataset['kind'] !== 'host')?.dataset['kind'] ?? null;
+      });
+    assert.equal(await guestChip(a), 'waiting', 'the guest starts not ready');
+    await b.tid('lobby-ready');
+    await until(async () => ((await guestChip(a)) === 'ready' ? true : null), "the host sees the guest's Ready");
+    // Make host (a hub client with setHost): the guest becomes the host on both pages
+    const makeHost = await a.page.$('[data-testid^="make-host-"]');
+    assert.ok(makeHost, 'Make host shows for the host');
+    await makeHost.click();
+    await a.tid('confirm-yes');
+    await until(
+      () => b.page.evaluate(() => (document.querySelector('[data-testid="lobby-start"]') ? true : null)),
+      'the guest now has Play',
+    );
+    await until(
+      () => a.page.evaluate(() => (document.querySelector('[data-testid="lobby-ready"]') ? true : null)),
+      'the old host now has Ready',
+    );
+  },
+  { skip, timeout: 120_000 },
+);

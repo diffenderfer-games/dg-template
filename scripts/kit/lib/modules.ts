@@ -50,8 +50,8 @@ export const KIT_MODULES: Record<string, KitModuleDef> = {
   avatar: srcModule('avatar', '1.6'),
   world: srcModule('world', '1.7'),
   'hub-events': { version: '1.16', paths: ['tests/hub-events'] },
-  'hub-suites': { version: '1.14', paths: ['tests/hub/_kit.ts', 'tests/hub/kit'] },
-  scripts: { version: '1.40', paths: ['scripts/kit', 'tests/scripts'] },
+  'hub-suites': { version: '1.15', paths: ['tests/hub/_kit.ts', 'tests/hub/kit'] },
+  scripts: { version: '1.41', paths: ['scripts/kit', 'tests/scripts'] },
   ci: { version: '1.0', paths: ['.github/workflows/deploy.yml'] },
   agents: { version: '1.0', paths: ['.claude/agents'] },
   config: {
@@ -66,7 +66,7 @@ export const KIT_MODULES: Record<string, KitModuleDef> = {
     ],
   },
   docs: {
-    version: '1.39',
+    version: '1.40',
     paths: [
       'docs/kit/look.md',
       'docs/kit/look',

@@ -26,7 +26,8 @@ means a hook's signature changed: the entry says how to move a game over.
   the seat's flag; seats carry `joinedAt`; `FakeRooms.older` makes an older hub's rooms. **hub-events:**
   1.16 `lobby.test.ts`; **hub-suites 1.14:** the online suite's guest presses Ready. **core 1.30:** strings,
   `KIT_VERSION` 1.35. **docs 1.39:** online.md, live.md, playing-together.md, settings-ui.md, this entry.
-  **scripts 1.40:** the module versions.
+  **scripts 1.40:** the module versions. **hub-suites 1.15, scripts 1.41, docs 1.40:** the online suite checks Ready and Make host
+  against a real hub (client 2.0.0-next.19).
 
 ## 1.34 (2026-11-01)
 
