@@ -258,6 +258,8 @@ export class FakeRooms implements RoomsLike {
   readonly full = new Set<string>();
   /** An older hub: rooms without `setHost`, `rematch` or seats' `joinedAt`. */
   older = false;
+  /** How far the hub's clock runs behind this device's (ms): seats' `joinedAt` are that much earlier. */
+  hubBehind = 0;
   private readonly log: CallLog;
   private readonly host: {
     readonly slug: string;
@@ -274,9 +276,14 @@ export class FakeRooms implements RoomsLike {
     this.host = host;
   }
 
+  /** The hub's clock. */
+  hubNow(): number {
+    return (this.host.now?.() ?? 0) - this.hubBehind;
+  }
+
   /** My seat, with `joinedAt` on a newer hub. */
   private mySeat(): RoomSeat {
-    return this.older ? fakeSeat(this.host.userId) : fakeSeat(this.host.userId, { joinedAt: this.host.now?.() ?? 0 });
+    return this.older ? fakeSeat(this.host.userId) : fakeSeat(this.host.userId, { joinedAt: this.hubNow() });
   }
 
   /** A room for this page: the newer hub's calls unless `older`; `rematch()` joins or starts the rematch room. */
@@ -294,7 +301,7 @@ export class FakeRooms implements RoomsLike {
         code: r?.code ?? 'REMAT',
         game: this.host.slug,
         hostId,
-        seats: [...others.map((id) => fakeSeat(id, { joinedAt: this.host.now?.() ?? 0 })), this.mySeat()],
+        seats: [...others.map((id) => fakeSeat(id, { joinedAt: this.hubNow() })), this.mySeat()],
       });
       this.current = this.room({ userId, host: hostId === userId, spectator: false }, next);
       return Promise.resolve(this.current);

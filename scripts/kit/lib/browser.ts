@@ -12,6 +12,10 @@ export const SIZES = {
   desk: { width: 1280, height: 800 },
   cover: { width: 800, height: 420 },
   phone: { width: 390, height: 844, deviceScaleFactor: 2, isMobile: true, hasTouch: true },
+  /** Small iPhones: an SE in Safari with its toolbars (the smallest phone players have), a whole SE, a mini in Safari. */
+  'iphone-se-safari': { width: 375, height: 553, deviceScaleFactor: 2, isMobile: true, hasTouch: true },
+  'iphone-se': { width: 375, height: 667, deviceScaleFactor: 2, isMobile: true, hasTouch: true },
+  'iphone-mini-safari': { width: 375, height: 635, deviceScaleFactor: 3, isMobile: true, hasTouch: true },
   'phone-land': { width: 844, height: 390, deviceScaleFactor: 2, isMobile: true, hasTouch: true, isLandscape: true },
   tablet: { width: 820, height: 1180, deviceScaleFactor: 2, isMobile: true, hasTouch: true },
 } as const;

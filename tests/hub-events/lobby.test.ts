@@ -85,6 +85,18 @@ describe('the lobby: ready and Play', () => {
     expect(playOff(g)).toBe(false);
   });
 
+  it('a device clock minutes ahead of the hub: a guest who just sat is not ready yet (host and guest)', async () => {
+    const g = await boot({ before: (fake) => void (fake.rooms.hubBehind = 120_000) });
+    const room = await hostRoom(g);
+    room.addSeat(2, { joinedAt: g.fake.rooms.hubNow() });
+    expect(el(g, 'seat-status-2')?.textContent).toBe('Ready in 1:03');
+    expect(playOff(g)).toBe(true);
+    const guest = await boot({ before: (fake) => void (fake.rooms.hubBehind = 120_000) });
+    guest.fake.mp.launch({ kind: 'join', room: 'JOIN1' });
+    await guest.settle();
+    expect(el(guest, 'lobby-status')?.textContent).toBe('Press Ready when you are');
+  });
+
   it('an away guest blocks Play', async () => {
     const g = await boot();
     const room = await hostRoom(g);

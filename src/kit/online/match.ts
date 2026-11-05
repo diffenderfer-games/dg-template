@@ -23,7 +23,7 @@ import type { TableLaunch } from '../core/planned.ts';
 import { t } from '../core/strings.ts';
 import { randomSeed } from '../rng/index.ts';
 import { closedText } from './errors.ts';
-import { lobbyReadiness } from './ready.ts';
+import { hubNow, lobbyReadiness } from './ready.ts';
 import type { HostMatch, OnlineGame } from './types.ts';
 import { envelope, fits, freshest, parseEnvelope, successorOf } from './wire.ts';
 
@@ -259,7 +259,7 @@ export class OnlineMatch {
     const room = this.room;
     if (!room || !this.isHost || this.playing) return;
     // The hub starts a room only once every guest is ready (or seated a minute): never a match it refused.
-    if (lobbyReadiness(room.info, 0, this.clock.now()).waiting.length > 0) return;
+    if (lobbyReadiness(room.info, 0, hubNow(room.info, this.clock.now())).waiting.length > 0) return;
     fireAndForget(room.start());
     const seats = room.info.seats.map((s) => s.userId);
     this.host = this.game.start({

@@ -45,7 +45,7 @@ const flag = (name: string): string | undefined => {
   return i >= 0 ? args[i + 1] : args.find((a) => a.startsWith(`${name}=`))?.split('=')[1];
 };
 const target: ShotTarget = args.includes('--hub') ? 'hub' : 'static';
-const sizes = (flag('--size') ?? 'phone,desk').split(',').filter((s): s is SizeName => s in SIZES);
+const sizes = (flag('--size') ?? 'phone,iphone-se-safari,desk').split(',').filter((s): s is SizeName => s in SIZES);
 const values = new Set([flag('--size'), flag('--url'), flag('--diff')].filter((v) => v !== undefined));
 const names = args.filter((a) => !a.startsWith('--') && !values.has(a));
 

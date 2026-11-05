@@ -30,12 +30,13 @@ touches at phone and desktop sizes.
 Use a free port; never 8099. Stop what you start.
 
 ```bash
-npm run shots                         # phone + desktop → shots/sheet.png
+npm run shots                         # phone + small iPhone (SE in Safari) + desktop → shots/sheet.png
 npm run shots -- --size phone-land    # rotation
 npm run ui:check -- --no-build        # sideways scroll, off-screen buttons, touch targets
 ```
 
-Read `shots/sheet.png`, then read the phone shots at full size, one by one.
+Read `shots/sheet.png`, then read the phone shots at full size, one by one. On the small iPhone nothing may be
+squeezed or overlap; a screen too tall scrolls.
 Read `cover.png`. If a screen you need isn't in the shots (the table setup,
 a lobby, a waiting screen, a card of the game's own), say so: a screen nobody
 looked at is a finding too. Add a scenario only if you were asked to.

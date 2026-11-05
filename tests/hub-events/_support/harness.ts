@@ -18,6 +18,7 @@ import { createStore } from '../../../src/kit/core/index.ts';
 import { MANIFEST } from '../../../src/kit/core/manifest.ts';
 import type { KitStrings } from '../../../src/kit/core/strings.ts';
 import { setKitStrings } from '../../../src/kit/core/strings.ts';
+import { resetHubClock } from '../../../src/kit/online/ready.ts';
 import {
   CallLog,
   createFakeHub,
@@ -100,6 +101,7 @@ export async function bootGame(
   } = {},
 ): Promise<Booted> {
   previous?.dispose();
+  resetHubClock(); // (each test's fake hub has its own clock)
   document.body.replaceChildren();
   const app = document.createElement('div');
   app.id = 'app';

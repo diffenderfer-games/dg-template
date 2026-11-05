@@ -23,6 +23,9 @@ export const KIT_CSS = `
 .kit-screen { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
   gap: 14px; padding: calc(var(--kit-top) + 48px) 16px var(--kit-bottom); box-sizing: border-box; text-align: center; overflow: auto; }
 html[data-embed] .kit-screen:not([data-screen="play"]) { padding-top: calc(var(--kit-top) + 12px); }
+/* A menu screen that doesn't fit (a small iPhone, a browser's toolbars) scrolls from the top instead of squeezing its rows. */
+.kit-screen:not([data-screen="play"]) { justify-content: safe center; }
+.kit-screen:not([data-screen="play"]) > * { flex-shrink: 0; }
 .kit-screen[data-screen="play"] { pointer-events: none; justify-content: flex-start; padding-top: calc(var(--kit-top) + 4px); }
 .kit-screen[data-screen="play"] > * { pointer-events: auto; }
 .kit-dim { background: rgba(5, 7, 10, 0.62); backdrop-filter: blur(3px); }

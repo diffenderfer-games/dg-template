@@ -4,6 +4,22 @@ KIT doc. One entry per kit version; per module inside. A **major** version
 means a hook's signature changed: the entry says how to move a game over.
 `npm run kit:sync` prints the entries newer than a game's `kit.json`.
 
+## 1.36 (2026-11-04)
+
+- **online 1.8, boot 1.19:** a guest who just sat down no longer shows as ready (chip "Ready ✓", "You're ready", Play
+  on) when the device's clock runs a minute or more ahead of the hub's. `seat.joinedAt` is the hub's time; the lobby,
+  its countdowns and the turns start guard now read readiness at `hubNow(info, localNow)` (`online/ready.ts`), which
+  learns the device's lead from each seat's first sighting and only ever errs late. **testing 1.18:**
+  `FakeRooms.hubBehind` (a hub clock behind the device) and `hubNow()`. **hub-events 1.17:** `lobby.test.ts` checks
+  a 2-minute-fast device as host and guest; the harness resets the estimate per boot. **core 1.31:** `KIT_VERSION`
+  1.36. **docs 1.41:** online.md, this entry; screenshots.md, look.md and devices.md name the small iPhones.
+  **scripts 1.42:** the module versions; the shots, probe and ui-check know three small-iPhone sizes
+  (`iphone-se-safari` 375×553, `iphone-se` 375×667, `iphone-mini-safari` 375×635), and `npm run shots` shoots
+  `iphone-se-safari` by default (`phone,iphone-se-safari,desk`). **ui 1.14:** a menu screen too tall for the phone
+  scrolls from the top (`justify-content: safe center`) instead of squeezing its rows (`flex-shrink: 0`); a title with
+  a Continue row used to crush its tagline under the menu on short phones. **agents 1.1:** game-review reads the small
+  iPhone shots.
+
 ## 1.35 (2026-11-02)
 
 - **online 1.7:** a clearer lobby for every room game (kit/online and kit/live): the room code in big letters with

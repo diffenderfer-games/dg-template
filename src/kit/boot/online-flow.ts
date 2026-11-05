@@ -28,7 +28,7 @@ import { MANIFEST } from '../core/manifest.ts';
 import { chatPanel, gamePhrases, roomChat } from '../online/chat.ts';
 import { errText } from '../online/errors.ts';
 import { lobbyScreen, lobbyTicks, tickLobby } from '../online/lobby.ts';
-import { rematchOf, roomExtras } from '../online/ready.ts';
+import { hubNow, rematchOf, roomExtras } from '../online/ready.ts';
 import { confirm } from '../ui/modal.ts';
 import { shareLink } from '../ui/share.ts';
 import { nameIn, rematchPanel, type RematchPanel } from './rematch-panel.ts';
@@ -381,7 +381,7 @@ export class OnlineFlow {
             chat,
             extra: this.liveLobby(),
             face: (seat) => face(this.hub, { userId: seat.userId, name: seat.name, look: seat.look }, 32),
-            now: this.clock.now(),
+            now: hubNow(room.info, this.clock.now()),
             watching: room.me.spectator,
             rematch: this.rematchCode === room.info.code,
           },
@@ -478,7 +478,7 @@ export class OnlineFlow {
       this.tick = null;
       const now = this.screens.element;
       if (now === null || this.host.screen !== 'lobby' || this.match.room === null) return;
-      if (tickLobby(now, this.clock.now())) this.showLobby();
+      if (tickLobby(now, hubNow(this.match.room.info, this.clock.now()))) this.showLobby();
       else this.keepTicking();
     });
   }

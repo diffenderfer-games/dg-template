@@ -31,15 +31,20 @@ scenarios (`npm run cover` leaves a one-shot sheet behind it).
 
 ## Sizes
 
-| Size         | Viewport                                                       |
-| ------------ | -------------------------------------------------------------- |
-| `desk`       | 1280 × 800                                                     |
-| `cover`      | 800 × 420 (the hub's card shape; only `npm run cover` uses it) |
-| `phone`      | 390 × 844, touch, DPR 2                                        |
-| `phone-land` | 844 × 390, touch                                               |
-| `tablet`     | 820 × 1180, touch                                              |
+| Size                 | Viewport                                                                             |
+| -------------------- | ------------------------------------------------------------------------------------ |
+| `desk`               | 1280 × 800                                                                           |
+| `cover`              | 800 × 420 (the hub's card shape; only `npm run cover` uses it)                       |
+| `phone`              | 390 × 844, touch, DPR 2                                                              |
+| `iphone-se-safari`   | 375 × 553, touch, DPR 2 (an iPhone SE in Safari, toolbars shown: the smallest phone) |
+| `iphone-se`          | 375 × 667, touch, DPR 2                                                              |
+| `iphone-mini-safari` | 375 × 635, touch, DPR 3 (an iPhone mini in Safari)                                   |
+| `phone-land`         | 844 × 390, touch                                                                     |
+| `tablet`             | 820 × 1180, touch                                                                    |
 
-Default: `phone,desk`.
+Default: `phone,iphone-se-safari,desk`. Every menu screen must work on the small iPhones: nothing squeezed or
+overlapping, and a screen too tall to fit scrolls (the kit's `.kit-screen` scrolls from the top; don't give its rows
+`flex-shrink` back). `npm run shots -- --size iphone-se,iphone-mini-safari` checks the other two.
 
 ## Scenarios
 

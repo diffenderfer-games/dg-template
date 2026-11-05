@@ -312,7 +312,7 @@ Your part:
 - **Buttons answer their keys**: press Enter, Esc, Q / E, the shoulders on each
   screen and check the right control fired (Rift Racers'
   `tests/game/console-ui.test.ts`).
-- **Browser checks**: the shots' `phone`, `phone-land` and `tablet` sizes
+- **Browser checks**: the shots' `phone`, the small iPhones (`iphone-se-safari`, `iphone-se`, `iphone-mini-safari`), `phone-land` and `tablet` sizes
   emulate touch ([screenshots.md](screenshots.md)); `npm run ui:check` checks
   tap targets of 44 px there. For menus as a pad player sees them, a scenario
   sets the mode before the shot

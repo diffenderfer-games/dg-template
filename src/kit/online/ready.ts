@@ -1,13 +1,14 @@
 /**
  * kit/online: who is ready in a room's lobby, and the newer hub's room calls (hand the host role over, rematch),
  * feature-detected so an older hub simply goes without them.
- * Source: dg-template src/kit/online/ (kit v1.35). Copy byte-identical; change it in the template first.
+ * Source: dg-template src/kit/online/ (kit v1.36). Copy byte-identical; change it in the template first.
  * Docs: docs/kit/online.md § "Lobby"
  *
  * The hub's rule for `room.start`: every guest is connected and ready, or sat down at least
  * {@link AUTO_READY_MS} ago (`seat.joinedAt`). The page waits a little longer
  * ({@link AUTO_READY_MARGIN_MS}) before it counts someone as ready by time, for clocks that differ.
- * A hub without `joinedAt` counts the ready flags only.
+ * A hub without `joinedAt` counts the ready flags only. `joinedAt` is the hub's clock and a device's can be
+ * minutes off, so readiness is read at {@link hubNow}, never the device's own time.
  */
 import type { HubRoom, RoomInfo, RoomSeat } from '@diffenderfer-games/hub';
 
@@ -58,6 +59,37 @@ export function rematchOf(info: RoomInfo): RematchInfo | null {
   if (typeof code !== 'string' || typeof hostId !== 'number') return null;
   const userIds = Array.isArray(ids) ? ids.filter((id): id is number => typeof id === 'number') : [];
   return { code, hostId, userIds };
+}
+
+/**
+ * How far this device's clock runs ahead of the hub's (ms), as far as the page can tell: a seat can't
+ * have sat down after the page first saw it, so (first seen − `joinedAt`) bounds it from above, and the
+ * smallest bound is kept. Seats first seen long after they sat only make the estimate larger: someone
+ * then counts as ready later than the hub would, never earlier. Null until a seat with `joinedAt` shows.
+ */
+let clockAhead: number | null = null;
+/** Seats already sampled (room code, user, when they sat). */
+const sampled = new Set<string>();
+
+/** The hub's time now (epoch ms), from the device's `localNow`; `info`'s seats sharpen the estimate. */
+export function hubNow(info: RoomInfo, localNow: number): number {
+  for (const seat of info.seats) {
+    const at = joinedAt(seat);
+    if (at === null) continue;
+    const key = `${info.code}:${String(seat.userId)}:${String(at)}`;
+    if (sampled.has(key)) continue;
+    if (sampled.size > 500) sampled.clear();
+    sampled.add(key);
+    const ahead = localNow - at;
+    if (clockAhead === null || ahead < clockAhead) clockAhead = ahead;
+  }
+  return clockAhead === null ? localNow : localNow - clockAhead;
+}
+
+/** Forget the clock estimate (tests). */
+export function resetHubClock(): void {
+  clockAhead = null;
+  sampled.clear();
 }
 
 /** Where a seat stands: the host, ready (pressed it, or `auto` by time), waiting, or away. */

@@ -142,14 +142,14 @@ Rules:
 
 ## 5. Every screen
 
-| Screen                | Must have                                                                                                                                                                                                   |
-| --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Screen                | Must have                                                                                                                                                                            |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Title                 | kicker, wordmark, taglines, glass panel of icon buttons with sub-lines, primary with sheen, footer chips (played, best), sparks, attract mode behind; Continue rows dressed the same |
-| Play                  | HUD chips at the top centre; the play area on its glass panel; the hub menu's 64 px corner empty; the pause button themed                                                                                   |
-| Pause                 | the card: heading, where the player is, stat chips, Resume (primary), Start over, Settings, Back to the title, each with an icon and a sub-line                                                             |
-| Result                | the card: heading (won in `accent`, lost in `gold`), the score counting up, what happened in this game, the best, Play again (primary), Back to the title                                                   |
-| How to play, Settings | glass panel, gradient heading, rows fading in one after another                                                                                                                                             |
-| Toasts                | glass, a `gold` left edge, system font                                                                                                                                                                      |
+| Play                  | HUD chips at the top centre; the play area on its glass panel; the hub menu's 64 px corner empty; the pause button themed                                                            |
+| Pause                 | the card: heading, where the player is, stat chips, Resume (primary), Start over, Settings, Back to the title, each with an icon and a sub-line                                      |
+| Result                | the card: heading (won in `accent`, lost in `gold`), the score counting up, what happened in this game, the best, Play again (primary), Back to the title                            |
+| How to play, Settings | glass panel, gradient heading, rows fading in one after another                                                                                                                      |
+| Toasts                | glass, a `gold` left edge, system font                                                                                                                                               |
 
 ## 6. Gameplay feedback
 
@@ -179,7 +179,8 @@ Every player action is answered within a frame, with motion and a sound:
 - Touch targets at least 44 × 44. Nothing in the hub menu's 64 px corner
   (`game.menuPosition`).
 - Desktop 1280 × 800: the play column centred; the background fills the sides.
-- Check `phone-land` and `tablet` once: `npm run shots -- --size phone-land,tablet`.
+- Check `phone-land` and `tablet` once: `npm run shots -- --size phone-land,tablet`, and the small iPhones:
+  `iphone-se-safari` is in every default run; `--size iphone-se,iphone-mini-safari` for the rest.
 
 ## 8. Dressing the kit's screens
 
@@ -259,13 +260,13 @@ Code:
 
 Screenshots (`docs/kit/look/`, phone 390 × 844 unless noted):
 
-| File                                            | Shows                                                                                  |
-| ----------------------------------------------- | -------------------------------------------------------------------------------------- |
-| [title.png](look/title.png)                     | kicker, wordmark, taglines, glass menu panel, icon buttons, chips, attract mode behind |
-| [title-desk.png](look/title-desk.png)           | the same at 1280 × 800                                                                 |
-| [play.png](look/play.png)                       | HUD chips, the play area on its panel, coloured pieces and keys                        |
-| [success.png](look/success.png)                 | a success: bouncing pieces, confetti, reward flying to the HUD, the result card        |
-| [pause.png](look/pause.png)                     | the pause card settled                                                                 |
-| [result.png](look/result.png)                   | the result card                                                                        |
+| File                                            | Shows                                                                                       |
+| ----------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| [title.png](look/title.png)                     | kicker, wordmark, taglines, glass menu panel, icon buttons, chips, attract mode behind      |
+| [title-desk.png](look/title-desk.png)           | the same at 1280 × 800                                                                      |
+| [play.png](look/play.png)                       | HUD chips, the play area on its panel, coloured pieces and keys                             |
+| [success.png](look/success.png)                 | a success: bouncing pieces, confetti, reward flying to the HUD, the result card             |
+| [pause.png](look/pause.png)                     | the pause card settled                                                                      |
+| [result.png](look/result.png)                   | the result card                                                                             |
 | [cover.png](look/cover.png)                     | an older cover taken mid-celebration (1280 × 800); covers now follow [covers.md](covers.md) |
-| [reference-title.png](look/reference-title.png) | the original style in a different palette (1280 × 800)                                 |
+| [reference-title.png](look/reference-title.png) | the original style in a different palette (1280 × 800)                                      |

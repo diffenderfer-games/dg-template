@@ -1,10 +1,10 @@
 {
-  "kitVersion": "1.35",
+  "kitVersion": "1.36",
   "modules": {
     "agents": {
-      "version": "1.0",
+      "version": "1.1",
       "files": {
-        ".claude/agents/game-review.md": "e31ee064c0cbf6708671b63e5cd0e45facfa7051ea8df2b4a1baf3e2523fd04d"
+        ".claude/agents/game-review.md": "5c2e75447ef8b94b71459634886cc545001b94f6dcd7c8ff3c9c2b32d243e442"
       }
     },
     "audio": {
@@ -31,14 +31,14 @@
       }
     },
     "boot": {
-      "version": "1.18",
+      "version": "1.19",
       "files": {
         "docs/kit/boot.md": "e8b42888ad121ea75cb0eebd39fa81689800344d6bd8b9055aca66e525b603bb",
         "src/kit/boot/context.ts": "4d889d45e7a474f9721cdd8d8058a652dcc0979de3467dc7bb196974d0d98f1b",
         "src/kit/boot/define-game.ts": "6f3aa5c1e6959b9f3e9e3fc9c802637f454b7024733c7e983f071283b3e5c611",
         "src/kit/boot/index.ts": "43e7d5a563cae9c97f05053ddd48ab82f92eaa60cccbea28569fd5e1c5813140",
         "src/kit/boot/joining.ts": "378a292843ba10da9fb7e0f395f58148017a349180a5fd7a16fa730ce9cbef9c",
-        "src/kit/boot/online-flow.ts": "ded3c5b89ba6c1239b16848ca3d519706f1f0e3601303e486d13325157bb8849",
+        "src/kit/boot/online-flow.ts": "21650e5397b7d5f290819757be8d2f8eea5aa9013a653a2e66c8b10936636643",
         "src/kit/boot/rematch-panel.ts": "be8b36624e8cfc7037ba20ebce8e7f06ebffbdc729965be209a15fea77d7d8d8",
         "src/kit/boot/router.ts": "b057518cd71a0f27cc696f38cd819c968cb4777215f28396cea0e765b67f160f",
         "src/kit/boot/screens.ts": "3041ded2998dc0d0ad930e76f1ee9b9066d1bde3d93c0ea94d6619902a3f8141",
@@ -67,7 +67,7 @@
       }
     },
     "core": {
-      "version": "1.30",
+      "version": "1.31",
       "files": {
         "docs/kit/core.md": "8522fe49e526ae0d8b30e0eaee9208f08ec381a1f6b5f960fcca3e016d4eff00",
         "src/kit/core/activity.ts": "23f686d66feef6a8180f5b8c488222a63ea59d5c2cefb1e88923c61164fff0eb",
@@ -84,7 +84,7 @@
         "src/kit/core/planned.ts": "1a2c2a845a628483b29cafd60b6c7872bae414da3fbcec07642b9d05eb1a497e",
         "src/kit/core/store.ts": "e30b5673a73c64df1446ed156467f2a20f548c465de86c779e21d9cccd008e20",
         "src/kit/core/strings.ts": "3c4e934ad052d91c88b0b7de34e6e48a0ed714858cbcf0411d080606f3d0529c",
-        "src/kit/core/version.ts": "5cfce0ecd175476b935e40337209b063e6f5d9c0643cd57458456d2110fae840",
+        "src/kit/core/version.ts": "b66faeba9444ac72ff31a20a0e9178a1da9c689f31cb336cc42b5b6518b582fd",
         "src/kit/core/wording.ts": "0c3cf1eb2062f307a9acd6a7aea90f8f954e72db30978ea192bf1a5ae46997b3",
         "tests/kit/core/activity.test.ts": "395c9759a8ea916d53865a6c528c207feeeaf1e51f5079d8c406f9114f81b614",
         "tests/kit/core/async.test.ts": "a445e5d51617e9cdf7e84403d1b854db96ef63905e9fe030f4a13178e68a339a",
@@ -128,16 +128,16 @@
       }
     },
     "docs": {
-      "version": "1.40",
+      "version": "1.41",
       "files": {
         "docs/getting-started.md": "85e6fd835b0c3d015b2dd93b83736b2b2bc3b408f8e01b8fe354eab23d7e75f6",
-        "docs/kit/CHANGELOG.md": "b42da1d546c66df29284058d2fafdfd099f62119ea916ddaf2ddbe653e4841fe",
+        "docs/kit/CHANGELOG.md": "9d39b3951c7cb04665ae6299860d592dfb75e0e420e5d0e03d4b5cb8c8255514",
         "docs/kit/README.md": "b8bac2da690f22d9906bf8b39426eef2ced9e0a8aadcbbf9d711ec4b59b3af26",
         "docs/kit/card-games.md": "f29c0144ab9e7869a14dc5328b2e77cd30f74158122fe3dc3d3fa8912358e3ab",
         "docs/kit/covers.md": "e00687c1e2dbde8cbfb1c6b4fa94bc260e671a4b0d7d0fe71199bd76178eaad7",
-        "docs/kit/devices.md": "9b95f0f14040d5016c4465fe3f730c6006c7871e986e220cf7cb0ab40c8c8295",
+        "docs/kit/devices.md": "01dee22421330b353e714100f401581081bfe27e3d687626bfde5715f33315e6",
         "docs/kit/hooks.md": "5888c40165e1245fc584d93937c412df52722c66a4a99bf361da930d524b9a45",
-        "docs/kit/look.md": "67892bc1b482dc11a58927511bba8cb5654f610152cf7319833462309c03c465",
+        "docs/kit/look.md": "77cd3a9f02b4f282a9139268a5ce00a7dec441f3857c8c962e79701bf6ded68d",
         "docs/kit/look/cover.png": "5f956a7fc6b730b489db78b73f6fa9ae305cf031f87e26d6ef45c3b13217892c",
         "docs/kit/look/pause.png": "082f45fbc5c7136e24cbf3285e853507c58f5178fe6795eb669345a5d92b7b2d",
         "docs/kit/look/play.png": "cb81afaa23c5d74be215c5fd713a043f2bb85165b6a8975f4c98df12f728d479",
@@ -149,7 +149,7 @@
         "docs/kit/playing-together.md": "6b02dda6486ef37488c343efe2ef7c89ff40d34247eb2a9df990580b15a10c84",
         "docs/kit/polish.md": "ee7fb410bc6e4afebdbc78e84ffb55d3e682d9fddb90201bb13e57fd5bcd5599",
         "docs/kit/review.md": "1502d55a80658564f5487fd38f473bba01bee71ffbac11e24fc27eec2eaaf0af",
-        "docs/kit/screenshots.md": "90b4357c0ffec19c258602b1f8fb26d0610d4eda7913f8b7748699630603440a",
+        "docs/kit/screenshots.md": "4df31a749fdcd1d841c38d4e230e03aaa6816188563c416b085678d9f4b8ee80",
         "docs/kit/trailer.md": "294d9517a4b5d79de27079e902ccda911d082dfcbc55b0113e63949eef7e916a",
         "docs/kit/whats-new.md": "0a42974c551112eb036609d52e7effcd3d7fcdeeab9c44e5b4bb7c39aeffadda",
         "docs/repo-setup.md": "e924206f2452a4cfc69faaa7769ba2bf3b933d924de721c4f3da77e13deb2d2c"
@@ -164,14 +164,14 @@
       }
     },
     "hub-events": {
-      "version": "1.16",
+      "version": "1.17",
       "files": {
-        "tests/hub-events/_support/harness.ts": "fdc59e62c05d16b25d409c2c715f19f4f87c3c2366b4e8871b622688bd694ad7",
+        "tests/hub-events/_support/harness.ts": "8dbdffaef5b6f723346ec88dcc9a67c34c0cba0f762def7ad6a8a62c101ef9c3",
         "tests/hub-events/_support/planned.ts": "f1d15c90427d79921e0deb1bdb001aa65d3e01d61aa2c4b39972551778865c1e",
         "tests/hub-events/_support/toys.ts": "81d79f5d0560abfacadf0fe33057316214236df9abcd99ec2773605740131d95",
         "tests/hub-events/daily.test.ts": "215f46f272f8c0628543eb981393adb604d53d390578522ecb754facaea13474",
         "tests/hub-events/input.test.ts": "db4b857210dc47f28b018f0755e68a8082800b73301656e6be0c1b684b833288",
-        "tests/hub-events/lobby.test.ts": "3e5e7f10b27e2b6d55eb47adeadc933667841c8cb7befeb62427536f5e6fea87",
+        "tests/hub-events/lobby.test.ts": "785ae8e835689f14a589057b36258b857bfc04729cc3bb30d2e1ab204d91f5db",
         "tests/hub-events/online.test.ts": "cecd938b8276224253460d93f0e5c6a97615c31826632e7fa6fbe5b51aed514d",
         "tests/hub-events/overlay.test.ts": "3ea8246ec1fcd59009485ff2e06f674bcf53f57146a551ecca7d4ad71c07fc0b",
         "tests/hub-events/planned.test.ts": "1a28c93721a0b77147fb66cfc40aa1324a690a4baea42f02b8fba38c9c1675d1",
@@ -239,16 +239,16 @@
       }
     },
     "online": {
-      "version": "1.7",
+      "version": "1.8",
       "files": {
-        "docs/kit/online.md": "0e955caa98074326e2f64bdf6d840ca72c1f51f5a508c0cafa38f29ab3ddb8f4",
+        "docs/kit/online.md": "cd502fde35ca90b17c196b472054e17070c1ad65ee36f96d38230a2c6617d8d5",
         "src/kit/online/chat.ts": "c97a24f40b01ba43b8e4899e5c52e1d394b7a3c94960d8f2e882a45d3cdf048a",
         "src/kit/online/errors.ts": "d13f906ffbb5170224fc64ca52fe5b4e15176290f0d9837c0960d24726a1ba8a",
         "src/kit/online/index.ts": "2f5c7b87b21fd5790379a4455f45922b233ba6d030d81a95cc0f8e970d924e7f",
         "src/kit/online/launch.ts": "4902720eff68b91f89be1e1e9d2a225bf421338b020c363b235b9d0e4ce9ab45",
         "src/kit/online/lobby.ts": "afae1a6f5fce97c47ce35afdb30f6673f9342154a8de240302e3665d2536f3ce",
-        "src/kit/online/match.ts": "6750058f4b25420d1a795ba0307f69e4d0776538a7d843f9f48a4d5eaf73b6a7",
-        "src/kit/online/ready.ts": "e62f6ccaef82d8c43e1261ea1e92c5e161a4aaa372e10935284ae4f9d130d595",
+        "src/kit/online/match.ts": "46f27f0942b236d86b6c39573d5c1efb3002e7e3fa6e6217ecab14dc29d29b54",
+        "src/kit/online/ready.ts": "0fe189fd39fa984531aa65f029cb7e978e599df8e30b3231b681c61c9e83001d",
         "src/kit/online/roster.ts": "9ba66a531e0e5d880bca885ad15c06ba33d84565ffb3d82616abe93273309e84",
         "src/kit/online/types.ts": "a2ca4d4fd1186b1ff8bc561aae2c31c4dcb3e8b1a83d7b58609307e42b5f8fdb",
         "src/kit/online/wire.ts": "3fbfdde71857610b906c8fcff98b6f4f846314cc0489dff0d1736964d7b25723",
@@ -319,7 +319,7 @@
       }
     },
     "scripts": {
-      "version": "1.41",
+      "version": "1.42",
       "files": {
         "scripts/kit/build-live.ts": "99727744429e0a938ec078fcfaa31b56fa16ee07cc9a0075ff45fdc55898dad7",
         "scripts/kit/build-rules.ts": "532e7f69691e24ec758d281f6e3597c5dfa0738a8bf9182ac17bb424e02d67e1",
@@ -331,13 +331,13 @@
         "scripts/kit/kit-check.ts": "d61bcfed2a1e230aaba21880e66e206fd19e96fba90ed36894811ec3ca1cdc20",
         "scripts/kit/kit-hash.ts": "9ef9fbacd5af9aff8dbd7a73a5a6d5d48a8228cf76004bdf93412dfd67ac113c",
         "scripts/kit/kit-sync.ts": "d0434fe6f2a5711c5166cb413f6017c63b8c5543dbc7e4d5d2c72373e4cd460a",
-        "scripts/kit/lib/browser.ts": "c69d82e6430f9c1670709b98a22a047c0fde8803951137b64a717c81a2c4a27c",
+        "scripts/kit/lib/browser.ts": "cad7eac3985f2a12a5c4eb43758065f8b29017f9716e6c034d3a82022afd53b3",
         "scripts/kit/lib/game-block.ts": "3b73344582358c7eab1807e606084d78cfe514d93fbd4e62dc435e45c3349b33",
         "scripts/kit/lib/hub-host.ts": "fcc0389f57173ad67f1e272e96999568af428d9998b9a3116f5fe669a769f685",
         "scripts/kit/lib/json-file.ts": "dbf7615f262a4cfaed24444d157ce3a1eb43c38139abf22910b5de63fc39fabc",
         "scripts/kit/lib/kit-manifest.ts": "3dd9b442e44bf0f265bdbd3f78332ebce23cf7a058ef6cfc00bea39d1121916d",
         "scripts/kit/lib/kit-skips.ts": "64c564f5bcd174f422c955b23ba42b51c6c7ea8b0e525f371890f24486aa7b67",
-        "scripts/kit/lib/modules.ts": "8c91053a8fdac500addbfeb7e64a99a55f8ed491afdcff8a118585f1a55a2649",
+        "scripts/kit/lib/modules.ts": "2bfb259d31b5fc468be692355aa716ad17c32da0ef1441d71f95b8e8bde34970",
         "scripts/kit/lib/paths.ts": "eff533c813a780dae8389146613b04f627ffa275d46045c98b30bad5149ab9be",
         "scripts/kit/lib/ports.ts": "33b1e358794f2e50f8119c958e0ed857d0c6dc7fe5d3708d97486cae16affdad",
         "scripts/kit/lib/procs.ts": "092866a7f4f02faf47b7b7c6280ff7152b3ba66fe3c505ec52b36089b0609b10",
@@ -347,7 +347,7 @@
         "scripts/kit/new-game.ts": "fddb49610819eb37c427f21392c237e0fbe24193a07dd5f34174760a555cf2c0",
         "scripts/kit/probe.ts": "58ac750eaf6a564ec1882bd7af9cf6dc861124c96506dc4a4a9aa7d4f4485e61",
         "scripts/kit/sheet.ts": "8c2bc3ecc40be10fb30650eaf7dfdcf28d09f09076ebd4ecfb10d80ffa7ff5d7",
-        "scripts/kit/shots.ts": "376c645e129cb30c5acfdd59606e6768ad6592cfddd068033645cce067b9b14c",
+        "scripts/kit/shots.ts": "0166d6d09c0f6dc98e72bdb7d7e983d5d2416faa66223872e94a5d621bf33cfa",
         "scripts/kit/shots/context.ts": "4566133179ee0982a3cd375ec82bff830c544c9968d25adcb548bbb630eac70b",
         "scripts/kit/shots/scenarios.ts": "2ccf37559ab1034a90934add2d2ac126277732e561417e14d016d9b856242f06",
         "scripts/kit/shots/types.ts": "55a253b877275faa01adfba2ea8087048403da5a460dea3d55f64d5ec2b0bb66",
@@ -390,7 +390,7 @@
       }
     },
     "testing": {
-      "version": "1.17",
+      "version": "1.18",
       "files": {
         "docs/kit/testing.md": "7a9b04261105ab5944e526bd593877c52b37f1d93b0639362e186cdc32818edb",
         "src/kit/testing/calls.ts": "21a8ee3e723c6478ebe71b74174d6149a5232eaff1a1f99155884032215c263f",
@@ -405,7 +405,7 @@
         "src/kit/testing/fake-progress.ts": "1811b4645c8d45edd78542294097a6618c41b66fd69f2683f0eaee83d5eba1e6",
         "src/kit/testing/fake-race.ts": "08baaa869146d38c024e517651155b9027f539f2b8d2890d51aebb64f4329e03",
         "src/kit/testing/fake-room-info.ts": "ae2225dfaf4bf1efead81916807ebdff5128e3681059b3b27564d5e1c06cdedc",
-        "src/kit/testing/fake-room.ts": "6afb598be83a050ce418a5835c5b9b767c3d714c7c005a272e3093cfc51c5940",
+        "src/kit/testing/fake-room.ts": "ea0a50f22f5bd6d55fa4e77d30587459801ca79233e9af5d9a232f5bac2269ab",
         "src/kit/testing/fake-saved.ts": "e399bd3032adeb284d9268a2b0ba42652206d8bbe778c719b21f92ead162c30d",
         "src/kit/testing/fake-social.ts": "d913bfdd433dfe930e65c3dea48c112bdc42058af98e0b8848a090eaa6d63ecc",
         "src/kit/testing/fake-storage.ts": "ecc5a9c9a7375d0ee0683e7a376a9d193484f450649f6d181caec5ca3fc45de3",
@@ -432,12 +432,12 @@
       }
     },
     "ui": {
-      "version": "1.13",
+      "version": "1.14",
       "files": {
         "docs/kit/ui.md": "769f75f5a004861d445a6225649a0ebae215a635d8b06de017dea715a1e12540",
         "src/kit/ui/back-guard.ts": "2137820505dcad6024eeb934194f94343aab63aa360225be39b85bab4d29ce8f",
         "src/kit/ui/controls.ts": "7f58cc6d91c9f240e0ebbb80b9de73f1a7f1f8634bde35ba25c12a99550e374e",
-        "src/kit/ui/css.ts": "f8395da3d483a2a98e1db6c832eeb64d7135b7686ad28a7639216b12fbf77efe",
+        "src/kit/ui/css.ts": "859a870dc06084c318be97fcfa6f5d8310076f335483ef37fd3f25ca83443a99",
         "src/kit/ui/dom.ts": "ad6dcc0f40b6fee09d36c4887c49b209a13265e89cf659fbb8785b668a8dcf7c",
         "src/kit/ui/index.ts": "2f0ce4bc94324a251246c8271f0d48c38f4df406667fafc18950391bc1a9b4ec",
         "src/kit/ui/juice.ts": "d92e0c7997594373854f2802e67e9bd9736cb1706d1bc21ee8e9de88311da3d9",
