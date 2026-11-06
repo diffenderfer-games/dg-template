@@ -1,5 +1,5 @@
 {
-  "kitVersion": "1.38",
+  "kitVersion": "1.39",
   "modules": {
     "agents": {
       "version": "1.1",
@@ -75,7 +75,7 @@
       }
     },
     "core": {
-      "version": "1.33",
+      "version": "1.34",
       "files": {
         "docs/kit/core.md": "3c1f109a3db88d129627f5949002c0d54b4f700ef32b5961c8025f6074ab007d",
         "src/kit/core/activity.ts": "fc20f2708ee132ebbc8a2f7c1aded3108efe1996ee053043b2811c8fc0196564",
@@ -92,7 +92,7 @@
         "src/kit/core/planned.ts": "5c3cf67e0ded0ef92631553875a91cffc4b280b6aaaa565a30ffee3d76c8c1dd",
         "src/kit/core/store.ts": "e30b5673a73c64df1446ed156467f2a20f548c465de86c779e21d9cccd008e20",
         "src/kit/core/strings.ts": "750c03831ff4a746bb80c12f1c899c838ea5203bbf2dfd174c87e6a746a77b40",
-        "src/kit/core/version.ts": "6df67b91cf0674f32b9c896fad38618dba5e65497ab881a55f6553211cefafee",
+        "src/kit/core/version.ts": "3c4fd4054903397e9bfea5f52c563d728f83b1e99f114690efede13042ee4db3",
         "src/kit/core/wording.ts": "0c3cf1eb2062f307a9acd6a7aea90f8f954e72db30978ea192bf1a5ae46997b3",
         "tests/kit/core/activity.test.ts": "395c9759a8ea916d53865a6c528c207feeeaf1e51f5079d8c406f9114f81b614",
         "tests/kit/core/async.test.ts": "a445e5d51617e9cdf7e84403d1b854db96ef63905e9fe030f4a13178e68a339a",
@@ -136,10 +136,10 @@
       }
     },
     "docs": {
-      "version": "1.43",
+      "version": "1.44",
       "files": {
         "docs/getting-started.md": "85e6fd835b0c3d015b2dd93b83736b2b2bc3b408f8e01b8fe354eab23d7e75f6",
-        "docs/kit/CHANGELOG.md": "d4eeb16c9890404e57f6f0445bc3ab0ef15d9beb9fd69639a09f69e13a1a8c51",
+        "docs/kit/CHANGELOG.md": "424e8f232456d61443d078400d5590970513767adf060919d2a4dfb61da46df5",
         "docs/kit/README.md": "d60e24972b96f67c84e2761da7a3427a600a5c6ec0bc6603e39c019b03489327",
         "docs/kit/card-games.md": "f29c0144ab9e7869a14dc5328b2e77cd30f74158122fe3dc3d3fa8912358e3ab",
         "docs/kit/covers.md": "e00687c1e2dbde8cbfb1c6b4fa94bc260e671a4b0d7d0fe71199bd76178eaad7",
@@ -328,7 +328,7 @@
       }
     },
     "scripts": {
-      "version": "1.44",
+      "version": "1.45",
       "files": {
         "scripts/kit/build-live.ts": "99727744429e0a938ec078fcfaa31b56fa16ee07cc9a0075ff45fdc55898dad7",
         "scripts/kit/build-rules.ts": "532e7f69691e24ec758d281f6e3597c5dfa0738a8bf9182ac17bb424e02d67e1",
@@ -346,7 +346,7 @@
         "scripts/kit/lib/json-file.ts": "dbf7615f262a4cfaed24444d157ce3a1eb43c38139abf22910b5de63fc39fabc",
         "scripts/kit/lib/kit-manifest.ts": "3dd9b442e44bf0f265bdbd3f78332ebce23cf7a058ef6cfc00bea39d1121916d",
         "scripts/kit/lib/kit-skips.ts": "64c564f5bcd174f422c955b23ba42b51c6c7ea8b0e525f371890f24486aa7b67",
-        "scripts/kit/lib/modules.ts": "1ce5b390042cf84c159f7acbfe9759932833a52dca736f0d3560608d368c1fad",
+        "scripts/kit/lib/modules.ts": "73e140e64b6927dc8f6feae7210e3607239a857c0f431e05f81f44d06e8447be",
         "scripts/kit/lib/paths.ts": "eff533c813a780dae8389146613b04f627ffa275d46045c98b30bad5149ab9be",
         "scripts/kit/lib/ports.ts": "33b1e358794f2e50f8119c958e0ed857d0c6dc7fe5d3708d97486cae16affdad",
         "scripts/kit/lib/procs.ts": "092866a7f4f02faf47b7b7c6280ff7152b3ba66fe3c505ec52b36089b0609b10",
@@ -399,7 +399,7 @@
       }
     },
     "testing": {
-      "version": "1.19",
+      "version": "1.20",
       "files": {
         "docs/kit/testing.md": "29bb9221e68bfefc67442aef9ed7b2df27455fa71da3c26d812e5d562a53a203",
         "src/kit/testing/calls.ts": "21a8ee3e723c6478ebe71b74174d6149a5232eaff1a1f99155884032215c263f",
@@ -421,7 +421,7 @@
         "src/kit/testing/fake-storage.ts": "ecc5a9c9a7375d0ee0683e7a376a9d193484f450649f6d181caec5ca3fc45de3",
         "src/kit/testing/fake-turns.ts": "36044dae6d81ec8732175494a3a4ae23d84d88d84087752e7636fd2646f5617b",
         "src/kit/testing/index.ts": "b8c8066186b014a1742950150d74ffe01c4309c6f08f71bf82001e660a505577",
-        "src/kit/testing/phases.ts": "721edf5ef6426cc07f75bc7a3917a0eb367221c0d5d8db92d9cb6d2619d7c93a",
+        "src/kit/testing/phases.ts": "c2a2e59458a304f775e939bc5febc208082b7be56825f77e090e8fb843e77779",
         "src/kit/testing/sim.ts": "0777cb76dc7026a0573c1b85b86bc02892e48369b813ad6a9274fc160901a254",
         "tests/kit/testing/contract.test.ts": "7616472b70ab2825e05252adc1084eb4c1a26404fa8e0217d4b840214b971451",
         "tests/kit/testing/fake-hub.test.ts": "8a3cacd56a7e075d02585a332e271376d0ededdb36e528c23a193d215e2ffebf",

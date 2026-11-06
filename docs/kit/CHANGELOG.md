@@ -4,6 +4,13 @@ KIT doc. One entry per kit version; per module inside. A **major** version
 means a hook's signature changed: the entry says how to move a game over.
 `npm run kit:sync` prints the entries newer than a game's `kit.json`.
 
+## 1.39 (2026-11-06)
+
+- **testing 1.20:** the `challenges` hub phase is shipped: the template pins hub client **2.0.0-next.21** (and
+  world next.21), which has `hub.challenges`. A game moves over with `npm install --save-exact
+  @diffenderfer-games/hub@2.0.0-next.21`, `npm run kit:sync`, `npm run hub-doctor`. **core 1.34:** `KIT_VERSION`
+  1.39. **scripts 1.45:** the module versions. **docs 1.44:** this entry.
+
 ## 1.38 (2026-11-06)
 
 - **boot 1.21:** `TurnBoard.id`, the online game's id (`sg_…`), so a board can bind a challenge for another game
