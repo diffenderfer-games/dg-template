@@ -12,7 +12,9 @@
  *   it hasn't seen (the late-load guard);
  * - a race is never paused (the pause button asks "Leave race?"), input waits
  *   for the go, status is reported, and finish/lose are sent once;
- * - a finished game records boards and stats by mode and calls `onResult` for normal games.
+ * - a finished game records boards and stats by mode and calls `onResult` for normal games;
+ * - a challenge for another game (kit/challenges) is played once, from the hub's seed: its end is
+ *   reported to the hub, and the way out is back to the game it was for (Quit asks "Give up?" first).
  */
 import type { RaceStart } from '@diffenderfer-games/hub';
 import type { Activity, PlayMode } from '../core/activity.ts';
@@ -20,6 +22,8 @@ import type { Clock } from '../core/clock.ts';
 import type { HubLike } from '../core/hub-like.ts';
 import { isJson, type JsonObject } from '../core/json.ts';
 import { t } from '../core/strings.ts';
+import { backLabel, type ChallengeHandle } from '../challenges/index.ts';
+import type { KitChallenge } from '../core/planned.ts';
 import type { DailyHandle, DailyStart } from '../daily/index.ts';
 import { RESUME_INPUT, type ControlsHandle } from '../input/controls.ts';
 import { FixedLoop } from '../loop/index.ts';
@@ -40,7 +44,15 @@ import type { OnlineFlow } from './online-flow.ts';
 import type { TurnsFlow } from './turns-flow.ts';
 import type { ContinueRow, SavedHandle } from '../saved/index.ts';
 import { quickMatch } from '../world/index.ts';
-import { loadingScreen, pauseScreen, playScreen, resultScreen, titleScreen, type ScreenActions } from './screens.ts';
+import {
+  challengeBanner,
+  loadingScreen,
+  pauseScreen,
+  playScreen,
+  resultScreen,
+  titleScreen,
+  type ScreenActions,
+} from './screens.ts';
 import type { GameContext, GameDefinition, NewRunOpts, Outcome } from './types.ts';
 
 /** Autosave a normal game to Continue this often while playing. */
@@ -68,6 +80,8 @@ export type SessionParts<P extends JsonObject, R extends JsonObject> = {
   race: RaceHandle<R> | null;
   online: OnlineFlow | null;
   turns: TurnsFlow | null;
+  /** A challenge for another game (null: the hub client has none). */
+  challenge?: ChallengeHandle | null;
   controls: ControlsHandle;
   audio: RunningAudio;
   /** Edge swipes and Back in play (null: the game turned it off). */
@@ -243,6 +257,9 @@ export class Session<P extends JsonObject, R extends JsonObject> {
     this.d.screens.show('play', () => el);
     this.hud = hud;
     if (this.run !== null) this.d.game.screens?.hud?.mount(this.ctx, hud);
+    const challenge = this.mode === 'challenge' ? (this.parts?.challenge?.current ?? null) : null;
+    if (challenge !== null && this.run !== null)
+      el.appendChild(challengeBanner(challenge.fromTitle, this.d.game.challenge?.goal?.(challenge.level, this.run)));
     this.syncChrome();
     // A key still held as play shows (the Esc that resumed) must come up before it pauses.
     this.pauseHeld = this.d.hub.input.value('pause') >= 0.5;
@@ -318,9 +335,13 @@ export class Session<P extends JsonObject, R extends JsonObject> {
     syncMenuButton(this.d.hub, { playing: this.screen === 'play', paused: this.paused });
   }
 
-  /** The result screen: Play again only where it makes sense (normal, daily). */
+  /** The result screen: Play again only where it makes sense (normal, daily); a challenge's goes back. */
   showResult(won: boolean, again: boolean): HTMLElement {
-    const el = this.d.screens.show('result', () => resultScreen(won, this.actions(), { again }));
+    const challenge = this.mode === 'challenge' ? (this.parts?.challenge ?? null) : null;
+    const current = challenge?.current ?? null;
+    const back =
+      challenge === null || current === null ? undefined : { label: backLabel(current), go: () => challenge.goBack() };
+    const el = this.d.screens.show('result', () => resultScreen(won, this.actions(), { again, back }));
     this.guardBack(false);
     this.syncChrome();
     return el;
@@ -385,6 +406,15 @@ export class Session<P extends JsonObject, R extends JsonObject> {
     this.begin('daily', restored ?? this.build('daily', s.seed, { day: s.day }));
   }
 
+  /** A challenge for another game starts (the router, at boot): the game in progress is saved, a daily paused, a race or room left. */
+  startChallenge(c: KitChallenge): void {
+    const hooks = this.d.game.challenge;
+    if (hooks === undefined) return;
+    if (this.mode === 'normal') this.saveForLater(true);
+    this.leaveSpecial();
+    this.begin('challenge', hooks.play(this.ctx, { seed: c.seed, level: c.level, rng: new SeededRng(c.seed) }));
+  }
+
   /** A race's countdown began (or it restarted after a reload, with the stashed game). */
   startRace(r: RaceStart, restored: R | null): void {
     if (this.mode === 'normal') this.saveForLater(true);
@@ -415,6 +445,12 @@ export class Session<P extends JsonObject, R extends JsonObject> {
 
   /** Same kind of game again: a new normal game, or the same day from its seed. */
   restart(): void {
+    const challenge = this.mode === 'challenge' ? (this.parts?.challenge?.current ?? null) : null;
+    if (challenge !== null) {
+      // The same challenge again, from its seed (until it is finished).
+      if (!this.finished) this.startChallenge(challenge);
+      return;
+    }
     if (this.mode === 'daily' && this.day !== null) {
       this.d.resume.clear(); // the day's saved state starts over too
       this.begin('daily', this.build('daily', this.day.seed, { day: this.day.day }));
@@ -439,6 +475,10 @@ export class Session<P extends JsonObject, R extends JsonObject> {
 
   /** Back to the title, from anywhere (an online game the hub runs stops following; the hub keeps it). */
   toTitle(): void {
+    if (this.mode === 'challenge') {
+      this.leaveChallenge();
+      return;
+    }
     this.saveForLater(true);
     this.leaveSpecial();
     this.parts?.turns?.close();
@@ -448,6 +488,25 @@ export class Session<P extends JsonObject, R extends JsonObject> {
     this.parts?.pause.resume();
     this.guardBack(false);
     void this.showTitle();
+  }
+
+  /** Out of a challenge: once it ended, back to the game it was for; before that, "Give up?" (a loss) first. */
+  private leaveChallenge(): void {
+    const handle = this.parts?.challenge ?? null;
+    const current = handle?.current ?? null;
+    if (handle === null || current === null) return;
+    if (this.finished) {
+      handle.goBack();
+      return;
+    }
+    void confirm({
+      title: t('challengeGiveUp'),
+      body: t('challengeGiveUpBody', { from: current.fromTitle }),
+      yes: t('giveUp'),
+      no: t('stay'),
+    }).then((yes) => {
+      if (yes && this.mode === 'challenge') this.finish('lost');
+    });
   }
 
   /**
@@ -590,6 +649,8 @@ export class Session<P extends JsonObject, R extends JsonObject> {
       };
       this.parts?.daily?.complete(meta);
       this.day = null;
+    } else if (mode === 'challenge') {
+      void this.parts?.challenge?.finish(outcome === 'won');
     } else if (mode === 'race' && game.race) {
       const stats = game.race.stats(run);
       if (outcome === 'won') this.parts?.race?.finish(stats);

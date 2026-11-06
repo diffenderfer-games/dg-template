@@ -22,6 +22,7 @@ import { FakeDaily } from './fake-daily.ts';
 import { FakeInput } from './fake-input.ts';
 import { FakeOverlay } from './fake-overlay.ts';
 import { FakeAvatar } from './fake-avatar.ts';
+import { FakeChallenges } from './fake-challenges.ts';
 import { FakeProgress, FakeResume, type FakeUser } from './fake-progress.ts';
 import { FakeRace } from './fake-race.ts';
 import { FakeRooms } from './fake-room.ts';
@@ -29,8 +30,11 @@ import { FakeSaved, savedEntry } from './fake-saved.ts';
 import { FakeMenu, FakeMp, FakeNotify, FakePresence, FakeSocial } from './fake-social.ts';
 import { FakeTurns } from './fake-turns.ts';
 
-/** Which planned hub APIs the fake has (each off by default, like the published client): the world's tables (W2/W3, coming). */
-export type PlannedFlags = { world?: boolean };
+/**
+ * Which planned hub APIs the fake has (each off by default, like the published client): the world's tables
+ * (W2/W3, coming) and challenges for another game (`hub.challenges`, client next.21).
+ */
+export type PlannedFlags = { world?: boolean; challenges?: boolean };
 
 /** How to build a FakeHub. */
 export type FakeHubOptions = {
@@ -71,6 +75,8 @@ export class FakeHub implements HubLike {
   readonly saved: FakeSaved;
   readonly turns: FakeTurns;
   readonly avatar: FakeAvatar;
+  /** `hub.challenges`, with `planned.challenges` (else absent, like a client before next.21). */
+  readonly challenges?: FakeChallenges;
   private readonly statusListeners = new Set<(s: HubStatus) => void>();
 
   constructor(o: FakeHubOptions = {}) {
@@ -134,6 +140,7 @@ export class FakeHub implements HubLike {
     this.notify = new FakeNotify(this.log);
     this.turns = new FakeTurns(this.log);
     this.avatar = new FakeAvatar(this.log, () => this.userId());
+    if (planned.challenges === true) this.challenges = new FakeChallenges(this.log);
     this.saved = new FakeSaved(this.log, {
       slug: this.slug,
       entries: () => this.savedEntries(),

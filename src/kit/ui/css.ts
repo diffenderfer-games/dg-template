@@ -128,6 +128,11 @@ html[data-controls="touch"] #ui[data-screen="play"] .kit-toasts { bottom: auto; 
 /* A screen drawn again while it shows (kit/ui Screens) doesn't replay its entrance: a game's own entrances check it too. */
 .kit-screen[data-redraw="true"].kit-in, .kit-screen[data-redraw="true"] .kit-in { animation: none; }
 .kit-corner { position: absolute; display: flex; align-items: center; gap: 8px; }
+/* A challenge for another game (kit/challenges): a pill under the HUD. */
+.kit-challenge { display: inline-flex; flex-direction: column; align-items: center; gap: 2px; margin-top: 4px; padding: 6px 18px;
+  max-width: calc(100% - 150px); box-sizing: border-box; border-radius: 999px; background: var(--kit-panel);
+  border: 2px solid var(--kit-accent-2); font: 700 15px var(--kit-font); box-shadow: 0 6px 20px rgba(0,0,0,0.35); }
+.kit-challenge small { font-weight: 600; font-size: 13px; color: var(--kit-muted); }
 /* People: faces, names, lobby seats, chat (kit/avatar, kit/online). */
 .kit-face { display: inline-grid; place-items: center; border-radius: 50%; background: var(--kit-accent-2); color: #04202a;
   font-weight: 800; flex: none; font-size: 0.9em; }

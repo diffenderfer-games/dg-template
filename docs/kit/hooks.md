@@ -35,6 +35,7 @@ The kit calls these; you fill them in. `npm run todo` lists the open
 | `stepDt` | Seconds per step (default 1/60) |
 | `daily` | `meta(run, outcome)`, `offline` ([daily.md](daily.md)) |
 | `race` | `stats(run)`, `progress(run)`, `params()` ([race.md](race.md)) |
+| `challenge` | `play(ctx, { seed, level, rng })`, `goal?(level, run)`: a short seeded goal played for another game (Diffenopoly's Game mode); `outcome` ends it ([challenges.md](challenges.md)) |
 | `online` | `onlineGame({...})` from `online.ts` ([online.md](online.md)) |
 | `turns` | `draw(ctx, el, board)`, `create`, `testMove(board)`: the board of an online game the hub runs, from `turns/board.ts` ([turns.md](turns.md)) |
 | `audio` | Sound and music ([audio.md](audio.md)) |
@@ -78,7 +79,7 @@ Every hook gets `ctx` (`GameContext`): `hub`, `slug`, `clock`, `activity`,
 ## What the kit does around them
 
 Pause on hub UI and on the `pause` input; saves and Continue; the late-load
-guard; dailies from the deep link and the hub menu; races; online launches;
+guard; dailies from the deep link and the hub menu; challenges for another game; races; online launches;
 boards and stats with the mode rules; presence; menus with keyboard and
 gamepad navigation; music in a worker; `window.__game`. See
 [boot.md](boot.md) for the order things happen in.

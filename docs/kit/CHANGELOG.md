@@ -4,6 +4,25 @@ KIT doc. One entry per kit version; per module inside. A **major** version
 means a hook's signature changed: the entry says how to move a game over.
 `npm run kit:sync` prints the entries newer than a game's `kit.json`.
 
+## 1.37 (2026-11-06)
+
+- **challenges 1.0 (new), boot 1.20:** a challenge for another game (Diffenopoly's Game mode, hub client
+  next.21's `hub.challenges`). A game adds the optional **`challenge` hook** (`play(ctx, { seed, level, rng })`,
+  `goal?(level, run)`); its `outcome` ends it. A page opened at `?hub_challenge=<id>` is routed first at boot
+  (`installChallenges`, 8 s to find it): an open one plays at once in the new `challenge` mode with a "Challenge
+  for Diffenopoly" banner (`challenge-banner`); the end is reported once (`hub.challenges.complete`, Try again on
+  a failure) and the result screen's **Back to Diffenopoly** (`challenge-back`), Back/Esc, or 5 s go back to
+  `returnTo`. Restart replays it from its seed; Quit asks "Give up the challenge?" (a loss). One already finished
+  goes straight back; one out of time, unreadable, or in a game without the hook says so with the way back.
+  Games without the hook need nothing. **core 1.32:** `PlayMode` gains `challenge` (isolated: no profile, boards,
+  stats or Continue); `planned.ts` has `ChallengesLike`, `KitChallenge`, `KitChallengeCompletion` and
+  `HubLike.challenges` is optional until the pinned client has it; the kit strings `challenge*`, `giveUp`,
+  `tryAgain`; `KIT_VERSION` 1.37. **ui 1.15:** `.kit-challenge` (the banner). **testing 1.19:** `FakeChallenges`
+  (`createFakeHub({ planned: { challenges: true } })`, `open`, `failCompletes`, `hang`) and the `challenges` hub
+  phase (not shipped in the pinned client). **hub-events 1.18:** `challenge.test.ts`. **docs 1.42:** challenges.md,
+  hooks.md, boot.md, core.md, testing.md, README; docs/hub.md and docs/multiplayer.md synced (hub "Challenges").
+  **scripts 1.43:** the module versions and the new module.
+
 ## 1.36 (2026-11-04)
 
 - **online 1.8, boot 1.19:** a guest who just sat down no longer shows as ready (chip "Ready ✓", "You're ready", Play

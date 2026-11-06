@@ -79,7 +79,7 @@ Page code only: it is not in the core index, since Node can't import JSON withou
 
 ### Planned hub APIs
 
-`planned.ts` holds type shims for hub APIs that are not published yet: only the world's tables and in-game presence now (`launch.table`, `hub.mp.quickMatch`, `setRoster`; world W2/W3, coming: the world itself shipped in next.9 without them). `HubLike` lists them as optional, and the kit checks for them (`hub.mp.quickMatch !== undefined`) before use. Their tests wait on a phase in [testing](testing.md#planned-hub-tests).
+`planned.ts` holds type shims for hub APIs that are not published yet, or newer than the pinned client: the world's tables and in-game presence (`launch.table`, `hub.mp.quickMatch`, `setRoster`; world W2/W3, coming: the world itself shipped in next.9 without them), and challenges for another game (`hub.challenges`: `ChallengesLike`, `KitChallenge`; client next.21, [challenges.md](challenges.md)). `PlayMode` has `challenge` too (an isolated activity). `HubLike` lists them as optional, and the kit checks for them (`hub.mp.quickMatch !== undefined`) before use. Their tests wait on a phase in [testing](testing.md#planned-hub-tests).
 
 ## Tests
 

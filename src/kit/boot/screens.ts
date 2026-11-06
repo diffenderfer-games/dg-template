@@ -112,6 +112,16 @@ export function playScreen(a: ScreenActions): { el: HTMLElement; hud: HTMLElemen
   return { el: h('div', {}, corner, hud), hud };
 }
 
+/** The challenge banner over play: "Challenge for Diffenopoly" and the goal. */
+export function challengeBanner(from: string, goal: string | undefined): HTMLElement {
+  return h(
+    'div.kit-challenge.kit-in',
+    { 'data-testid': 'challenge-banner', role: 'status' },
+    h('strong', {}, t('challengeFor', { from })),
+    goal === undefined ? null : h('small', {}, goal),
+  );
+}
+
 /** The pause screen (in a race the pause button asks "Leave race?" instead; see the session). */
 export function pauseScreen(a: ScreenActions): HTMLElement {
   const menu = h(
@@ -125,11 +135,16 @@ export function pauseScreen(a: ScreenActions): HTMLElement {
   return h('div.kit-dim', {}, h('h2.kit-title', {}, t('paused')), menu);
 }
 
-/** The result screen. */
-export function resultScreen(won: boolean, a: ScreenActions, opts: { again: boolean }): HTMLElement {
+/** The result screen. `back`: a challenge's way back to the game it was for, instead of Quit. */
+export function resultScreen(
+  won: boolean,
+  a: ScreenActions,
+  opts: { again: boolean; back?: { label: string; go: () => void } },
+): HTMLElement {
   const menu = h('div.kit-menu', {});
   if (opts.again) menu.appendChild(button(t('playAgain'), a.restart, { cls: 'kit-primary', testid: 'play-again' }));
-  menu.appendChild(button(t('quit'), a.quit, { testid: 'quit' }));
+  if (opts.back === undefined) menu.appendChild(button(t('quit'), a.quit, { testid: 'quit' }));
+  else menu.appendChild(button(opts.back.label, opts.back.go, { cls: 'kit-primary', testid: 'challenge-back' }));
   return h(
     'div.kit-dim',
     {},

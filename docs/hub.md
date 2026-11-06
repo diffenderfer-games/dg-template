@@ -328,7 +328,7 @@ promise.
 | `hub.online` / `hub.isOffline` | Current connection state. |
 | `hub.onStatus(cb)` | Subscribe to status changes; returns an unsubscribe fn. |
 | `hub.menu.setVisible(bool)` / `.show()` / `.hide()` / `.visible` | Show/hide the injected menu button (sync, no promise) — see [Hiding the menu during play](#hiding-the-menu-during-play). |
-| `hub.favorites()` / `hub.setFavorite(slug, on)` | Starred games (`{ games: string[] }`) — see [Favorites](#favorites). |
+| `hub.favorites()` / `hub.setFavorite(slug, on)` / `hub.arrangeFavorites(games)` | Starred games (`{ games: string[] }`, in the player's order) — see [Favorites](#favorites). |
 | `hub.overlay.autoPause({ pause, resume?, resumeOnClose? })` / `.on('open'\|'close', cb)` / `.isOpen` | Pause when hub UI covers the game (sync) — see [Pausing](#pausing-when-hub-ui-opens-huboverlay). |
 | `hub.presence` · `hub.social` · `hub.mp` · `hub.rooms` · `hub.notify` | Presence, friends/player cards, invites + launches + tickets, relay rooms, quiet mode — see [Social & multiplayer](#social--multiplayer) and `docs/multiplayer.md`. |
 | `hub.race` | Races: a single-player game becomes multiplayer — same seed for everyone, the hub's waiting card / HUD / referee / result / history; the game reports `status` and `finish`/`lose`. See `docs/multiplayer.md` §14. |
@@ -492,6 +492,7 @@ client's route table carries them as `offline: 'replay'`.
 | `hub.daily.complete` | `hub.daily` | `completeDailyChallenge` (+ `startDailyChallenge`) | never; a composite op, see below |
 | `grant`, `exchange`, `buy`, `sell` | `hub.grant`, `hub.exchange` | `grantInventoryItems`, `exchangeInventoryItems` | never: every grant counts |
 | `setFavorite` | `hub.favorite` | `setGameFavorite` | last star or unstar of a game wins |
+| `arrangeFavorites` | `hub.favorite-order` | `arrangeFavoriteGames` | the last arrangement wins |
 | `hub.resume.save`, `hub.resume.clear` | `hub.resume` | `saveResumeSlot`, `clearResumeSlot` | one slot per game: the newest save or clear replaces the waiting one |
 | `hub.daily.save`, `hub.daily.discard` | `hub.saved` | `saveSavedGameState`, `discardSavedGame` (+ `startDailyChallenge` for a day started offline) | one per (game, day): the newest save or discard replaces the waiting one |
 
@@ -1174,6 +1175,98 @@ quitting to the title).
 
 ---
 
+## Challenges (one game's short goal, for another game)
+
+A **challenge** is a short seeded goal in one game, played for another game
+that the hub vouches for. Diffenopoly's Game mode is the first user: "Win it" by
+solving Sudoku's Easy grid, pay half rent by beating Rosco's biscuit run. Two
+games take part:
+
+- the **from game** (Diffenopoly) starts the challenge, bound to one moment
+  of its own game, and opens the other game's page;
+- the **target game** (Sudoku) plays it and says won or lost. Kit games do
+  this with the kit's optional `challenge` hook (dg-template
+  `docs/kit/challenges.md`); nothing else is needed.
+
+A challenge lasts **30 minutes** from its start. Guests and accounts alike.
+
+### Starting one (the from game)
+
+```ts
+const { id, seed, url } = await hub.challenges.start({
+  game: 'sudoku',            // where it is played
+  level: 'easy',             // 'easy' | 'medium' | 'hard'
+  bind: { kind: 'turns', id: onlineGame.id, seq, seat, space },
+  // or: { kind: 'solo', saveId, seq, space }
+  // returnTo?: '/diffenopoly/?table=1'   (under this game's own path)
+});
+location.assign(url);        // '/sudoku/?hub_challenge=<id>'
+```
+
+`seq` and `space` are your game's own (the board's move count and the space);
+the hub only carries them back. `returnTo` defaults to your page, and for a
+`turns` bind to the online game itself (`?hub_open=<id>&hub_kind=turns`).
+
+**Bound to an online game the hub runs** (`kind: 'turns'`): the caller must
+hold `seat` in that game of yours, under way (else 409 `bad_bind`). When the
+challenge is finished, **the hub itself sends that seat's move**:
+
+```json
+{ "$hub": { "challenge": { "id": "ch_…", "game": "sudoku", "level": "easy", "seq": 12, "space": 7, "won": true } } }
+```
+
+for a win and for a loss (`won: false`). A player's own move may never carry
+`$hub` anywhere in it (403 `hub_only`), so your rules can trust it without any
+crypto. The hub sends it only while that seat is due (or may act out of turn);
+your rules decide whether it still counts (`seq`, `space` still match) and may
+refuse it (`{ error }`): then nothing changes and the completion says
+`move: 'refused'` ("That win came too late: the board changed").
+
+**Bound to a saved single-player game** (`kind: 'solo'`): finishing it answers
+a signed proof token, also put on the way back
+(`returnTo?hub_challenge_result=<token>`). The client takes it off the address
+(`hub.challenges.returned`); check it with:
+
+```ts
+const checked = await hub.challenges.verify();   // or verify(token)
+if (checked.ok) apply(checked.proof);            // { id, game, level, saveId, seq, space, won, completedAt }
+else console.log(checked.error);                 // 'invalid' | 'mismatch' (another player or game) | 'expired' (after a day)
+```
+
+Check `proof.saveId`, `seq` and `space` against your saved game yourself.
+
+### Playing one (the target game)
+
+The page opened at `/<game>/?hub_challenge=<id>`. The client takes the
+parameter off the address at load (`hub.challenges.requested` is the id,
+synchronously).
+
+```ts
+const challenge = await hub.challenges.active;   // null: not opened for one
+if (challenge?.status === 'open') startChallenge(challenge.seed, challenge.level);
+// … the goal is met or failed:
+const done = await hub.challenges.complete(challenge.id, { won });
+hub.challenges.goBack(done);                      // to done.returnTo
+```
+
+`status` is `open`, `won`/`lost` (already finished, e.g. a reload: finish it
+again, which answers the same, and go back) or `expired`. Show whose it is
+("Challenge for {challenge.fromTitle}"). The first result stands.
+
+### `hub.challenges` API
+
+| call | what |
+| --- | --- |
+| `start({ game, level, bind, returnTo? })` | Start one for this game → `{ id, seed, url, expiresAt }`. |
+| `requested` | The id this page was opened for (`?hub_challenge=`), or null. Synchronous. |
+| `active` | `Promise<Challenge \| null>`: `{ id, game, title, from, fromTitle, level, seed, status, bind, returnTo, createdAt, expiresAt, completedAt }`. Asked once per client. |
+| `complete(id, { won })` | Finish it → `{ status, returnTo, token, move }` (`token` for solo, `move: 'sent' \| 'refused'` for turns). Idempotent. 409 `challenge_expired`. |
+| `goBack(completion)` | `location.assign(completion.returnTo)`. |
+| `returned` | The proof token this page came back with (`?hub_challenge_result=`), or null. |
+| `verify(token?)` | `{ ok: true, proof } \| { ok: false, error }` for this game and player. |
+
+---
+
 ## Saves and stats
 
 - **Saves** are per user, per game, in named **slots** (`'auto'`, `'slot1'`,
@@ -1552,18 +1645,22 @@ if (confirm(`Sell your ${name} for ${price} coins?`)) {
 ## Favorites
 
 Players can **star** games — in a home page card's game sheet (its "⋯" button) or in
-the menu's game list. Starred games sort to the top of both (the home page's other
+the menu's game list. Starred games sort to the top of both, in the order the player arranged them (a new star goes
+last; the home page's **Arrange** button drags the cards on a desktop and opens a reorderable
+list on a phone, and each favorite's "⋯" has *Move to front*). The home page's other
 games follow the player's chosen sort, *Most played*, *Playing now* or *A–Z*,
 remembered on the device with the rest of the filters). Stars are stored per account (guests too; they follow a guest through
 claim/login) and mirrored to `localStorage`, so the list still renders offline.
 
 ```js
-const { games } = await hub.favorites();          // ['tetrablox', 'flux'] — oldest star first
+const { games } = await hub.favorites();          // ['tetrablox', 'flux'] — the player's order
 await hub.setFavorite('tetrablox', false);         // unstar → { games }
+await hub.arrangeFavorites(['flux']);              // flux first; stars left out follow → { games }
 ```
 
 `setFavorite` needs a connection. Only registered games can be starred (404
-otherwise). The menu draws the star buttons, so most games never call these.
+otherwise). `arrangeFavorites` ignores slugs that aren't starred. The menu and the home
+page draw the star and arrange controls, so most games never call these.
 
 ## Labels, ages and the home page
 
@@ -2477,6 +2574,12 @@ All under `/_api`. JSON in, JSON out; errors are `{ "error": "..." }` with a
 - `POST /daily/instances/:id/resume` → the same (auth; a fresh token and the saved state, no window check; 409 `instance_closed`)
 - `POST /games/:slug/daily/:day/complete` `{token,meta?}` → `{ ok, day, count, rank }` (auth; idempotent; finishes the day's saved game; 401 for a discarded one)
 - `GET  /daily` → `{ today, games:[{slug,title,completions,inProgress}], global:[{rank,userId,username,score}] }` — cross-game hub + global standing
+
+### Challenges (see [Challenges](#challenges-one-games-short-goal-for-another-game))
+- `POST /games/:slug/challenges` `{game,level,bind,returnTo?}` → `{ id, seed, url, expiresAt }` (active; `:slug` is the from game; 409 `bad_bind`, 400 for a `returnTo` outside its path)
+- `GET  /challenges/:id` → the challenge (the caller's only; 404 otherwise)
+- `POST /challenges/:id/complete` `{won}` → `{ status, returnTo, token, move }` (active; idempotent; a turns bind sends the seat's `$hub` move; 409 `challenge_expired`)
+- `POST /games/:slug/challenges/verify` `{token}` → `{ ok: true, proof } | { ok: false, error }`
 
 ### Inventory & economy (auth required)
 - `GET  /games/:slug/inventory` → `{ items:[{key,qty}], coins }`

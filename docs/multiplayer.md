@@ -1697,6 +1697,14 @@ seats that **must**. The hub takes a move from any seat in either, and your
 The reference is `apps-test/jumpdemo` ("Jump In", a tiny Uno-like,
 `JUMPDEMO_DIR`).
 
+**The hub's own moves (`$hub`).** A move with a `$hub` key anywhere in it
+comes only from the hub: a player's own move carrying one is refused (403
+`hub_only`) before your rules see it. Today the hub sends one for a finished
+challenge bound to a seat ([docs/hub.md "Challenges"](hub.md#challenges-one-games-short-goal-for-another-game)):
+`{ $hub: { challenge: { id, game, level, seq, space, won } } }` as that seat,
+while it is due (or in `mayAct`). Trust it in `apply`, but check it still fits
+the board (`seq`, `space`) and return `{ error }` when it doesn't.
+
 ### 16.3 The page: `hub.turns`
 
 ```ts

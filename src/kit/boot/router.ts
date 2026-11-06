@@ -6,6 +6,8 @@
  * 1. a race start (the hub calls the race definition itself) and a queued
  *    launch (kit/online) win; a seat held after a reload is reclaimed (6 s);
  *    the lobby URL (`?mp=lobby`) waits 3 s for its launch, then hosts a room;
+ * 1b. a challenge for another game (`?hub_challenge=`): played (or, finished already, back to
+ *    the game it was for); one that can't be played says why and the title shows;
  * 2. a daily (`?daily=` or the menu) that is queued plays now; a `?daily=`
  *    still being answered keeps the loading screen (its 8 s fallback shows the title);
  * 2b. a saved game opened from Your games (`?hub_open=`), or an online game's
@@ -18,6 +20,7 @@ import type { HubRoom } from '@diffenderfer-games/hub';
 import { withTimeout } from '../core/async.ts';
 import type { Clock } from '../core/clock.ts';
 import type { JsonObject } from '../core/json.ts';
+import type { ChallengeHandle } from '../challenges/index.ts';
 import type { DailyHandle } from '../daily/index.ts';
 import type { ResumeSlot } from '../resume/index.ts';
 import type { ProfileStore } from '../save/profile.ts';
@@ -41,11 +44,14 @@ export async function routeOnce<P extends JsonObject, R extends JsonObject>(o: {
   held?: Promise<HubRoom | null> | null;
   saved: SavedHandle;
   turns?: TurnsFlow | null;
+  challenge?: ChallengeHandle | null;
 }): Promise<void> {
   const lookup = o.resume.load();
   await withTimeout(o.clock, o.profile.ready(), o.resume.requested ? 8000 : 2500, undefined);
   if (o.session.mode !== null) return; // a race already started
   if (o.launches?.ready() === true) return; // 1. a launch that waited for mount
+  if (o.challenge?.requested === true && (await o.challenge.route())) return; // 1b. a challenge for another game
+  if (o.session.mode !== null) return;
   if (o.online !== null) {
     // A seat held after a reload (the hub also sends a rejoin launch; whichever comes first wins).
     const back = await withTimeout(o.clock, o.online.match.reclaim(o.held ?? undefined), 6000, false);

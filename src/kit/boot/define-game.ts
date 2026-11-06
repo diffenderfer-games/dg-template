@@ -15,6 +15,7 @@ import type { HubLike } from '../core/hub-like.ts';
 import type { JsonObject } from '../core/json.ts';
 import { localStore, sessionStore, type Store } from '../core/store.ts';
 import { setKitStrings, t } from '../core/strings.ts';
+import { installChallenges } from '../challenges/index.ts';
 import { installDaily } from '../daily/index.ts';
 import { controlHints, defineControls, installMenuNav, installPrompts, setPromptBindings } from '../input/index.ts';
 import { onWindow } from '../core/events.ts';
@@ -219,6 +220,19 @@ export function defineGame<P extends JsonObject, R extends JsonObject>(
           notify: (kind) => toast(kind === 'queued' ? t('dailySavedOffline') : t('dailyOffline')),
           onDeepLinkTimeout: () => void session.showTitle(),
         });
+  // 4b. a challenge for another game (`?hub_challenge=`, read by the hub client at load): routed first, at boot
+  const challenge = installChallenges(hub, {
+    clock,
+    playable: game.challenge !== undefined,
+    onPlay: (c) => session.startChallenge(c),
+    notify: (text, action) =>
+      void toast(text, {
+        kind: 'warn',
+        ...(action === undefined
+          ? {}
+          : { actions: [{ label: action.label, onClick: () => action.onClick(), testid: 'challenge-action' }] }),
+      }),
+  });
   // 5. controls and menu navigation
   const controls = defineControls(hub, game.input, typeof innerWidth === 'number' ? innerWidth : 1280);
   // The pad's act and back buttons (the hub's; an older hub copy has none: A and B).
@@ -327,7 +341,7 @@ export function defineGame<P extends JsonObject, R extends JsonObject>(
   // Edge swipes and Back pause play instead of leaving (on by default but for turn-based and idle games).
   const guardOn = game.backGuard ?? game.resumeOnClose !== true;
   const backGuard = guardOn === false ? null : pageBackGuard(guardOn === true ? {} : guardOn);
-  session.attach({ ctx, pause, daily, race, online, turns, controls, audio, backGuard });
+  session.attach({ ctx, pause, daily, race, online, turns, challenge, controls, audio, backGuard });
   // 10. the touch layout follows the width (rotation, resize)
   offs.push(ctx.onResize((w) => controls.relayout(w)));
 
@@ -337,7 +351,20 @@ export function defineGame<P extends JsonObject, R extends JsonObject>(
     const held = online === null ? null : hub.rooms.reclaim().catch(() => null);
     await game.mount(ctx);
     session.loop.start();
-    await routeOnce({ session, daily, profile, resume, clock, search, launches, online, saved, turns, held });
+    await routeOnce({
+      session,
+      daily,
+      profile,
+      resume,
+      clock,
+      search,
+      launches,
+      online,
+      saved,
+      turns,
+      held,
+      challenge,
+    });
     installGameHook({ game, ctx, session, slug, drivers: o.drivers, audio, online, turns });
     document.body.dataset.ready = '1';
   })();
@@ -345,6 +372,7 @@ export function defineGame<P extends JsonObject, R extends JsonObject>(
     session.loop.stop();
     online?.leave();
     turns?.close();
+    challenge?.dispose();
     audio.dispose();
     pause.dispose();
     profile.dispose();

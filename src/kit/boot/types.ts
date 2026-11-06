@@ -28,6 +28,7 @@ import type { OnlineGame } from '../online/types.ts';
 import type { LiveRoomGame } from '../live/types.ts';
 import type { AvatarHooks } from '../avatar/types.ts';
 import type { BackGuardOptions } from '../ui/back-guard.ts';
+import type { KitChallengeLevel } from '../core/planned.ts';
 
 /** How a game ended. */
 export type Outcome = 'won' | 'lost';
@@ -123,6 +124,29 @@ export type DailyHooks<R extends JsonObject> = {
   meta?(run: R, outcome: Outcome): JsonObject;
   /** Offline: play the day unrecorded (default), or just say it needs a connection. */
   offline?: 'play-unrecorded' | 'toast';
+};
+
+/** How hard a challenge is (the game it is for picks it; Diffenopoly: by the space's price). */
+export type ChallengeLevel = KitChallengeLevel;
+
+/** What `challenge.play` gets: the hub's seed and level, and the ONLY randomness it may use. */
+export type ChallengeOpts = {
+  seed: number;
+  level: ChallengeLevel;
+  /** Seeded from `seed`: the same challenge for the same seed. */
+  rng: SeededRng;
+};
+
+/**
+ * A challenge for another game (docs/kit/challenges.md): a short seeded goal, played when the page
+ * was opened for one (`?hub_challenge=`, Diffenopoly's Game mode). The game's `outcome` ends it
+ * (`'won'` or `'lost'`); the kit reports it to the hub and takes the player back.
+ */
+export type ChallengeHooks<P extends JsonObject, R extends JsonObject> = {
+  /** Start the challenge: a short goal from `seed` and `level` (Easy a minute or two, Hard a few). */
+  play(ctx: GameContext<P, R>, opts: ChallengeOpts): R;
+  /** The goal in a few words, under "Challenge for …" ("Solve this Easy grid"). */
+  goal?(level: ChallengeLevel, run: R): string;
 };
 
 /** Races (needs `game.race`). */
@@ -279,6 +303,8 @@ export type GameDefinition<P extends JsonObject, R extends JsonObject> = {
    * src/game/live/sim.ts; needs `game.multiplayer` and `game.live`. Instead of `online`.
    */
   live?: LiveRoomGame;
+  /** A challenge for another game (Diffenopoly's Game mode): `play({ seed, level })` (docs/kit/challenges.md). */
+  challenge?: ChallengeHooks<P, R>;
   /** Online games, run by the hub from src/game/turns/rules.ts (src/game/turns/board.ts). */
   turns?: TurnsHooks<P, R>;
   avatar?: AvatarHooks;

@@ -5,6 +5,7 @@
  */
 export * from './calls.ts';
 export * from './fake-avatar.ts';
+export * from './fake-challenges.ts';
 export * from './fake-clock.ts';
 export * from './fake-daily.ts';
 export * from './fake-hub.ts';

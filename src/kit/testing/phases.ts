@@ -31,6 +31,7 @@ export const HUB_PHASES = {
     label: 'Adventure Mode (/world, walk to a friend, world.say bubbles for friends; next.10)',
     shipped: true,
   },
+  challenges: { label: 'challenges for another game (hub.challenges; next.21)', shipped: false },
   worldW2: { label: 'world W2 (game tables in the world, launch.table, quickMatch; coming)', shipped: false },
   worldW3: { label: 'world W3 (People panel, reactions, setRoster; coming)', shipped: false },
   worldW4: {

@@ -16,7 +16,7 @@
  * Saved games (`hub.saved`, the daily's days in progress), online games over
  * days (`hub.turns`) and avatars (`hub.avatar`, `hub.userId()`) are live in
  * the pinned client, so they are required here. Only the world's extras
- * (planned.ts) stay optional.
+ * (planned.ts) stay optional, and so do challenges (`hub.challenges`, newer than the pinned client).
  */
 import type {
   AvatarModule,
@@ -41,7 +41,7 @@ import type {
   UiStack,
   Hub,
 } from '@diffenderfer-games/hub';
-import type { PlannedMpExtras } from './planned.ts';
+import type { ChallengesLike, PlannedMpExtras } from './planned.ts';
 
 /** The overlay stack: pause when hub UI covers the game (multiplayer.md §4). */
 export type OverlayLike = Pick<UiStack, 'autoPause' | 'on' | 'isOpen' | 'canPause'>;
@@ -195,6 +195,8 @@ export type HubLike = {
   readonly turns: TurnsLike;
   /** Players' avatars and the designer. */
   readonly avatar: AvatarLike;
+  /** Challenges for another game (hub client next.21+; absent on older clients: the kit then plays none). */
+  readonly challenges?: ChallengesLike;
   me: Hub['me'];
   /** Your user id, or null while nobody is signed in (synchronous; follows sign-in and the new-guest account). */
   userId: Hub['userId'];

@@ -27,7 +27,7 @@ const game: GameDefinition<Profile, Run> = {
 defineGame(hub, game); // call once, synchronously, at load; no top-level await before it
 ```
 
-Optional hooks: `result` (numbers for boards and stats), `onResult` (normal games only), `snap`, `autoplay`, `solve`, `testHook`, `settingsRows`, `screens` (`title`, `hud`, `pause`, `result`), `daily`, `race`, `online`, `avatar`, `audio`, `strings`, `resumeOnClose`, `stepDt`, `slug`.
+Optional hooks: `result` (numbers for boards and stats), `onResult` (normal games only), `snap`, `autoplay`, `solve`, `testHook`, `settingsRows`, `screens` (`title`, `hud`, `pause`, `result`), `daily`, `challenge`, `race`, `online`, `avatar`, `audio`, `strings`, `resumeOnClose`, `stepDt`, `slug`.
 
 ## The context
 
@@ -50,6 +50,7 @@ Every hook gets a `GameContext` (built once in `context.ts`):
 5. Online (only if `game.online`): `OnlineFlow` plus `installLaunches` (`onLaunch` and `onJoinInfo`).
 6. Race (only if `game.race`): `installRace` defines `hub.race` now; the hub calls `start` at the countdown.
 7. Daily (only if `game.daily`): `installDaily` reads `?daily=` and the hub's daily events.
+7b. Challenges (when the hub client has `hub.challenges`): `installChallenges` ([challenges.md](challenges.md)).
 8. Controls (`defineControls`), menu navigation (`installMenuNav`), page listeners (`visibilitychange`, `pagehide`, `hub:reset`, `hub:menu-visibility`, `hub:offline`, `hub:online`, `hub:offline-failed`, `hub:rt-failed`, `hub:rt-ready`) and the control hints (`html[data-controls]`).
 9. Sound (`createKitAudio`) and the buzz (`makeBuzz`), then `buildContext` and `session.attach`.
 10. Async boot: show the loading screen, `await game.mount(ctx)`, start the loop, `routeOnce`, install `window.__game`, set `body[data-ready="1"]`.
@@ -61,6 +62,7 @@ Every hook gets a `GameContext` (built once in `context.ts`):
 `routeOnce` picks the first screen, in this order. The profile gets 2.5 s to load first (8 s when `?hub_resume=1`).
 
 1. A race that already started, or a queued launch (invite, join, watch, rejoin) wins. A seat held after a reload is reclaimed (6 s). `?mp=lobby` waits 3 s for its launch, then hosts a room.
+1b. A challenge for another game (`?hub_challenge=`) plays now (8 s to find it); one that can't be played says why and the title shows ([challenges.md](challenges.md)).
 2. A game opened from "Your games" (`hub.saved`).
 3. A daily that is queued plays now. A `?daily=` still being answered keeps the loading screen (its 8 s fallback shows the title).
 4. `?hub_resume=1` with a saved game goes straight back in, no prompt.
@@ -68,9 +70,10 @@ Every hook gets a `GameContext` (built once in `context.ts`):
 
 ## Session and modes
 
-`PlayMode` is `normal`, `daily`, `race` or `online`. The session owns the game in progress, so the guards hold everywhere:
+`PlayMode` is `normal`, `daily`, `race`, `online` or `challenge`. The session owns the game in progress, so the guards hold everywhere:
 
-- A daily, race or online game sets the activity: no profile, board or Continue writes from it.
+- A daily, race, online game or challenge sets the activity: no profile, board or Continue writes from it.
+- A challenge for another game shows its banner, Restart replays it from its seed, Quit asks "Give up?" (a loss), and its result screen goes back to the game it was for ([challenges.md](challenges.md)).
 - A normal game autosaves to Continue every 5 s (`AUTOSAVE_MS`), on pause, on hide and on the title. It is cleared when it ends. A new game never replaces a saved one it has not seen (the late-load guard offers it in a toast).
 - Every way out of a daily other than a win calls `daily.leave()`. Leaving a race or a room leaves it with the hub.
 - A race is never paused. The pause button asks "Leave race?". Input waits for the go (`race.locked()`), status is reported each step, `finish` or `lose` is sent once.
@@ -104,7 +107,7 @@ Every hook gets a `GameContext` (built once in `context.ts`):
 | `defineGame(hub, game, options?)` | Wire the game; returns `{ session, booted, dispose }`. |
 | `GameDefinition`, `GameContext`, `SessionApi` | The hooks, the context, the session as hooks see it. |
 | `NewRunOpts`, `ResultNumbers`, `Outcome`, `TitleInfo`, `ResultInfo` | Hook argument and result types. |
-| `HudHooks`, `ScreenHooks`, `DailyHooks`, `RaceHooks` | Optional decorations and mode hooks. |
+| `HudHooks`, `ScreenHooks`, `DailyHooks`, `ChallengeHooks`, `RaceHooks` | Optional decorations and mode hooks. |
 | `Session`, `AUTOSAVE_MS` | The play session and its autosave period. |
 | `routeOnce` | The first-screen router (called by `defineGame`). |
 | `titleScreen`, `loadingScreen`, `playScreen`, `pauseScreen`, `resultScreen`, `howToModal` | The standard screens. |
@@ -116,7 +119,7 @@ Every hook gets a `GameContext` (built once in `context.ts`):
 
 There is no `tests/kit/boot/`. Boot is covered through the game's own hooks:
 
-- `tests/hub-events/*.test.ts` (FakeHub, one file per hub event group: `daily`, `input`, `online`, `overlay`, `planned`, `progress`, `race`, `resume`).
+- `tests/hub-events/*.test.ts` (FakeHub, one file per hub event group: `challenge`, `daily`, `input`, `online`, `overlay`, `planned`, `progress`, `race`, `resume`).
 - `tests/hub/kit/*.test.ts` (real hub, browser): `pause`, `progress`, `race`, `online`, `saved`, `avatar`, `planned` (skipped), `fake-parity`.
 - `tests/game/*.test.ts` for the game's own rules.
 
