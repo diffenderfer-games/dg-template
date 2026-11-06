@@ -31,7 +31,9 @@ rematches for everyone, guests and the your-turn buzz.
      setup: ({ seats, rng }) => ({ left: 15 + rng.int(6), turn: 0, seats, winner: null }),
      view: (s) => ({ left: s.left, turn: s.turn, winner: s.winner }),
      toAct: (s) => (s.winner === null ? [s.turn] : []),
-     apply(s, seat, move) { /* return { state } or { error: 'not_your_turn' } */ },
+     apply(s, seat, move) {
+       /* return { state } or { error: 'not_your_turn' } */
+     },
      outcome: (s) => (s.winner === null ? null : { winners: [s.winner] }),
      progress: (s) => ({ label: `${s.left} left in the pile`, fraction: 1 - s.left / 20 }),
      autoMove: (s) => ({ take: s.left % 4 === 0 ? 1 : s.left % 4 }),
@@ -53,7 +55,7 @@ rematches for everyone, guests and the your-turn buzz.
 2. **The board**, `src/game/turns/board.ts`: the definition's `turns` hook.
    `draw(ctx, el, board)` draws the view into `el` (DOM) and offers the moves;
    the kit calls it on every change. `board` is `{ view, summary, mySeat,
-   canMove, move(move) }`; `canMove` is true on the player's turn and for a
+canMove, move(move) }`; `canMove` is true on the player's turn and for a
    move out of turn (`mayActNow`). Validate `view` (it is untrusted JSON).
    `create` (optional) is what every new game is made with (`mode`,
    `options`, `seats`, `deadline`). `testMove(board)` gives a legal move for
@@ -128,7 +130,10 @@ The kit draws everything around the board (`kit/turns/screen.ts`, on the
   lobby the seat opens up again (an invite is withdrawn); in a started game the
   computer plays the seat (`game.kick`, hub client next.12+; Remove shows only
   when the client has it). A board that draws its own seats offers the same
-  through `board.remove(seat)` (null when this player may not).
+  through `board.remove(seat)` (null when this player may not). `board.id` is
+  the online game's id: a challenge for another game played from this board
+  binds to it (`hub.challenges.start({ …, bind: { kind: 'turns', id: board.id, seq, seat: board.mySeat, space } })`,
+  docs/hub.md "Challenges").
 - **The buttons**: Start (`turns-start`, the creator in the lobby), Remind
   them (`turns-nudge`, once a day in the UI), **Let the computer play for
   Ann** (`turns-hand-over`, shown only while the client's
@@ -212,18 +217,18 @@ checkTurnRules(rules, { seats: [2, 3], games: 30, plant: (s, seat, marker) => hi
 
 ## API
 
-| Name | What it is |
-|---|---|
-| `TurnRules<State, Move, View, Event?, Options?>` | the hub's rules contract: `version`, `setup`, `view`, `toAct`, `apply`, `eventView?`, `outcome`, `progress`, `autoMove?`, `mayAct?`, `autoReact?`, `migrate?` |
-| `TurnRng`, `TurnRngState`, `TurnSetupContext`, `TurnApplyResult`, `TurnOutcome`, `TurnProgress` | its parts |
-| `defineTurnRules(rules)` | types a rules object |
-| `checkTurnRules(rules, options?)` | the hub's conformance check; throws on a problem |
-| `createTurnRng(state)`, `turnRngStateFromSeed(seed)` | the hub's seeded RNG, to replay a game in tests |
-| `turnStatus(game)`, `seatLine(seat)` | the status line and one seat's line |
-| `handOverNames(summary, mySeat)`, `nextCheckIn(summary, now)` | whom the hand-over names; when to ask again |
-| `TurnsHooks`, `TurnBoard` | the definition's `turns` hook and what `draw` gets (kit/boot types) |
-| `createTurns(hub)` | the adapter: `link`, `open(id)`, `join(id)`, `create(opts)` |
-| `nudger(game, now)` | a "remind them" function, once per 24 h |
+| Name                                                                                            | What it is                                                                                                                                                    |
+| ----------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `TurnRules<State, Move, View, Event?, Options?>`                                                | the hub's rules contract: `version`, `setup`, `view`, `toAct`, `apply`, `eventView?`, `outcome`, `progress`, `autoMove?`, `mayAct?`, `autoReact?`, `migrate?` |
+| `TurnRng`, `TurnRngState`, `TurnSetupContext`, `TurnApplyResult`, `TurnOutcome`, `TurnProgress` | its parts                                                                                                                                                     |
+| `defineTurnRules(rules)`                                                                        | types a rules object                                                                                                                                          |
+| `checkTurnRules(rules, options?)`                                                               | the hub's conformance check; throws on a problem                                                                                                              |
+| `createTurnRng(state)`, `turnRngStateFromSeed(seed)`                                            | the hub's seeded RNG, to replay a game in tests                                                                                                               |
+| `turnStatus(game)`, `seatLine(seat)`                                                            | the status line and one seat's line                                                                                                                           |
+| `handOverNames(summary, mySeat)`, `nextCheckIn(summary, now)`                                   | whom the hand-over names; when to ask again                                                                                                                   |
+| `TurnsHooks`, `TurnBoard`                                                                       | the definition's `turns` hook and what `draw` gets (kit/boot types)                                                                                           |
+| `createTurns(hub)`                                                                              | the adapter: `link`, `open(id)`, `join(id)`, `create(opts)`                                                                                                   |
+| `nudger(game, now)`                                                                             | a "remind them" function, once per 24 h                                                                                                                       |
 
 ## Tests
 

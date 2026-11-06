@@ -58,6 +58,24 @@ A game without the hook still opens: the player is told the game doesn't have ch
 - A reload after the end reports the same result again (the hub keeps the first) and goes straight back.
 - One out of time (30 minutes) or unreadable: a note with the way back; the title shows.
 
+## Starting one from an online game (the game it is for)
+
+A game that starts challenges in other games (Diffenopoly) binds a turns challenge to the board the kit
+hands its `turns.draw`: `board.id` is the online game's id and `board.mySeat` the seat.
+
+```ts
+const { url } = await hub.challenges.start({
+  game: 'sudoku',
+  level: 'easy',
+  bind: { kind: 'turns', id: board.id, seq, seat: board.mySeat ?? 0, space },
+});
+location.assign(url);
+```
+
+`hub.challenges.start` is in hub client next.21: check for it (`typeof hub.challenges?.start === 'function'`)
+until the game pins that client. A solo game binds `{ kind: 'solo', saveId, seq, space }` with an id it keeps in
+its own game state (the kit has none to give).
+
 ## Rules it enforces
 
 - A challenge is played once from the hub's seed; its result never reaches the profile, the boards or

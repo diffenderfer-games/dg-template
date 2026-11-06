@@ -325,6 +325,7 @@ export class TurnsFlow {
   /** The board the game draws (and its test move reads). */
   private board(game: TurnGameLike): TurnBoard {
     return {
+      id: game.id,
       view: game.view,
       summary: game.summary,
       mySeat: game.mySeat,

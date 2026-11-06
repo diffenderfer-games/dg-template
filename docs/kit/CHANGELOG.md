@@ -4,6 +4,14 @@ KIT doc. One entry per kit version; per module inside. A **major** version
 means a hook's signature changed: the entry says how to move a game over.
 `npm run kit:sync` prints the entries newer than a game's `kit.json`.
 
+## 1.38 (2026-11-06)
+
+- **boot 1.21:** `TurnBoard.id`, the online game's id (`sg_…`), so a board can bind a challenge for another game
+  to its table (`hub.challenges.start({ …, bind: { kind: 'turns', id: board.id, seq, seat: board.mySeat, space } })`).
+  **turns 1.10:** turns.md says so. **challenges 1.1:** challenges.md, starting one from an online game.
+  **hub-events 1.19:** `turns.test.ts` checks `board.id`. **core 1.33:** `KIT_VERSION` 1.38. **scripts 1.44:** the
+  module versions. **docs 1.43:** this entry.
+
 ## 1.37 (2026-11-06)
 
 - **challenges 1.0 (new), boot 1.20:** a challenge for another game (Diffenopoly's Game mode, hub client

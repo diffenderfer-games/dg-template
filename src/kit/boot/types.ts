@@ -161,6 +161,8 @@ export type RaceHooks<R extends JsonObject> = {
 
 /** What the game's board gets in an online game the hub runs (kit/turns). */
 export type TurnBoard = {
+  /** The online game's id (`sg_…`): what a challenge for another game binds to (`bind: { kind: 'turns', id: board.id, … }`). */
+  readonly id: string;
   /** The game as this player sees it: the rules' `view(state, mySeat)` (null in the lobby). Validate it. */
   readonly view: GamePayload | null;
   readonly summary: TurnSummary;

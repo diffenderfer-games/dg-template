@@ -224,6 +224,7 @@ describeIf(HAS.turns, 'this game declares no game.turns')('a board with its own 
     if (!game) throw new Error('not opened');
     game.turnChanged({ isMine: true });
     await g.settle();
+    expect(seen.board?.id, 'the board names its online game (a challenge binds to it)').toBe('tg-r');
     const remove = seen.board?.remove ?? null;
     expect(remove).not.toBe(null);
     remove?.(1);
