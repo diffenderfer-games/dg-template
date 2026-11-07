@@ -47,7 +47,7 @@ then say why in `docs/plans/<slug>.md`.
 - **Juicy, well-animated UI**: every screen, modal and button moves ([docs/kit/look.md](docs/kit/look.md), [docs/kit/polish.md](docs/kit/polish.md)).
 - **Particle effects** in the game itself.
 - **Well-spaced UI**: nothing overlaps or feels squished, at every screen size ([docs/kit/polish.md](docs/kit/polish.md), [docs/kit/layout.md](docs/kit/layout.md)).
-- **Haptic feedback** where it matters, never overused ([docs/kit/haptics.md](docs/kit/haptics.md)).
+- **Haptic feedback** where it matters, never overused: every button already buzzes, and `ctx.haptic()` / `ctx.haptic(true)` are the small and big buzzes; read [haptics.md § Settled](docs/kit/haptics.md#settled-read-this-before-touching-haptics) before touching it.
 - **Sound effects and custom music** ([docs/kit/audio.md](docs/kit/audio.md)).
 - **Heavy work off the main thread**: anything intense runs in a Web Worker. Whatever can be done at build
   time is done there (generated data, baked art, precomputed tables), never on the player's device. Work in the

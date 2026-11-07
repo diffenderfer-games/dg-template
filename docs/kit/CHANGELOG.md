@@ -4,11 +4,20 @@ KIT doc. One entry per kit version; per module inside. A **major** version
 means a hook's signature changed: the entry says how to move a game over.
 `npm run kit:sync` prints the entries newer than a game's `kit.json`.
 
+## 1.40 (2026-11-07)
+
+- **haptics 1.2 (docs):** haptics.md opens with **Settled**: every game button already buzzes (menuTaps on `#ui`); the
+  two buzzes are `ctx.haptic()` (small) and `ctx.haptic(true)` (big), never `navigator.vibrate` or a game
+  haptics file; the off switch is the kit's Settings → Vibration; the hub has no button-buzz API (only the turns
+  "your turn" buzz); "I feel nothing" is checked on the device (vibration-test.html, phone settings) before any
+  code change. No code changed. **core 1.35:** `KIT_VERSION` 1.40. **scripts 1.46:** the module versions. **docs 1.45:** the kit map's haptics line, this
+  entry.
+
 ## 1.39 (2026-11-06)
 
 - **testing 1.20:** the `challenges` hub phase is shipped: the template pins hub client **2.0.0-next.21** (and
   world next.21), which has `hub.challenges`. A game moves over with `npm install --save-exact
-  @diffenderfer-games/hub@2.0.0-next.21`, `npm run kit:sync`, `npm run hub-doctor`. **core 1.34:** `KIT_VERSION`
+@diffenderfer-games/hub@2.0.0-next.21`, `npm run kit:sync`, `npm run hub-doctor`. **core 1.34:** `KIT_VERSION`
   1.39. **scripts 1.45:** the module versions. **docs 1.44:** this entry.
 
 ## 1.38 (2026-11-06)

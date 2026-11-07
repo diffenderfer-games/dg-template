@@ -4,6 +4,20 @@ Source: `src/kit/haptics/` (KIT: copy byte-identical; change it in the template 
 
 `kit/haptics` gives a short buzz on Android (`navigator.vibrate`) and on iOS 18 and later (clicking the label of a hidden `<input type="checkbox" switch>`, which taps). The buzz follows the player's Vibration setting and is throttled. A game touches it by calling `ctx.haptic()` on events worth feeling: a pickup, a hit, a win.
 
+## Settled: read this before touching haptics
+
+The owner has asked for these more than once; they are done. Don't re-investigate them, and don't build them again.
+
+- **Every game button buzzes, already.** The kit does it for every button, `[role=button]` and `[data-nav]` press under `#ui` (`menuTaps`, wired by `defineGame`): kit screens, the game's own menus, cards, HUD buttons and modals (they mount in `#ui` too). A game adds nothing per button.
+- **There are exactly two buzzes: small and big.** `ctx.haptic()` is the small tick (button presses, picking up a piece); `ctx.haptic(true)` is the big one (a hit, a capture, a win). Use only these. Never call `navigator.vibrate`, never write a game `haptics.ts` or `button-buzz.ts`.
+- **What a game does call itself:** taps the kit can't see as buttons, such as a pick on a canvas board, call `ctx.haptic()`. Gameplay controls inside `#ui` that buzz their own way opt out of the menu tick with `data-no-haptic`.
+- **The off switch is the kit's Settings → Vibration row** (`settings.data.haptics`, on by default). It silences every buzz, the menu ticks included. Never add a second setting for it.
+- **The hub has no haptics API for games to call.** Its only buzz is the online "your turn" buzz (`hub.turns.setYourTurnBuzz`, the player's own switch in the hub's Settings), which turn games get by themselves. Don't go looking for a hub button-buzz function.
+- **"I feel nothing on my phone" is a device question first, not a wiring one.** The wiring is covered by the tests below. Check the device with `scripts/kit/vibration-test.html` (open it from `npm run dev` on the phone, over the LAN) and its settings before changing code:
+  - Android: the sound mode isn't Silent or Mute, Settings → Sound & vibration → Vibration & haptics → Touch feedback is on, Battery Saver isn't cutting vibration, and the browser supports `navigator.vibrate`.
+  - iOS: version 18 or later, Settings → Sounds & Haptics → System Haptics on, and Settings → Accessibility → Touch → Vibration on. If tapping a real switch on the test page gives no tick, no web page can buzz that phone.
+  - Only if the test page shows the device buzzes but the kit's pulses don't (4 ms and 12 ms are short for some Android motors) change the pulse lengths, here in the template, for every game.
+
 ## What the game does
 
 ```ts
@@ -29,7 +43,7 @@ That is all most games need. To check a real device, run `npm run dev` and open 
 
 - Vibration is a player setting, on by default: [settings-ui.md](settings-ui.md).
 - Buzz only from a real gesture to be reliable on iOS (the browser decides); the kit does not fake gestures.
-- No hub rule applies; the hub has no haptics API.
+- No hub rule applies. The hub has no haptics API for games; its own online "your turn" buzz is separate (see Settled, above).
 
 ## Options / API
 
@@ -50,4 +64,4 @@ That is all most games need. To check a real device, run `npm run dev` and open 
 
 ## Hub API used:
 
-- None.
+- None. (The hub's "your turn" buzz for turn games is the hub's own: `hub.turns.setYourTurnBuzz`.)
