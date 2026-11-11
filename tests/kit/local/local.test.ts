@@ -74,6 +74,18 @@ describe('mountViewLayers', () => {
     expect(second?.style.getPropertyValue('--seat-color')).toBe('#0f0');
     expect(layers.standings?.style.top).toBe('304px');
     expect(layers.view(3)).toBeNull();
+    expect(second?.dataset['prompts']).toBeUndefined();
+    const devices = mountViewLayers(
+      parent,
+      [
+        { color: '#f00', device: 'pad', padStyle: 'ps' },
+        { color: '#0f0', device: 'keyboard' },
+      ],
+      { width: 800, height: 600 },
+    );
+    expect([devices.view(0)?.dataset['prompts'], devices.view(0)?.dataset['padStyle']]).toEqual(['pad', 'ps']);
+    expect([devices.view(1)?.dataset['prompts'], devices.view(1)?.dataset['padStyle']]).toEqual(['keys', undefined]);
+    devices.remove();
     layers.layout(604, 804);
     expect(layers.view(1)?.style.left).toBe('304px');
     layers.remove();

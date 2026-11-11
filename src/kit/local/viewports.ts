@@ -78,14 +78,24 @@ export type ViewLayers = {
   remove(): void;
 };
 
+/** What a view layer needs to know of its player. */
+export type ViewPlayer = {
+  readonly color: string;
+  /** Their device, so the view's button chips show its glyphs (default: the page's). */
+  readonly device?: 'pad' | 'keyboard';
+  readonly padStyle?: 'xbox' | 'ps' | null;
+};
+
 /**
  * Mount the view layers into `parent` (the HUD's element, or the kit's UI root). Each layer is
  * `position: absolute` at its rect, with `--view-w` / `--view-h` and `data-seat`, coloured
- * `--seat-color` (the divider edge), so a game's HUD CSS sizes from its view, not the window.
+ * `--seat-color` (the divider edge), so a game's HUD CSS sizes from its view, not the window. A
+ * player's `device` sets the layer's `data-prompts` / `data-pad-style`, so the button chips in
+ * their view show their own controller's (or the keyboard's) glyphs, whoever pressed last.
  */
 export function mountViewLayers(
   parent: HTMLElement,
-  players: readonly { readonly color: string }[],
+  players: readonly ViewPlayer[],
   size: { width: number; height: number },
 ): ViewLayers {
   const root = h('div.kit-views', { 'data-testid': 'local-views', 'data-players': players.length });
@@ -93,6 +103,8 @@ export function mountViewLayers(
     h('div.kit-view', {
       'data-seat': seat,
       'data-testid': `local-view-${seat}`,
+      'data-prompts': player.device === undefined ? undefined : player.device === 'pad' ? 'pad' : 'keys',
+      'data-pad-style': player.device === 'pad' ? (player.padStyle ?? 'xbox') : undefined,
       style: { '--seat-color': player.color },
     }),
   );

@@ -107,7 +107,9 @@ For raw WebGL (`gl.viewport`), pass the canvas's device pixel ratio as the third
 `mountViewLayers(parent, players, size)` puts one DOM layer over each view and
 returns its `view(seat)` element. Mount each player's HUD inside its layer.
 Each layer carries `data-seat`, `--view-w` / `--view-h` and the
-`--seat-color` edge, plus `standings` for three players. Call `layout(w, h)`
+`--seat-color` edge, plus `standings` for three players. Pass `ctx.local.players` (each has `device`
+and `padStyle`) and each layer's button chips show that player's own controller or keyboard glyphs,
+whoever pressed last. Call `layout(w, h)`
 on resize. Size the HUD from `--view-w`, not the window.
 
 ## Tests

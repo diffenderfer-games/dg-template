@@ -4,6 +4,13 @@ KIT doc. One entry per kit version; per module inside. A **major** version
 means a hook's signature changed: the entry says how to move a game over.
 `npm run kit:sync` prints the entries newer than a game's `kit.json`.
 
+## 1.42 (2026-11-11)
+
+- **local 1.1:** each player's view shows their own device's button chips: `mountViewLayers` takes each
+  player's `device` / `padStyle` (pass `ctx.local.players`) and sets `data-prompts` / `data-pad-style` on
+  its layer; the join sheet's empty seats show the last-used pad's style. **ui 1.17:** the per-view chip rules.
+  **core 1.37:** `KIT_VERSION` 1.42. **scripts 1.49:** the module versions. **docs 1.48:** this entry, local.md.
+
 ## 1.41 (2026-11-10)
 
 - **docs 1.47:** look.md and polish.md point new games at the themed UIs (Dome Dash, Crossfire, Rift Racers)

@@ -37,7 +37,13 @@ function slotEl(deps: JoinDeps, index: number, player: LocalPlayer | undefined, 
       : h('span.kit-join-disc', { 'aria-hidden': 'true' }, String(index + 1));
   const device =
     player === undefined
-      ? h('span.kit-join-device', {}, padGlyph(PAD_BUTTON.A, false), t('localJoinPress'))
+      ? h(
+          'span.kit-join-device',
+          {},
+          // (an empty seat doesn't know its pad yet: the style of the pad used last)
+          padGlyph(PAD_BUTTON.A, document.documentElement.dataset['padStyle'] === 'ps'),
+          t('localJoinPress'),
+        )
       : h(
           'span.kit-join-device',
           {},
