@@ -77,11 +77,13 @@ html[data-pad-style="ps"] .kit-g-face.kit-g-x { color: var(--kit-glyph-square, #
 html[data-pad-style="ps"] .kit-g-face.kit-g-y { color: var(--kit-glyph-triangle, #4fe0bd); }
 /* Local play (kit/local): each player's view shows their own device's chips, whoever pressed last
    (mountViewLayers sets data-prompts and data-pad-style on each .kit-view; these outrank html's). */
-html .kit-view[data-prompts] .kit-glyph, html .kit-view[data-prompts] .kit-glyph > span { display: none; }
+/* (specificity: html[data-prompts][data-pad-style] .kit-glyph > .kit-g-ps is 0,4,1, so the views' rules are
+   0,4,2 and up: span:is(...) on the hide, span. on each show, the shows last) */
+html .kit-view[data-prompts] .kit-glyph, html .kit-view[data-prompts] .kit-glyph > span:is(.kit-g-keys, .kit-g-xbox, .kit-g-ps) { display: none; }
 html .kit-view[data-prompts="keys"] .kit-glyph[data-keys="yes"], html .kit-view[data-prompts="pad"] .kit-glyph[data-pad="yes"],
-html .kit-view[data-prompts="keys"] .kit-glyph > .kit-g-keys,
-html .kit-view[data-prompts="pad"]:not([data-pad-style="ps"]) .kit-glyph > .kit-g-xbox,
-html .kit-view[data-prompts="pad"][data-pad-style="ps"] .kit-glyph > .kit-g-ps { display: inline-flex; }
+html .kit-view[data-prompts="keys"] .kit-glyph > span.kit-g-keys,
+html .kit-view[data-prompts="pad"]:not([data-pad-style="ps"]) .kit-glyph > span.kit-g-xbox,
+html .kit-view[data-prompts="pad"][data-pad-style="ps"] .kit-glyph > span.kit-g-ps { display: inline-flex; }
 html .kit-view[data-pad-style="xbox"] .kit-g-face.kit-g-a { color: var(--kit-glyph-a, #6fd34f); }
 html .kit-view[data-pad-style="xbox"] .kit-g-face.kit-g-b { color: var(--kit-glyph-b, #ff5a50); }
 html .kit-view[data-pad-style="xbox"] .kit-g-face.kit-g-x { color: var(--kit-glyph-x, #4ea4ff); }
