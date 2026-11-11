@@ -24,8 +24,9 @@ through it before you send screenshots or a link for review
   the wordmark in the same game. A gradient that clashes reads as a mistake.
 - Gameplay gets particles too: movement trails, pickups, jumps, wins. Bright
   and fun, in the game's palette.
-- References: the motion in `../bubblepop` and `../weston`; the buttons and
-  modals in `../lingo` and `../weston` (their UI, not their covers).
+- References: the themed UIs of `../dome-dash`, `../crossfire` and
+  `../rift-racers` ([look.md §10](look.md#10-references)); not the older
+  stock-look games (Lingo, Weston).
 
 ## 2. Spacing and alignment
 

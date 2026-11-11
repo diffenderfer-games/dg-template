@@ -53,7 +53,7 @@ export const KIT_MODULES: Record<string, KitModuleDef> = {
   local: srcModule('local', '1.0'),
   'hub-events': { version: '1.20', paths: ['tests/hub-events'] },
   'hub-suites': { version: '1.15', paths: ['tests/hub/_kit.ts', 'tests/hub/kit'] },
-  scripts: { version: '1.47', paths: ['scripts/kit', 'tests/scripts'] },
+  scripts: { version: '1.48', paths: ['scripts/kit', 'tests/scripts'] },
   ci: { version: '1.0', paths: ['.github/workflows/deploy.yml'] },
   agents: { version: '1.1', paths: ['.claude/agents'] },
   config: {
@@ -68,7 +68,7 @@ export const KIT_MODULES: Record<string, KitModuleDef> = {
     ],
   },
   docs: {
-    version: '1.46',
+    version: '1.47',
     paths: [
       'docs/kit/look.md',
       'docs/kit/look',

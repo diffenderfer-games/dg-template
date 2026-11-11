@@ -6,6 +6,10 @@ means a hook's signature changed: the entry says how to move a game over.
 
 ## 1.41 (2026-11-10)
 
+- **docs 1.47:** look.md and polish.md point new games at the themed UIs (Dome Dash, Crossfire, Rift Racers)
+  as the bar, and say each game gets its own named look; Lingo and Weston are the older stock look, not a reference. **scripts 1.48:** the
+  module versions.
+
 - **local 1.0 (new):** 2–4 players on one screen, on the hub client's seats (`hub.input.seats`, hub client
   **2.0.0-next.22**; none on older clients). `defineGame({ local: { max, min, keyboard, colors } })`;
   `ctx.session.newLocal()` opens the join sheet (A/Start or Enter joins, B/Backspace leaves, Start begins) and

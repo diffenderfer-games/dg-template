@@ -8,10 +8,13 @@ loading states) are [polish.md](polish.md); covers are [covers.md](covers.md).
 
 ## 1. The standard
 
-- **One UI style, each game's own colours.** Every game uses the structure and
-  motion in this doc: glass panels, icon buttons with sub-lines, 3D gradient
-  headings, things that drop, bob, slide and pop in. The palette is chosen per
-  game (§2) and must not copy another game's.
+- **Each game its own named look.** The UI is made of something from the
+  game's world (Dome Dash's carnival marquee, Crossfire's forge plates, Rift
+  Racers' cockpit console): its own materials, shapes, ornaments and palette,
+  never a reskin of another game ([the `improve-ux` skill](../../.claude/skills/improve-ux/SKILL.md)).
+  This doc is the structure and motion under every look: panels, icon buttons
+  with sub-lines, 3D headings, things that drop, bob, slide and pop in. The
+  palette is chosen per game (§2) and must not copy another game's.
 - **Motion is required.** A screen that appears all at once, buttons that sit
   still, or a reward with no feedback is unfinished.
 - **Every screen is dressed:** title, HUD, pause, result, how to play,
@@ -249,16 +252,17 @@ Rules:
 
 Code:
 
-- Games the owner points to: the buttons and modals of `../lingo` and
-  `../weston`, the motion of `../bubblepop` and `../weston`.
-- UI style and motion: `../weston/src/ui/ui.css` (title, menu panel, buttons,
-  cards, keyframes), `../weston/src/ui/screens.ts` (title and pause builders).
-- The style applied to the kit's screens: `../wordle/src/game/theme.css`,
-  `../wordle/src/game/screens/style.ts`, `title.ts`, `pause.ts`, `result.ts`,
-  `hud.ts`; canvas pieces, sparks, confetti, flying rewards and attract mode in
-  `../wordle/src/game/render/scene.ts`.
+- The bar, games with their own themed UI: `../dome-dash` (carnival marquee:
+  `src/game/theme.css`, `screens/style.ts`, `screens/dress.ts` for the kit's
+  modals, `title.ts`, `hud.ts`), `../crossfire` (the Forge: `src/game/theme.css`,
+  `screens/style.ts`), `../rift-racers` (cockpit console: `src/game/theme.css`,
+  `ui/screens.css`, `ui/console.css`). Study them for the craft, never copy
+  their look. The `improve-ux` skill says how.
+- Older games (Lingo, Weston, Wordle, Tetrablox) wear the shared stock look:
+  not a reference for a new game.
 
-Screenshots (`docs/kit/look/`, phone 390 × 844 unless noted):
+Screenshots of the structure and motion (`docs/kit/look/`, an older stock
+palette; phone 390 × 844 unless noted):
 
 | File                                            | Shows                                                                                       |
 | ----------------------------------------------- | ------------------------------------------------------------------------------------------- |
