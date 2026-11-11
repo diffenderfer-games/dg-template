@@ -41,31 +41,32 @@ import type {
   UiStack,
   Hub,
 } from '@diffenderfer-games/hub';
-import type { ChallengesLike, PlannedMpExtras } from './planned.ts';
+import type { ChallengesLike, PlannedMpExtras, PlannedSeatsExtras } from './planned.ts';
 
 /** The overlay stack: pause when hub UI covers the game (multiplayer.md §4). */
 export type OverlayLike = Pick<UiStack, 'autoPause' | 'on' | 'isOpen' | 'canPause'>;
 
-/** The input system (hub.md "Input system"). */
-export type InputLike = Pick<
-  InputSystem,
-  | 'define'
-  | 'enable'
-  | 'disable'
-  | 'isEnabled'
-  | 'vector'
-  | 'down'
-  | 'pressed'
-  | 'value'
-  | 'on'
-  | 'source'
-  | 'touchDevice'
-  | 'autoNavigate'
-  | 'clearAutoNavigate'
-  | 'setInsets'
-  | 'padButtons'
-  | 'setPadButtons'
->;
+/** The input system (hub.md "Input system"), plus local seats where the client has them (planned.ts). */
+export type InputLike = PlannedSeatsExtras &
+  Pick<
+    InputSystem,
+    | 'define'
+    | 'enable'
+    | 'disable'
+    | 'isEnabled'
+    | 'vector'
+    | 'down'
+    | 'pressed'
+    | 'value'
+    | 'on'
+    | 'source'
+    | 'touchDevice'
+    | 'autoNavigate'
+    | 'clearAutoNavigate'
+    | 'setInsets'
+    | 'padButtons'
+    | 'setPadButtons'
+  >;
 
 /** Show/hide the hub's menu button. */
 export type MenuLike = Pick<Hub['menu'], 'setVisible' | 'visible'>;

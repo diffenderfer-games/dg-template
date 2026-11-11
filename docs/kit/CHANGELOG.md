@@ -4,6 +4,21 @@ KIT doc. One entry per kit version; per module inside. A **major** version
 means a hook's signature changed: the entry says how to move a game over.
 `npm run kit:sync` prints the entries newer than a game's `kit.json`.
 
+## 1.41 (2026-11-10)
+
+- **local 1.0 (new):** 2–4 players on one screen, on the hub client's seats (`hub.input.seats`, hub client
+  **2.0.0-next.22**; none on older clients). `defineGame({ local: { max, min, keyboard, colors } })`;
+  `ctx.session.newLocal()` opens the join sheet (A/Start or Enter joins, B/Backspace leaves, Start begins) and
+  starts a `mode: 'local'` game with `opts.local.players`; `ctx.local` gives each player's inputs
+  (`input(seat)`), `connected(seat)` and `haptic(seat)` (their pad's rumble). `viewLayout` / `glViewport` /
+  `mountViewLayers` split the screen (2 side by side or stacked; 3 and 4 in a 2×2 grid, the 4th cell the
+  standings). **boot 1.22:** the session's `newLocal`; a local game records nothing, Play again keeps the
+  players, any other mode or the title gives the seats back, an unplugged pad pauses and says who.
+  **core 1.36:** `PlayMode` `'local'` (isolated); the seats shims in planned.ts; `KIT_VERSION` 1.41.
+  **ui 1.16:** the join sheet's and views' CSS. **testing 1.21:** `FakeSeats` and `FakeInput.enableSeats()`.
+  **hub-events 1.20:** `local.test.ts`. **scripts 1.47:** the module versions. **docs 1.46:** local.md, the kit
+  map, this entry.
+
 ## 1.40 (2026-11-07)
 
 - **haptics 1.2 (docs):** haptics.md opens with **Settled**: every game button already buzzes (menuTaps on `#ui`); the

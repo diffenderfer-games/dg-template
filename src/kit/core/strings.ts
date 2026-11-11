@@ -200,6 +200,15 @@ export const KIT_STRINGS = {
   musicVolume: 'Music volume',
   sfxVolume: 'Sound volume',
   loading: 'Loading…',
+  localWho: "Who's playing?",
+  localJoinHint: 'Press A on your controller to join (or Enter on the keyboard). {n} or more can play.',
+  localJoinPress: 'Press to join',
+  localController: 'Controller',
+  localKeyboard: 'Keyboard',
+  localPlayer: 'Player {n}',
+  localStart: 'Start',
+  localLost: '{name}: plug your controller back in',
+  localFound: '{name} is back',
 } as const;
 
 /** A kit string key. */

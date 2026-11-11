@@ -220,6 +220,27 @@ html[data-controls="touch"] #ui[data-screen="play"] .kit-toasts { bottom: auto; 
 .kit-chat-form { display: flex; gap: 6px; }
 .kit-chat-input { flex: 1; min-width: 0; min-height: 44px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.2);
   background: rgba(0,0,0,0.3); color: var(--kit-fg); padding: 0 10px; font: 16px var(--kit-font); }
+/* Local play (kit/local): the join sheet and the split-screen views. The game themes both. */
+.kit-modal[data-testid="join-sheet"] .kit-modal-sheet { width: min(640px, 100%); }
+.kit-join { display: flex; flex-direction: column; gap: 14px; }
+.kit-join-hint { margin: 0; color: var(--kit-muted); }
+.kit-join-slots { display: grid; grid-template-columns: repeat(auto-fit, minmax(128px, 1fr)); gap: 10px; }
+.kit-join-slot { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 14px 10px; min-height: 150px;
+  border-radius: var(--kit-radius); border: 2px dashed rgba(255,255,255,0.18); text-align: center; box-sizing: border-box; }
+.kit-join-slot[data-state="joined"] { border: 2px solid var(--seat-color); background: color-mix(in srgb, var(--seat-color) 16%, transparent);
+  animation: kit-pop 220ms ease-out; }
+.kit-join-disc { width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center; font: 800 24px var(--kit-font);
+  background: rgba(255,255,255,0.08); color: var(--kit-muted); }
+.kit-join-slot[data-state="joined"] .kit-join-disc { background: var(--seat-color); color: #10131a; }
+.kit-join-name { font-weight: 700; }
+.kit-join-slot[data-state="open"] .kit-join-name { color: var(--kit-muted); }
+.kit-join-device { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; color: var(--kit-muted); }
+.kit-join-buttons { display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap; }
+.kit-views { position: absolute; inset: 0; pointer-events: none; }
+.kit-view { position: absolute; box-sizing: border-box; overflow: hidden; pointer-events: none; box-shadow: inset 0 0 0 2px var(--seat-color, transparent); }
+.kit-view > * { pointer-events: auto; }
+.kit-view-standings { box-shadow: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; }
+@media (prefers-reduced-motion: reduce) { .kit-join-slot[data-state="joined"] { animation: none; } }
 @keyframes kit-pop { from { opacity: 0; transform: translateY(6px) scale(0.98); } to { opacity: 1; transform: none; } }
 @keyframes kit-banner { 0% { opacity: 0; transform: translate(-50%, -50%) scale(0.6); } 20% { opacity: 1; transform: translate(-50%, -50%) scale(1.06); }
   80% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, -60%) scale(1); } }

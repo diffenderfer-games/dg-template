@@ -17,6 +17,7 @@ export * from './fake-race.ts';
 export * from './fake-room-info.ts';
 export * from './fake-room.ts';
 export * from './fake-saved.ts';
+export * from './fake-seats.ts';
 export * from './fake-social.ts';
 export * from './fake-storage.ts';
 export * from './fake-turns.ts';

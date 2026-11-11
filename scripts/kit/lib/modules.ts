@@ -23,8 +23,8 @@ function srcModule(name: string, version = '1.0'): KitModuleDef {
 
 /** Every module. */
 export const KIT_MODULES: Record<string, KitModuleDef> = {
-  core: srcModule('core', '1.35'),
-  testing: srcModule('testing', '1.20'),
+  core: srcModule('core', '1.36'),
+  testing: srcModule('testing', '1.21'),
   rng: srcModule('rng'),
   'daily-puzzle': srcModule('daily-puzzle', '1.1'),
   save: srcModule('save', '1.1'),
@@ -34,11 +34,11 @@ export const KIT_MODULES: Record<string, KitModuleDef> = {
   pause: srcModule('pause', '1.3'),
   scores: srcModule('scores', '1.1'),
   'test-hook': srcModule('test-hook', '1.2'),
-  boot: srcModule('boot', '1.21'),
+  boot: srcModule('boot', '1.22'),
   input: srcModule('input', '1.6'),
   layout: srcModule('layout', '1.3'),
   loop: srcModule('loop', '1.1'),
-  ui: srcModule('ui', '1.15'),
+  ui: srcModule('ui', '1.16'),
   'settings-ui': srcModule('settings-ui', '1.1'),
   race: srcModule('race', '1.2'),
   online: srcModule('online', '1.8'),
@@ -50,9 +50,10 @@ export const KIT_MODULES: Record<string, KitModuleDef> = {
   live: srcModule('live', '1.4'),
   avatar: srcModule('avatar', '1.6'),
   world: srcModule('world', '1.7'),
-  'hub-events': { version: '1.19', paths: ['tests/hub-events'] },
+  local: srcModule('local', '1.0'),
+  'hub-events': { version: '1.20', paths: ['tests/hub-events'] },
   'hub-suites': { version: '1.15', paths: ['tests/hub/_kit.ts', 'tests/hub/kit'] },
-  scripts: { version: '1.46', paths: ['scripts/kit', 'tests/scripts'] },
+  scripts: { version: '1.47', paths: ['scripts/kit', 'tests/scripts'] },
   ci: { version: '1.0', paths: ['.github/workflows/deploy.yml'] },
   agents: { version: '1.1', paths: ['.claude/agents'] },
   config: {
@@ -67,7 +68,7 @@ export const KIT_MODULES: Record<string, KitModuleDef> = {
     ],
   },
   docs: {
-    version: '1.45',
+    version: '1.46',
     paths: [
       'docs/kit/look.md',
       'docs/kit/look',

@@ -15,6 +15,7 @@ import type { SettingsStore } from '../save/settings.ts';
 import type { KitSettings } from '../settings-ui/index.ts';
 import { toast } from '../ui/toast.ts';
 import type { KitAudio } from '../audio/types.ts';
+import { NO_LOCAL, type LocalPlay } from '../local/play.ts';
 import type { Session } from './session.ts';
 import type { GameContext, SessionApi } from './types.ts';
 
@@ -33,6 +34,7 @@ export type ContextParts<P extends JsonObject, R extends JsonObject> = {
   uiRoot: HTMLElement;
   audio?: KitAudio;
   haptic?: (strong?: boolean) => void;
+  local?: LocalPlay;
 };
 
 const SILENT: KitAudio = { play: () => undefined, startMusic: () => undefined, stopMusic: () => undefined };
@@ -58,6 +60,7 @@ function sessionApi<P extends JsonObject, R extends JsonObject>(s: Session<P, R>
     pause: () => s.pause(),
     resume: () => s.resume(),
     finish: (o) => s.finish(o),
+    newLocal: () => s.newLocal(),
   };
 }
 
@@ -94,5 +97,6 @@ export function buildContext<P extends JsonObject, R extends JsonObject>(p: Cont
     onResize: (cb) => onResize(cb, { clock: p.clock }),
     toast: (text) => void toast(text),
     haptic: p.haptic ?? (() => undefined),
+    local: p.local ?? NO_LOCAL,
   };
 }

@@ -34,6 +34,7 @@ import { mountUi } from '../ui/root.ts';
 import { Screens } from '../ui/screens.ts';
 import { toast } from '../ui/toast.ts';
 import { buildContext } from './context.ts';
+import { LocalController } from '../local/play.ts';
 import { MANIFEST } from '../core/manifest.ts';
 import { OnlineFlow } from './online-flow.ts';
 import { TurnsFlow } from './turns-flow.ts';
@@ -322,6 +323,18 @@ export function defineGame<P extends JsonObject, R extends JsonObject>(
   const haptic = makeBuzz({ enabled: () => settings.data.haptics, now: () => clock.now() });
   // Menu buttons tick (a game's gameplay controls in #ui opt out with `data-no-haptic`).
   const offMenuTaps = menuTaps(ui.root, haptic);
+  // 9b. local play (kit/local): 2–4 players on this screen; an unplugged pad pauses and says who
+  const local = new LocalController({
+    hub,
+    spec: game.local,
+    name: (n) => t('localPlayer', { n }),
+    vibration: () => settings.data.haptics,
+    onLost: (player) => {
+      if (session.canPause() && !session.paused) session.pause();
+      void toast(t('localLost', { name: player.name }), { kind: 'warn' });
+    },
+    onFound: (player) => void toast(t('localFound', { name: player.name })),
+  });
 
   const ctx = buildContext({
     hub,
@@ -337,11 +350,12 @@ export function defineGame<P extends JsonObject, R extends JsonObject>(
     uiRoot: ui.root,
     audio,
     haptic,
+    local,
   });
   // Edge swipes and Back pause play instead of leaving (on by default but for turn-based and idle games).
   const guardOn = game.backGuard ?? game.resumeOnClose !== true;
   const backGuard = guardOn === false ? null : pageBackGuard(guardOn === true ? {} : guardOn);
-  session.attach({ ctx, pause, daily, race, online, turns, challenge, controls, audio, backGuard });
+  session.attach({ ctx, pause, daily, race, online, turns, challenge, controls, audio, backGuard, local });
   // 10. the touch layout follows the width (rotation, resize)
   offs.push(ctx.onResize((w) => controls.relayout(w)));
 
@@ -373,6 +387,7 @@ export function defineGame<P extends JsonObject, R extends JsonObject>(
     online?.leave();
     turns?.close();
     challenge?.dispose();
+    local.close();
     audio.dispose();
     pause.dispose();
     profile.dispose();

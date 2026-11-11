@@ -20,6 +20,8 @@ import type {
 import { Emitter } from '../core/emitter.ts';
 import type { InputLike } from '../core/hub-like.ts';
 import type { CallLog } from './calls.ts';
+import type { KitLocalSeats, KitSeatsOptions } from '../core/planned.ts';
+import { FakeSeats } from './fake-seats.ts';
 
 type Insets = { top?: number; right?: number; bottom?: number; left?: number };
 
@@ -31,6 +33,8 @@ export class FakeInput implements InputLike {
   padButtons: PadButtons = { menu: [8], act: [0], back: [1] };
   insets: Insets = {};
   touchDevice = false;
+  /** The client's local seats: absent (an older client) until `enableSeats()`. */
+  seats?: (options?: KitSeatsOptions) => KitLocalSeats;
   private readonly enabled = new Set<string>();
   private readonly events = new Emitter<{ [K in keyof InputEvents]: InputEvents[K] }>();
   private readonly held = new Set<string>();
@@ -44,6 +48,20 @@ export class FakeInput implements InputLike {
 
   constructor(log: CallLog) {
     this.log = log;
+  }
+
+  /** Give this input system the client's `seats()` (docs/hub.md "Local seats"); returns the seats it opens. */
+  enableSeats(): FakeSeats {
+    const fake = new FakeSeats();
+    const log = this.log;
+    // A method, as on the client: called detached from the input system, it fails as the real one does.
+    this.seats = function seats(this: unknown, options?: KitSeatsOptions): KitLocalSeats {
+      if (!(this instanceof FakeInput))
+        throw new TypeError("Cannot read properties of undefined (reading 'localSeats')");
+      log.record('input.seats', options ?? {});
+      return fake.reopen(options);
+    };
+    return fake;
   }
 
   define(config: InputConfig): void {

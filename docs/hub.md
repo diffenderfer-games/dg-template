@@ -967,6 +967,51 @@ reposition). Overrides save to `localStorage` (offline-safe) and sync to the
 cloud for signed-in players (reserved `__controls` save). They're merged over
 the game's defaults at init — your `define()` stays the source of truth.
 
+### Local seats (2–4 players on one screen)
+
+For local multiplayer, open **seats** after `define`. Each player plays on
+their own gamepad, and one of them may play on the keyboard. Each seat reads
+the inputs you declared, but **from its own device only**:
+
+```js
+const seats = hub.input.seats({ max: 4 });   // keyboard: false keeps the keyboard out
+seats.on('change', (list) => drawJoinSlots(list));
+seats.joining(true);                         // an unclaimed pad's A/Start, or Enter/Space, takes the next seat
+// ...when everyone's in:
+seats.joining(false);
+// each frame:
+for (let i = 0; i < seats.count; i += 1) {
+  const steer = seats.seat(i).vector('move');
+  if (seats.seat(i).down('boost')) boost(i);
+}
+seats.rumble(1, { strength: 0.7, ms: 150 }); // that player's pad only
+seats.close();                               // back to one player
+```
+
+- **Joining:** a button or key already held when `joining(true)` is called
+  doesn't claim a seat. That covers the press that opened your join screen.
+  The press that claims a seat isn't that seat's first `down` or `padDown`.
+- **Seat order:** seats are numbered in the order players joined, with no
+  gaps. `remove(i)` gives a seat up and moves the seats after it down one.
+  `seat(i).padDown(button)` reads a seat's own raw buttons, for a join screen
+  where B leaves.
+- **No device switching between seats:** every seat's device always counts,
+  so a keyboard player and pad players play at once. Mouse and touch don't
+  drive seats, and the on-screen controls hide while seats are open.
+- **The page-wide readers** (`hub.input.value`, `down`, …) keep merging every
+  device. A `pause` input therefore works from any pad, and everyone shares
+  one pause.
+- **Unplugged pads:** while joining, an unplugged pad's seat is dropped
+  (`leave`). During play the seat is kept and reads 0, and `lost` fires:
+  pause and ask for it back. When the pad is plugged in again, or a pad with
+  the same id presses a button, `found` fires.
+- **The hub's buttons:** Select on any pad still opens the hub menu, and every
+  seat reads 0 while it is open. In the world's box, only the **first seat's**
+  pad can hold B to leave (`hub.input.hubPads`). If the first seat is the
+  keyboard, no pad can; Esc still leaves.
+- Seats are new in `2.0.0-next.22`: check `typeof hub.input.seats ===
+  'function'` before offering local play.
+
 > The canonical client is the npm package `@diffenderfer-games/hub`
 > (`packages/public/hub`); the hub's build bundles it to `/_hub/hub.js`, and
 > `/_hub/sdk.js` is a back-compat shim re-exporting it.

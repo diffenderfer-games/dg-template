@@ -75,3 +75,61 @@ export type ChallengesLike = {
   /** `location.assign(to.returnTo)`. */
   goBack(to: { readonly returnTo: string }): void;
 };
+
+/**
+ * Local seats (hub client 2.0.0-next.22, docs/hub.md "Local seats"): 2–4 players on one screen, each on
+ * their own gamepad (or one on the keyboard). The kit reads `hub.input.seats` only when the client has it
+ * (kit/local); the client's own `LocalSeats` is a superset of {@link KitLocalSeats}.
+ */
+export type KitSeatsOptions = {
+  max?: number;
+  keyboard?: boolean;
+  joinButtons?: readonly number[];
+  joinKeys?: readonly string[];
+};
+
+/** The device a seat plays on. */
+export type KitSeatDevice =
+  { readonly kind: 'pad'; readonly pad: number; readonly id: string } | { readonly kind: 'keyboard' };
+
+/** One local player's seat. */
+export type KitSeat = { readonly index: number; readonly device: KitSeatDevice; readonly connected: boolean };
+
+/** One seat's inputs, from its own device only. */
+export type KitSeatInput = {
+  value(name: string): number;
+  down(name: string): boolean;
+  up(name: string): boolean;
+  pressed(name: string): boolean;
+  axis(name: string, positive?: string): number;
+  vector(name: string): { x: number; y: number; mag: number };
+  padDown(button: number): boolean;
+};
+
+/** What `seats.on` delivers. */
+export type KitSeatEvents = {
+  join: KitSeat;
+  leave: KitSeat;
+  lost: KitSeat;
+  found: KitSeat;
+  change: readonly KitSeat[];
+};
+
+/** `hub.input.seats()`, the part the kit uses. */
+export type KitLocalSeats = {
+  readonly list: readonly KitSeat[];
+  readonly count: number;
+  readonly max: number;
+  readonly isJoining: boolean;
+  joining(isOn: boolean): void;
+  seat(index: number): KitSeatInput;
+  remove(index: number): void;
+  rumble(index: number, effect?: { strength?: number; weak?: number; ms?: number }): void;
+  on<Name extends keyof KitSeatEvents>(event: Name, listener: (payload: KitSeatEvents[Name]) => void): () => void;
+  close(): void;
+};
+
+/** What `hub.input` gains for local play (absent on older clients: the kit then offers none). */
+export type PlannedSeatsExtras = {
+  seats?: (options?: KitSeatsOptions) => KitLocalSeats;
+};

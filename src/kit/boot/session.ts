@@ -14,7 +14,8 @@
  *   for the go, status is reported, and finish/lose are sent once;
  * - a finished game records boards and stats by mode and calls `onResult` for normal games;
  * - a challenge for another game (kit/challenges) is played once, from the hub's seed: its end is
- *   reported to the hub, and the way out is back to the game it was for (Quit asks "Give up?" first).
+ *   reported to the hub, and the way out is back to the game it was for (Quit asks "Give up?" first);
+ * - a local game (kit/local) records nothing; its seats are released whenever another mode starts.
  */
 import type { RaceStart } from '@diffenderfer-games/hub';
 import type { Activity, PlayMode } from '../core/activity.ts';
@@ -44,6 +45,8 @@ import type { OnlineFlow } from './online-flow.ts';
 import type { TurnsFlow } from './turns-flow.ts';
 import type { ContinueRow, SavedHandle } from '../saved/index.ts';
 import { quickMatch } from '../world/index.ts';
+import { openJoin } from '../local/join.ts';
+import type { LocalController } from '../local/play.ts';
 import {
   challengeBanner,
   loadingScreen,
@@ -86,6 +89,8 @@ export type SessionParts<P extends JsonObject, R extends JsonObject> = {
   audio: RunningAudio;
   /** Edge swipes and Back in play (null: the game turned it off). */
   backGuard: BackGuard | null;
+  /** Local play's seats (kit/local). */
+  local: LocalController;
 };
 
 /** The play session. */
@@ -350,6 +355,7 @@ export class Session<P extends JsonObject, R extends JsonObject> {
   // ---- starting ---------------------------------------------------------------
 
   private begin(mode: PlayMode, run: R): void {
+    if (mode !== 'local') this.parts?.local.close();
     this.run = run;
     this.mode = mode;
     this.finished = false;
@@ -383,6 +389,22 @@ export class Session<P extends JsonObject, R extends JsonObject> {
       );
     }
     this.begin('normal', this.build('normal', randomSeed()));
+  }
+
+  /**
+   * Local play: the join sheet, then a game for the players who joined. The game in progress is saved
+   * and a daily paused first, as for a challenge.
+   */
+  async newLocal(): Promise<boolean> {
+    const local = this.parts?.local ?? null;
+    if (local === null || !local.available) return false;
+    const go = await openJoin({ hub: this.d.hub, local });
+    if (!go) return false;
+    if (this.mode === 'normal') this.saveForLater(true);
+    this.leaveSpecial();
+    const players = local.start();
+    this.begin('local', this.build('local', randomSeed(), { local: { players } }));
+    return true;
   }
 
   /** Continue the saved game. */
@@ -456,6 +478,12 @@ export class Session<P extends JsonObject, R extends JsonObject> {
       this.begin('daily', this.build('daily', this.day.seed, { day: this.day.day }));
       return;
     }
+    const local = this.parts?.local ?? null;
+    if (this.mode === 'local' && local !== null && local.active) {
+      // The same players again.
+      this.begin('local', this.build('local', randomSeed(), { local: { players: local.players } }));
+      return;
+    }
     void this.newGame();
   }
 
@@ -470,6 +498,8 @@ export class Session<P extends JsonObject, R extends JsonObject> {
       this.parts.race.leave();
     } else if (this.mode === 'online') {
       this.parts?.online?.leave();
+    } else if (this.mode === 'local') {
+      this.parts?.local.close();
     }
   }
 
@@ -657,7 +687,7 @@ export class Session<P extends JsonObject, R extends JsonObject> {
       else this.parts?.race?.lose(stats);
     }
     this.parts?.audio.play(outcome === 'won' ? 'win' : 'lose');
-    const el = this.showResult(outcome === 'won', mode === 'normal' || mode === 'daily');
+    const el = this.showResult(outcome === 'won', mode === 'normal' || mode === 'daily' || mode === 'local');
     game.screens?.result?.(this.ctx, el, { run, outcome, mode });
   }
 }

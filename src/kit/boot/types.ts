@@ -29,6 +29,7 @@ import type { LiveRoomGame } from '../live/types.ts';
 import type { AvatarHooks } from '../avatar/types.ts';
 import type { BackGuardOptions } from '../ui/back-guard.ts';
 import type { KitChallengeLevel } from '../core/planned.ts';
+import type { LocalPlay, LocalSpec, LocalStart } from '../local/play.ts';
 
 /** How a game ended. */
 export type Outcome = 'won' | 'lost';
@@ -43,6 +44,8 @@ export type NewRunOpts = {
   day?: string;
   /** A race: the creator's params (`game.race.params`). */
   params?: RaceParams;
+  /** A local game (`mode: 'local'`): the players at this screen, in seat order (docs/kit/local.md). */
+  local?: LocalStart;
 };
 
 /** The numbers a finished game reports (kit/scores applies the mode rules). */
@@ -74,6 +77,11 @@ export type SessionApi<R> = {
   resume(): void;
   /** End the game now with this outcome (test drivers, a "give up"). */
   finish(outcome: Outcome): void;
+  /**
+   * Local play (needs `local` in the definition and `ctx.local.available`): the join sheet, then a new
+   * game with `mode: 'local'` and `opts.local`. Resolves false when the players backed out.
+   */
+  newLocal(): Promise<boolean>;
 };
 
 /** Everything a hook can use. */
@@ -102,6 +110,8 @@ export type GameContext<P extends JsonObject, R extends JsonObject> = {
   toast(text: string): void;
   /** A buzz (if the player allows vibration). */
   haptic(strong?: boolean): void;
+  /** 2–4 players on this screen (docs/kit/local.md): their inputs, colours and rumble. */
+  readonly local: LocalPlay;
 };
 
 /** The game's HUD, drawn over play (DOM). */
@@ -311,4 +321,9 @@ export type GameDefinition<P extends JsonObject, R extends JsonObject> = {
   turns?: TurnsHooks<P, R>;
   avatar?: AvatarHooks;
   audio?: AudioHooks;
+  /**
+   * Local play: 2–4 players on this screen, each on their own gamepad (or one on the keyboard;
+   * docs/kit/local.md). Start it with `ctx.session.newLocal()`; read each player with `ctx.local.input(seat)`.
+   */
+  local?: LocalSpec;
 };
