@@ -4,6 +4,15 @@ KIT doc. One entry per kit version; per module inside. A **major** version
 means a hook's signature changed: the entry says how to move a game over.
 `npm run kit:sync` prints the entries newer than a game's `kit.json`.
 
+## 1.43 (2026-11-11)
+
+- **ui 1.18:** a screen drawn again (the lobby, on every change in the room) keeps the scroll of every scrolled part,
+  not only the screen itself: each is found again by its path of tags and classes, even one the game made after the
+  screen mounted (Gulp wraps the lobby in a card that scrolls on a phone), and set again a few microtasks and two
+  frames later, after the game has dressed the new screen, unless the player scrolls first. Before, any change in the
+  room sent everyone's lobby back to its top. **core 1.38:** `KIT_VERSION` 1.43. **scripts 1.50:** the module versions.
+  **docs 1.49:** this entry, ui.md.
+
 ## 1.42 (2026-11-11)
 
 - **local 1.1:** each player's view shows their own device's button chips: `mountViewLayers` takes each

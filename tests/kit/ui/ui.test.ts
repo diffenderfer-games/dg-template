@@ -99,6 +99,44 @@ describe('screens, modals, toasts', () => {
     delete document.documentElement.dataset['hubInput'];
   });
 
+  it('a redraw keeps the scroll of a part the game wrapped the screen in after it mounted', async () => {
+    // A game's dressing, as Gulp's: a MutationObserver that, a microtask later, moves the lobby's children into a card.
+    const wrap = (): void => {
+      for (const l of ui().root.querySelectorAll('.lobby:not(:has(> .card))')) {
+        const card = h('div.card');
+        card.append(...l.children);
+        l.append(card);
+      }
+    };
+    const mo = new MutationObserver(() => queueMicrotask(wrap));
+    mo.observe(ui().root, { childList: true, subtree: true });
+    const draw = (): HTMLElement => h('div.lobby', {}, h('ul.seats', {}, h('li', {}, 'A')), h('p.status', {}, 'S'));
+    const settle = (): Promise<void> => new Promise((r) => setTimeout(r, 60));
+    const s = new Screens();
+    s.show('lobby', draw);
+    await settle();
+    const card = (): HTMLElement | null => ui().root.querySelector<HTMLElement>('.kit-screen > .card');
+    const seats = (): HTMLElement | null => ui().root.querySelector<HTMLElement>('.card > .seats');
+    const c1 = card();
+    const s1 = seats();
+    if (c1) c1.scrollTop = 300;
+    if (s1) s1.scrollLeft = 40;
+    s.show('lobby', draw);
+    expect(card()).toBeNull(); // not dressed yet
+    await settle();
+    expect(card()).not.toBe(c1);
+    expect(card()?.scrollTop).toBe(300);
+    expect(seats()?.scrollLeft).toBe(40);
+
+    // A player who scrolls before the dressing is done keeps their own scroll.
+    s.show('lobby', draw);
+    const el = ui().root.querySelector<HTMLElement>('.kit-screen');
+    el?.dispatchEvent(new Event('wheel'));
+    await settle();
+    expect(card()?.scrollTop).toBe(0);
+    mo.disconnect();
+  });
+
   it('a locked modal ignores back and Esc; buttons close it and run onClose once', () => {
     const onClose = vi.fn();
     const m = openModal({ title: 'Choose', locked: true, buttons: [{ label: 'OK', testid: 'ok' }], onClose });
