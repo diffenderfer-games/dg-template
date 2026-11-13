@@ -654,12 +654,64 @@ It runs in three contexts automatically:
 
 - **In a game** — translates the pad into synthesized keyboard events (with
   `key`, `code`, and legacy `keyCode` all set). Holding a direction holds the key.
-- **On the catalog** — moves a highlight across the tiles and opens the focused
-  game.
+- **On the catalog** — moves a highlight across the tiles and A opens the
+  focused game. While a pad is in use a banner offers the **console view**
+  (Start), below.
 - **In the hub menu** — the **Select/Back button (8)** pops the menu from
   anywhere; while open, the stick navigates its items, A activates, B closes
   (a game can move these: `hub.input.setPadButtons`, "The hub's buttons").
   So the whole arcade is playable with no keyboard.
+
+### The console (gamepad players)
+
+While a gamepad is the last device used, the hub turns into a game console
+(`@dg/runtime`'s `console/`, loaded as `/_hub/console.js` only once a pad is
+used; the menu's side is `menu/console-link.ts`):
+
+- **The menu button hides**, and **Select** opens the **console menu** instead
+  of the drawer: the game with a big Resume, and tiles for Switch game, Home,
+  Resume, Daily challenges, Play online, Friends & chat, What's new,
+  Profile, Stats & boards, Settings, Controls, Share and All options (the
+  whole drawer). **Start** opens it too wherever Start does nothing else: on the
+  catalog page, and in a game that declared its inputs while no enabled input
+  reads button 9 (a title screen, say). A zero-config game keeps Start as its
+  `game.controls` key. Start or Select closes it; B goes back.
+- **Switch game** is the library: a 3D cover flow (the highlighted cover
+  centred and big, two either side turned away and dimmer, a long library
+  wrapping round) with **Favorites**, **All games** and **Adventure** tabs
+  (LB/RB switch tabs, Y stars, X picks one at random, LT/RT jump six, A plays).
+- **Profiles ("Who's playing?")**: the face top left opens a row of the
+  accounts remembered on this device, drawn from their avatars
+  (`/_hub/avatar/<code>.svg`, bust; the highlighted one smiles, the others
+  glance toward it). A switches (the page reloads as that account), X forgets
+  one on this device, "Add profile" opens the drawer's log-in form even while
+  someone is signed in. The console view asks once a visit when two or more
+  are remembered. Server side: logging in or signing up over another claimed
+  account keeps the one leaving in the HttpOnly `hub_profiles` cookie (its
+  session token, never a password; `auth/device-profiles.ts`), and
+  `GET /auth/profiles`, `POST /auth/profiles/switch` and `/forget` list, switch
+  (a fresh session, no merge) and forget. A remembered account lasts as long as
+  its session (`HUB_SESSION_TTL_DAYS`); after that its card asks for the
+  password. Guests are never remembered.
+- **Adventure Mode** (`/world`) has the console too: Select or Start opens it
+  with Game library, Find a friend, Tips and Home tiles. While a pad is in use
+  the world's top bar shows the pad's prompts (Y Friends, Select Menu) instead
+  of its buttons (`html[data-hub-pad]`, which the menu sets for the page's own UI).
+- **The catalog's console view**: Start on the catalog page shows the library
+  full screen with a dock of the hub's features under it; the choice is
+  remembered on the device (`localStorage` `dg:console-view`) until Classic view.
+- Tiles for features the drawer already has **hand off**: the drawer opens as
+  a centred console card holding just that part (`data-focus` on the menu's
+  host), or a social window opens. The console keeps its own `hub.overlay` entry
+  (the game stays paused) and comes back when the stack holds only it again.
+- A game needs nothing for any of this. Keep game actions off Start on screens
+  where you want players to reach the console with it, and use
+  `hub.overlay.autoPause` as every game should.
+- **Rendering:** only the covers on screen (plus two either side) are in the
+  DOM, moved with `transform` alone; covers are the host's WebP copies through
+  `srcset` with `decoding="async"`; the scrim is a gradient, never a
+  `backdrop-filter` over the game; one animation-frame loop runs only while the
+  console shows.
 
 ### Mapping controls per game
 
@@ -812,6 +864,10 @@ look: { gamepad: { axis: [[2, '+'], [3, '+']] } },    // several axes
 | `menu` | Select (8) | toggles the hub menu from anywhere (in the world's box, the world's menu); the game's inputs read 0 while it is open, so put no game action on it |
 | `act` | A (0) | clicks the highlighted element of a navigated menu (`autoNavigate`, the hub menu) |
 | `back` | B (1) | a navigated menu's back (`autoNavigate`'s `back`, closes the hub menu); **held 0.6 s in the world's box it leaves the game**, so a short press is the game's but a held one is not |
+
+**Start (9)** is not one of them, but the hub uses it where it is free: it
+closes open hub UI, and opens the console where it does nothing else (see "The
+console"). A game that binds Start in an enabled group keeps it.
 
 Change them with `hub.input.setPadButtons(patch)` (merged): `{ menu:
 [PAD_BUTTON.HOME] }` frees Select for the game, `{ menu: [] }` never opens the
@@ -2324,7 +2380,12 @@ Library Mode) goes back to the games. The top bar shows the place's name ("The H
 - **Walking and running:** you walk 6.3 tiles/s; hold **Shift** to run half as fast again
   (9.45), on any walk (keys, a click, a walk to a friend). A gamepad's left stick or d-pad
   walks, and the stick pushed all the way (or RB/RT held) runs; on a phone a far tap runs
-  until you are close. The hub referees up to the run speed with headroom
+  until you are close.
+- **Gamepad:** A uses what is in reach (sits at a table, then A again plays its game; plays
+  a cabinet), B stands up, X opens Say something (the stick moves over the phrases, A says
+  one, B closes it), the right stick zooms, Select opens the hub menu. The prompts and tips
+  name the buttons of whatever was used last (A/B on a pad, E/Esc on keys, Tap on a phone).
+  Holding B in a game over the world goes back to it. The hub referees up to the run speed with headroom
   (`worldWalkSpeed`, `@dg/hub-internal/world-pace`).
 - **Walk to a friend:** Friends lists the friends in the world and where (only friends
   who show you their presence; never across a block). "Walk to" asks `world.find` for
@@ -2575,6 +2636,9 @@ All under `/_api`. JSON in, JSON out; errors are `{ "error": "..." }` with a
 - `POST /auth/signup` `{username,password}` → `{user}` (+ session cookie; a current guest becomes the account)
 - `POST /auth/login` `{username,password}` → `{user}` (+ session cookie; merges a guest if one is active)
 - `POST /auth/logout` → `{ok}`
+- `GET  /auth/profiles` → `{ profiles:[{id,username,look,current,signedIn}] }` — accounts remembered on this device (the `hub_profiles` cookie), the signed-in one first
+- `POST /auth/profiles/switch` `{id}` → `{user}` (+ session cookie) — sign in as a remembered account, no password, no merge; 401 when its session has ended
+- `POST /auth/profiles/forget` `{id}` → `{profiles}` — forget one on this device and end its session
 - `GET  /me` → `{ user|null, profiles:[{game,displayName}] }` (`user.guest` flags an unclaimed guest)
 - `GET  /me/records[?game=slug]` → `{ games:[{slug,title,records:[{key,title,score,sortDir,rank}]}] }` — the caller's standings
 - `GET  /me/snapshot[?top=5]` → `{ user, games:{<slug>:{profile,saves,stats,inventory}}, records, leaderboards }` — everything for the current user, in one request (powers the SDK's `prefetchAll`)
