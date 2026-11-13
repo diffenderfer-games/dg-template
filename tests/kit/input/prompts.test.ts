@@ -284,6 +284,37 @@ describe('steppers and arrows', () => {
     expect(navTargets(root)).toContain(go);
   });
 
+  it('left and right on a full-width stepper keep the focus on it: Back and Go below are not beside it', () => {
+    setup();
+    const clicks: string[] = [];
+    const steps: number[] = [];
+    const row = axisControl(document.createElement('div'), (d) => steps.push(d));
+    row.getBoundingClientRect = () => DOMRect.fromRect({ x: 0, y: 0, width: 400, height: 60 });
+    root.append(row);
+    const back = bound('Back', null, clicks);
+    back.getBoundingClientRect = () => DOMRect.fromRect({ x: 0, y: 100, width: 150, height: 50 });
+    const go = bound('Go', null, clicks);
+    go.getBoundingClientRect = () => DOMRect.fromRect({ x: 250, y: 100, width: 150, height: 50 });
+    h.activate();
+    row.focus();
+    tap(PAD_BUTTON.LEFT);
+    tap(PAD_BUTTON.RIGHT);
+    expect(steps).toEqual([-1, 1]);
+    expect(document.activeElement).toBe(row);
+    // a lone button: the arrows have nothing beside it, so they leave it where it is
+    back.focus();
+    key('ArrowRight', back);
+    expect(document.activeElement).toBe(go);
+    key('ArrowLeft', go);
+    expect(document.activeElement).toBe(back);
+    key('ArrowLeft', back);
+    expect(document.activeElement).toBe(back);
+    key('ArrowUp', back);
+    expect(document.activeElement).toBe(row);
+    key('ArrowLeft', row);
+    expect(document.activeElement).toBe(row);
+  });
+
   it('left and right move a focused slider (the keys and the d-pad)', () => {
     setup();
     const slider = document.createElement('input');

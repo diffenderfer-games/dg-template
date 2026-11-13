@@ -23,7 +23,7 @@ function srcModule(name: string, version = '1.0'): KitModuleDef {
 
 /** Every module. */
 export const KIT_MODULES: Record<string, KitModuleDef> = {
-  core: srcModule('core', '1.38'),
+  core: srcModule('core', '1.39'),
   testing: srcModule('testing', '1.21'),
   rng: srcModule('rng'),
   'daily-puzzle': srcModule('daily-puzzle', '1.1'),
@@ -35,7 +35,7 @@ export const KIT_MODULES: Record<string, KitModuleDef> = {
   scores: srcModule('scores', '1.1'),
   'test-hook': srcModule('test-hook', '1.2'),
   boot: srcModule('boot', '1.22'),
-  input: srcModule('input', '1.6'),
+  input: srcModule('input', '1.7'),
   layout: srcModule('layout', '1.3'),
   loop: srcModule('loop', '1.1'),
   ui: srcModule('ui', '1.18'),
@@ -53,7 +53,7 @@ export const KIT_MODULES: Record<string, KitModuleDef> = {
   local: srcModule('local', '1.1'),
   'hub-events': { version: '1.20', paths: ['tests/hub-events'] },
   'hub-suites': { version: '1.15', paths: ['tests/hub/_kit.ts', 'tests/hub/kit'] },
-  scripts: { version: '1.50', paths: ['scripts/kit', 'tests/scripts'] },
+  scripts: { version: '1.51', paths: ['scripts/kit', 'tests/scripts'] },
   ci: { version: '1.0', paths: ['.github/workflows/deploy.yml'] },
   agents: { version: '1.1', paths: ['.claude/agents'] },
   config: {
@@ -68,7 +68,7 @@ export const KIT_MODULES: Record<string, KitModuleDef> = {
     ],
   },
   docs: {
-    version: '1.49',
+    version: '1.50',
     paths: [
       'docs/kit/look.md',
       'docs/kit/look',

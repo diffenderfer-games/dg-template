@@ -4,6 +4,15 @@ KIT doc. One entry per kit version; per module inside. A **major** version
 means a hook's signature changed: the entry says how to move a game over.
 `npm run kit:sync` prints the entries newer than a game's `kit.json`.
 
+## 1.44 (2026-11-12)
+
+- **input 1.7:** left and right stay on the focused control's line, with the pad and the arrows (`alongLines`,
+  `sameLine`, nav.ts; `nearestInDirection`, prompts.ts): on a full-width stepper row (Gulp's Computer holes) the
+  hub also moved the highlight to Back or Go below while the kit stepped the value. Rift Racers' game-side
+  ui/line-nav.ts can go once synced. `alongLines` takes an optional box per control, for a game that moves controls
+  for navigation (Gulp's scrolled sheets). **core 1.39:** `KIT_VERSION` 1.44. **scripts 1.51:** the module versions.
+  **docs 1.50:** this entry.
+
 ## 1.43 (2026-11-11)
 
 - **ui 1.18:** a screen drawn again (the lobby, on every change in the room) keeps the scroll of every scrolled part,

@@ -138,6 +138,11 @@ How it behaves (`installPrompts`, which `defineGame` calls):
 - **Steppers** (`axisControl`): a focusable row whose left and right (arrows, the d-pad, the stick) step it while it
   has focus, and whose act (Enter, A) presses `confirm`. Keep it alone in its row; while it has focus the controls
   beside it are left out of the pad's moves.
+- **Left and right stay on a line** (`alongLines`, `sameLine`): the hub moves to the nearest control in a direction,
+  so left or right on a full-width row used to jump to Back or Go below it (and on a stepper raced its step: the
+  value changed and the highlight left). The kit hands the hub every control off the focused one's line pulled in
+  (in x) to it, and the arrows' `nearestInDirection` skips them, so left and right only reach what sits beside the
+  focus (Back and Go, a dialog's buttons) and do nothing on a lone row; up and down still go to the nearest line.
 - **The kit's own controls** are bound as they appear (`KIT_ACTIONS`): Play again and the lobby's Start `confirm`;
   Resume, the result's Quit, Leave and the dialogs' No and Close `back`; Restart `alt`; Settings and Invite `alt2`.
   A game that rebuilds a button's contents (dressing it) gets its chip put back; `bindAction(el, a, { chip: false })`

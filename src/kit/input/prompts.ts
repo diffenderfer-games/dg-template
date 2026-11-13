@@ -19,7 +19,7 @@
 import { AXIS_DEADZONE, PAD_AXIS_ACTIVITY, PAD_BUTTON, PAD_BUTTON_ACTIVITY } from '@diffenderfer-games/hub/input';
 import type { HubLike } from '../core/hub-like.ts';
 import { bindingOf, bindKitControls, type PromptBinding } from './glyphs.ts';
-import { navScope, navTargets } from './nav.ts';
+import { navScope, navTargets, sameLine } from './nav.ts';
 
 /** Which chips show. */
 export type PromptMode = 'keys' | 'pad' | 'none';
@@ -170,7 +170,11 @@ function stepAxis(el: Element, dir: -1 | 1): void {
   el.dispatchEvent(new CustomEvent(STEP_EVENT, { detail: dir }));
 }
 
-/** The nearest control from `from` strictly in a direction (the hub's spatial rule: off-axis counts double). */
+/**
+ * The nearest control from `from` strictly in a direction (the hub's spatial rule: off-axis counts
+ * double). Left and right only reach controls on `from`'s line (nav.ts `alongLines`), so a lone
+ * full-width row goes nowhere sideways instead of to the nearest control below.
+ */
 export function nearestInDirection(
   targets: readonly HTMLElement[],
   from: HTMLElement,
@@ -188,6 +192,7 @@ export function nearestInDirection(
     const dy = r.top + r.height / 2 - ay;
     const travel = { up: -dy, down: dy, left: -dx, right: dx }[dir];
     if (travel <= 4) continue;
+    if ((dir === 'left' || dir === 'right') && !sameLine(a, r)) continue;
     const s = travel + (dir === 'up' || dir === 'down' ? Math.abs(dx) : Math.abs(dy)) * 2;
     if (s < score) {
       score = s;

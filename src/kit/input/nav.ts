@@ -15,6 +15,10 @@
  *
  * Back presses the control bound to `back` in the top modal or the screen, when there is one.
  *
+ * Left and right stay on the focused control's line (`alongLines`): the hub picks the nearest
+ * control in a direction, so left or right on a full-width row (a stepper such as a "Computer
+ * holes" row) jumped to Back or Go below it while the kit stepped the row's value.
+ *
  * Escape on a keyboard is the same back, and it calls `preventDefault()` only
  * when something went back (or the game's own inputs read Esc, e.g. `pause`
  * in play): in the world's box an Esc nobody used leaves the game, so on the
@@ -53,6 +57,69 @@ export function navTargets(root: ParentNode): HTMLElement[] {
     if (el === focused) return true;
     const r = el.getBoundingClientRect();
     return r.bottom <= a.top + 2 || r.top >= a.bottom - 2;
+  });
+}
+
+/** A box for navigation: where the hub thinks a control is. */
+export type NavBox = { x: number; y: number; width: number; height: number };
+
+const boxOf = (el: Element): NavBox => {
+  const r = el.getBoundingClientRect();
+  return { x: r.left, y: r.top, width: r.width, height: r.height };
+};
+
+/** Does `b` sit on `a`'s line (one's middle inside the other's height)? */
+export function sameLine(a: NavBox | DOMRect, b: NavBox | DOMRect): boolean {
+  const am = a.y + a.height / 2;
+  const bm = b.y + b.height / 2;
+  return (bm >= a.y && bm <= a.y + a.height) || (am >= b.y && am <= b.y + b.height);
+}
+
+/** Under the hub's least travel (4 px): another line is never left or right of the focus. */
+const PULL = 3.5;
+
+function navKind(el: HTMLElement): 'text' | 'range' | 'button' {
+  if (el instanceof HTMLInputElement) {
+    if (el.type === 'range') return 'range';
+    if (['text', 'search', 'email', 'password', 'number'].includes(el.type)) return 'text';
+  }
+  return el instanceof HTMLTextAreaElement ? 'text' : 'button';
+}
+
+/**
+ * The targets as the hub should see them from `from`: those on its line as they are, the others
+ * with their real height and their middle pulled to within 3.5 px of `from`'s (closer ones closer,
+ * so up and down still prefer the control straight above or below). Left and right then only reach
+ * what sits beside the focus on its line (rift-racers ui/line-nav.ts).
+ *
+ * `box` is where each control is for navigation (default: on screen). A game that moves controls
+ * for navigation (Gulp squeezes a scrolled sheet into its visible box) passes its own: then every
+ * target is handed to the hub with that box.
+ */
+export function alongLines(
+  targets: readonly HTMLElement[],
+  from: Element | null,
+  box?: (el: HTMLElement) => NavBox,
+): NavTarget[] {
+  const at = box ?? boxOf;
+  // (as it is: the element itself, or with the game's box)
+  const kept = (t: HTMLElement): NavTarget =>
+    box === undefined ? t : { el: t, kind: navKind(t), getBounds: () => box(t) };
+  if (!(from instanceof HTMLElement) || !targets.includes(from)) return targets.map(kept);
+  const f = at(from);
+  if (f.height <= 0) return targets.map(kept);
+  const fx = f.x + f.width / 2;
+  return targets.map((t): NavTarget => {
+    if (t === from || sameLine(f, at(t))) return kept(t);
+    return {
+      el: t,
+      kind: navKind(t),
+      getBounds: () => {
+        const r = at(t);
+        const dx = r.x + r.width / 2 - fx;
+        return { x: fx + PULL * Math.tanh(dx / 240) - r.width / 2, y: r.y, width: r.width, height: r.height };
+      },
+    };
   });
 }
 
@@ -118,10 +185,16 @@ export function installMenuNav(hub: Pick<HubLike, 'input' | 'overlay'>, o: MenuN
     if (topModal() !== null) return closeTopModal();
     return o.back();
   };
-  hub.input.autoNavigate(() => (o.active?.() === false ? [] : navTargets(o.root)), {
-    back: () => void back(),
-    ring: o.ring === true,
-  });
+  hub.input.autoNavigate(
+    () =>
+      o.active?.() === false
+        ? []
+        : alongLines(navTargets(o.root), typeof document === 'undefined' ? null : document.activeElement),
+    {
+      back: () => void back(),
+      ring: o.ring === true,
+    },
+  );
   const keys = o.keys ?? (typeof window === 'undefined' ? null : window);
   const onKey = (e: Event): void => {
     if (!(e instanceof KeyboardEvent) || e.key !== 'Escape' || e.defaultPrevented || hub.overlay.isOpen) return;
