@@ -237,6 +237,99 @@ e2e(
   { skip },
 );
 
+/** The match this page plays (kept across a host's reload: a new id would mean a restart). */
+const matchId = (p: Player): Promise<string | null> =>
+  p.page.evaluate(() => window.__game?.online?.matchId?.() ?? null);
+/** Does this page run the match (the host's rules)? */
+const hosting = (p: Player): Promise<boolean> => p.page.evaluate(() => window.__game?.online?.hosting?.() ?? false);
+/** How many views this page has drawn from the host (a guest's: they keep coming while the match goes on). */
+const viewsIn = (p: Player): Promise<number> => p.page.evaluate(() => window.__game?.online?.views?.() ?? 0);
+
+/** The guest is the successor: it holds the host's backup of this match (sent every 2 s). */
+async function guestHoldsBackup(host: Player, guest: Player): Promise<string> {
+  const id = await until(() => matchId(host), "the host's match id");
+  await until(async () => (await matchId(guest)) === id, "the guest's backup of the match", 10_000);
+  return id;
+}
+
+/** The host is back hosting the same match, and the guest's views keep coming. */
+async function hostCarriesOn(host: Player, guest: Player, code: string, id: string): Promise<void> {
+  await ready(host);
+  assert.equal(await until(() => room(host), 'the host back in the room', 20_000), code);
+  await waitScreen(host, 'play', MATCH_LOAD_MS);
+  assert.equal(await hosting(host), true, 'the host runs the match again');
+  assert.equal(await matchId(host), id, 'the same match goes on (not a restart)');
+  const seen = await viewsIn(guest);
+  await until(async () => (await viewsIn(guest)) > seen, 'new views on the guest');
+  assert.equal(await game.screen(guest), 'play', 'the guest keeps playing');
+}
+
+e2e(
+  '7b. reconnect: the HOST reloads mid-match and carries the same match on; the guest keeps playing',
+  e,
+  async (t) => {
+    const a = await onGame(t);
+    const b = await onGame(t);
+    const code = await startMatch(a, b);
+    const id = await guestHoldsBackup(a, b);
+    await a.page.reload();
+    await hostCarriesOn(a, b, code, id);
+  },
+  { skip },
+);
+
+e2e(
+  '7c. reconnect: a host back with no saved copy of the match (another device) gets it handed back by the guest',
+  e,
+  async (t) => {
+    const a = await onGame(t);
+    const b = await onGame(t);
+    const code = await startMatch(a, b);
+    const id = await guestHoldsBackup(a, b);
+    // The new page starts without this device's copy, as on another phone: only the guest's backup can bring it back.
+    await a.page.evaluateOnNewDocument(() => {
+      for (const k of Object.keys(localStorage)) if (k.includes(':online-match:')) localStorage.removeItem(k);
+    });
+    await a.page.reload();
+    await hostCarriesOn(a, b, code, id);
+  },
+  { skip },
+);
+
+e2e(
+  '7d. reconnect: the host closes the tab and comes back a little later in a new one',
+  e,
+  async (t) => {
+    const a = await onGame(t);
+    const b = await onGame(t);
+    const code = await startMatch(a, b);
+    const id = await guestHoldsBackup(a, b);
+    await a.page.close();
+    await settle(3000); // inside the seat's grace (8 s here)
+    assert.equal(await game.screen(b), 'play', 'the guest stays in the match meanwhile');
+    const back = await a.newTab(`/${SLUG}/`);
+    await hostCarriesOn(back, b, code, id);
+  },
+  { skip },
+);
+
+e2e(
+  '7e. reconnect: the host and the guest reload together; both come back to the same match',
+  e,
+  async (t) => {
+    const a = await onGame(t);
+    const b = await onGame(t);
+    const code = await startMatch(a, b);
+    const id = await guestHoldsBackup(a, b);
+    await Promise.all([a.page.reload(), b.page.reload()]);
+    await ready(b);
+    assert.equal(await until(() => room(b), 'the guest back in the room', 20_000), code);
+    await waitScreen(b, 'play', MATCH_LOAD_MS);
+    await hostCarriesOn(a, b, code, id);
+  },
+  { skip },
+);
+
 e2e(
   '8. a suspended player gets a friendly message and the game stays playable',
   e,

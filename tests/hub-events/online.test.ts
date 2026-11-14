@@ -1,7 +1,11 @@
 // Appendix B rows 34–55: launches, rooms, seats, chat, social, presence, the runtime.
 import { expect, it } from 'vitest';
-import { envelope } from '../../src/kit/online/wire.ts';
-import { fakeRoomInfo, fakeSeat, type FakeRoom } from '../../src/kit/testing/index.ts';
+import type { RoomSeat } from '@diffenderfer-games/hub';
+import { field } from '../../src/kit/core/json.ts';
+import type { KeyValue } from '../../src/kit/core/store.ts';
+import { HELD_INPUTS } from '../../src/kit/online/match.ts';
+import { carryEnvelope, envelope } from '../../src/kit/online/wire.ts';
+import { FakeRoom, fakeRoomInfo, fakeSeat, fakeStorage, type FakeHub } from '../../src/kit/testing/index.ts';
 import { bootGame, describeIf, HAS, type Booted } from './_support/harness.ts';
 import { toyOnline, toyView } from './_support/toys.ts';
 
@@ -18,6 +22,27 @@ function roomOf(g: Booted): FakeRoom {
   if (!r) throw new Error('not in a room');
   return r;
 }
+
+/** A seat held after a reload: `me`'s, in room-1 already playing, hosted by `me`. */
+function heldRoom(f: FakeHub, me: number, seats: RoomSeat[]): FakeRoom {
+  const info = fakeRoomInfo({ game: f.slug, phase: 'playing', hostId: me, seats });
+  return new FakeRoom(f.log, { userId: me, host: true, spectator: false }, info).newer();
+}
+
+/** Every key in a storage. */
+const keysOf = (kv: KeyValue): string[] =>
+  Array.from({ length: kv.length }, (_, i) => kv.key(i)).filter((k): k is string => k !== null);
+
+/** A copy of a storage (what a reloaded page finds). */
+function copyOf(kv: KeyValue): KeyValue {
+  const copy = fakeStorage();
+  for (const k of keysOf(kv)) copy.setItem(k, kv.getItem(k) ?? '');
+  return copy;
+}
+
+/** The last public view a host sent, as text. */
+const lastView = (room: FakeRoom): string =>
+  JSON.stringify(room.sent.filter((m) => JSON.stringify(m.data).includes('"t":"view"')).at(-1)?.data);
 
 /** Host a room from the title, seat a second player, start. */
 async function hostAndStart(g: Booted): Promise<FakeRoom> {
@@ -147,6 +172,108 @@ describe('rooms (multiplayer.md §8)', () => {
     expect(g.hook.screen()).toBe('loading');
     roomOf(g).receive(2, envelope('view', toyView(), 1));
     expect(g.hook.screen()).toBe('play');
+  });
+
+  it("the HOST reloads mid-match: this device's copy carries the same match on; replayed inputs aren't applied twice", async () => {
+    const g = await boot();
+    const room = await hostAndStart(g);
+    const id = g.hook.online?.matchId();
+    expect(id).toEqual(expect.any(String));
+    room.receive(2, envelope('in', { add: 3 }, 1), 5);
+    room.seatChange(2, 'away');
+    await g.frames(140); // past a backup: the successor's and this device's copy
+    const saved = JSON.stringify(Object.fromEntries(keysOf(g.kv).map((k) => [k, g.kv.getItem(k)])));
+    expect(saved).toContain('"score\\":3');
+    expect(saved).toContain('"cs\\":[2]');
+
+    // The reload: a new page, the same device's storage, the seat (and the host role) reclaimed in a room playing.
+    const kv = copyOf(g.kv); // (the old page's teardown here leaves the room; a reload doesn't)
+    const r = await boot({ kv, before: (f) => (f.rooms.held = heldRoom(f, 1, [fakeSeat(1), fakeSeat(2)])) });
+    const back = roomOf(r);
+    expect(r.hook.screen()).toBe('play');
+    expect(r.hook.online?.hosting()).toBe(true);
+    expect(r.hook.online?.matchId()).toBe(id);
+    expect(r.fake.log.count('room.start')).toBe(0);
+    back.receive(2, envelope('in', { add: 3 }, 1), 5); // the hub's replay of what the old page already applied
+    back.receive(2, envelope('in', { add: 1 }, 2), 6);
+    await r.frames(10);
+    expect(lastView(back)).toContain('{"id":2,"score":4}');
+  });
+
+  it('a host back with no copy (another device) asks for the match until the successor hands it back', async () => {
+    const r = await boot({ before: (f) => (f.rooms.held = heldRoom(f, 1, [fakeSeat(1), fakeSeat(2)])) });
+    const back = roomOf(r);
+    expect(r.hook.screen()).toBe('loading');
+    const wants = (): number => back.sent.filter((m) => JSON.stringify(m.data).includes('"t":"want"')).length;
+    expect(wants()).toBe(1);
+    await r.frames(140);
+    expect(wants()).toBeGreaterThan(1); // asked again: the guest may have been away a moment
+    const state = toyView([
+      { id: 1, score: 2 },
+      { id: 2, score: 7 },
+    ]);
+    back.receive(2, carryEnvelope('handoff', { s: state, at: 10, m: 'm1', q: 4, cs: [] }), 9);
+    expect(r.hook.screen()).toBe('play');
+    expect(r.hook.online?.matchId()).toBe('m1');
+    back.receive(2, envelope('in', { add: 1 }, 1), 3); // older than the handed-back state
+    await r.frames(10);
+    expect(lastView(back)).toContain('{"id":2,"score":7}');
+    expect(r.fake.log.count('room.start')).toBe(0);
+    const asked = wants();
+    await r.frames(140);
+    expect(wants()).toBe(asked); // carried on: no more asking
+  });
+
+  it("the successor hands its freshest backup to a host that asks for the match (id, last input, the computer's seats)", async () => {
+    const g = await boot();
+    g.fake.mp.launch({ kind: 'join', room: 'H2' });
+    await g.settle();
+    const room = roomOf(g);
+    const state = (score: number) => toyView([{ id: 2, score }]);
+    room.receive(2, carryEnvelope('backup', { s: state(1), at: 10, m: 'mx', q: 3, cs: [] }));
+    room.receive(2, carryEnvelope('backup', { s: state(5), at: 20, m: 'mx', q: 8, cs: [3] }));
+    expect(g.hook.online?.matchId()).toBe('mx');
+    room.receive(2, envelope('want', null, 30));
+    const handoff = room.sent.find((m) => JSON.stringify(m.data).includes('"t":"handoff"'));
+    expect(handoff?.to).toBe(2);
+    expect(handoff?.data).toMatchObject({ d: state(5), at: 20, m: 'mx', q: 8, cs: [3] });
+  });
+
+  it("a guest's inputs while the host is away wait, and go in order once the host's views come again", async () => {
+    let n = 0;
+    const g = await boot({ patch: { online: toyOnline({ input: () => ({ add: ++n }) }) } });
+    g.fake.mp.launch({ kind: 'join', room: 'IN1' });
+    await g.settle();
+    const room = roomOf(g);
+    room.receive(2, envelope('view', toyView(), 1));
+    const inputs = (): number[] =>
+      room.sent.flatMap((m) => {
+        const add = field(field(m.data, 'd'), 'add');
+        return typeof add === 'number' ? [add] : [];
+      });
+    await g.frames(20);
+    expect(inputs().length).toBeGreaterThan(0);
+    room.seatChange(2, 'away'); // the host reloads
+    const before = inputs();
+    await g.frames(40);
+    room.seatChange(2, 'back');
+    await g.frames(20);
+    expect(inputs()).toEqual(before); // nothing sent into the gap (the host has no match yet to apply it to)
+    room.receive(2, envelope('view', toyView(), 2), 2);
+    const after = inputs().slice(before.length);
+    expect(after.length).toBeGreaterThan(0);
+    expect(after.length).toBeLessThanOrEqual(HELD_INPUTS + 1);
+    expect(after).toEqual([...after].sort((a, b) => a - b)); // in the order they were made
+    expect(after[0]).toBeGreaterThan(before.at(-1) ?? 0);
+  });
+
+  it("a host who ends the match or leaves drops this device's copy", async () => {
+    const g = await boot();
+    const room = await hostAndStart(g);
+    await g.frames(140);
+    expect(keysOf(g.kv).some((k) => k.includes(':online-match:'))).toBe(true);
+    room.endedBy({ winners: [1] });
+    expect(keysOf(g.kv).some((k) => k.includes(':online-match:'))).toBe(false);
   });
 
   it('row 44: an away or gone seat is played by the computer and handed back without a reset', async () => {

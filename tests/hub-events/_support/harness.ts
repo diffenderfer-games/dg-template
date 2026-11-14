@@ -15,6 +15,7 @@ import { game as block } from '../../../package.json';
 import { field, isJson, isJsonObject, type Json, type JsonObject } from '../../../src/kit/core/json.ts';
 import { defineGame, type GameDefinition, type GameHandle } from '../../../src/kit/boot/index.ts';
 import { createStore } from '../../../src/kit/core/index.ts';
+import type { KeyValue } from '../../../src/kit/core/store.ts';
 import { MANIFEST } from '../../../src/kit/core/manifest.ts';
 import type { KitStrings } from '../../../src/kit/core/strings.ts';
 import { setKitStrings } from '../../../src/kit/core/strings.ts';
@@ -35,6 +36,8 @@ export type Booted = {
   fake: FakeHub;
   /** The game's hook calls (newRun, onResult, screens…). */
   calls: CallLog;
+  /** The page's storage (give it to the next boot as `kv`: a reload on the same device). */
+  kv: KeyValue;
   handle: GameHandle<Profile, Run>;
   hook: GameTestHook;
   /** Run `n` frames (16 ms each), letting promises settle. */
@@ -98,6 +101,8 @@ export async function bootGame(
     patch?: Partial<GameDefinition<Profile, Run>>;
     before?(fake: FakeHub): void;
     strings?: Partial<KitStrings>;
+    /** The page's storage (pass one boot's `kv` to the next: the same device after a reload). */
+    kv?: KeyValue;
   } = {},
 ): Promise<Booted> {
   previous?.dispose();
@@ -118,7 +123,7 @@ export async function bootGame(
     draw: () => undefined,
     collected: () => calls.record('view.collected'),
   }));
-  const kv = fakeStorage();
+  const kv = o.kv ?? fakeStorage();
   const handle = defineGame(
     fake,
     { ...recording(base, calls), ...o.patch },
@@ -146,6 +151,7 @@ export async function bootGame(
   return {
     fake,
     calls,
+    kv,
     handle,
     hook,
     ui,

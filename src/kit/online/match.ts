@@ -10,6 +10,11 @@
  * - `room.me.host` is re-checked on every `room` event; the host keeps
  *   sending its state to the successor, which takes over from the freshest
  *   backup when the host role moves to it;
+ * - a host back after a reload or a closed tab (the hub keeps its seat and its host role for the grace)
+ *   carries the same match on: from this device's copy of it (saved every backup and as the page hides),
+ *   else from the successor's backup, which it asks for (`want`) until a guest hands it back (`handoff`);
+ *   inputs the copy already holds are not applied twice (`q`), and a guest keeps the inputs it makes while
+ *   the host is away and sends them once the host's views come again;
  * - `ended` is handled once; `closed` and `kicked` go to the title with words.
  * Plus the leave guard (`setBusy` during a live match), quiet during play and
  * presence (lobby: joinable with open seats; playing: watchable).
@@ -19,16 +24,33 @@ import { fireAndForget } from '../core/async.ts';
 import type { Clock } from '../core/clock.ts';
 import type { HubLike } from '../core/hub-like.ts';
 import type { Json } from '../core/json.ts';
+import { localStore, scopedKey, type Store } from '../core/store.ts';
 import type { TableLaunch } from '../core/planned.ts';
 import { t } from '../core/strings.ts';
 import { randomSeed } from '../rng/index.ts';
 import { closedText } from './errors.ts';
 import { hubNow, lobbyReadiness } from './ready.ts';
 import type { HostMatch, OnlineGame } from './types.ts';
-import { envelope, fits, freshest, parseEnvelope, successorOf } from './wire.ts';
+import {
+  carryEnvelope,
+  carryOf,
+  envelope,
+  fits,
+  freshest,
+  parseEnvelope,
+  savedCarry,
+  successorOf,
+  type Carry,
+} from './wire.ts';
 
-/** Send the host's state to the successor this often. */
+/** Send the host's state to the successor (and keep this device's copy) this often. */
 export const BACKUP_MS = 2000;
+
+/** A host back without its match asks the guests for it this often, until one hands it back. */
+export const WANT_MS = 2000;
+
+/** The most inputs a guest keeps while the host is away (the newest; sent when the host is back). */
+export const HELD_INPUTS = 10;
 
 /** What the match tells the session. */
 export type MatchEvents = {
@@ -56,7 +78,19 @@ export class OnlineMatch {
   view: Json | null = null;
   readonly computerSeats = new Set<number>();
   private host: HostMatch | null = null;
-  private backups: { at: number; d: Json }[] = [];
+  private backups: Carry[] = [];
+  /** The match's id (the host picks it at the start; it rides on backups, so a restart would show). */
+  matchId: string | null = null;
+  /** Views drawn from the host (a guest's count). */
+  viewsIn = 0;
+  /** Host: the room `seq` of the last input in the state, and the floor below which replayed inputs are old. */
+  private appliedSeq = 0;
+  private seqFloor = 0;
+  /** The next ask for the match, while the host waits for it (the play loop doesn't run on the loading screen). */
+  private askAgain: (() => void) | null = null;
+  /** Guest: the host is away (its seat dropped); inputs wait in `heldInputs` until its views come again. */
+  private hostAway = false;
+  private heldInputs: Json[] = [];
   private ended = false;
   /**
    * This page showed the match (`begin`). Apart from `playing`: a page that comes back into a room already
@@ -75,17 +109,25 @@ export class OnlineMatch {
   private readonly game: OnlineGame;
   private readonly clock: Clock;
   private readonly on: MatchEvents;
+  private readonly store: Store;
 
   constructor(
     hub: Pick<HubLike, 'rooms' | 'mp' | 'presence' | 'notify'>,
     game: OnlineGame,
     clock: Clock,
     on: MatchEvents,
+    store: Store = localStore,
   ) {
     this.hub = hub;
     this.game = game;
     this.clock = clock;
     this.on = on;
+    this.store = store;
+  }
+
+  /** Does this page run the match now? */
+  get hosting(): boolean {
+    return this.isHost && this.host !== null;
   }
 
   /** The room's code (null when not in one). */
@@ -134,18 +176,21 @@ export class OnlineMatch {
     this.playing = room.info.phase === 'playing';
     this.offs = [
       room.on('room', (info) => this.onRoom(info)),
-      room.on('msg', (m) => this.onMessage(m.from, m.data)),
+      room.on('msg', (m) => this.onMessage(m.from, m.data, m.seq)),
       room.on('seat', (s) => this.onSeat(s.userId, s.status)),
       room.on('abandoned', (a) => this.onSeat(a.userId, 'gone')),
       room.on('ended', (e) => this.onEnded(e.results)),
       room.on('closed', (c) => this.onClosed(c.reason)),
       room.on('kicked', () => this.gone(t('kicked'))),
     ];
+    this.hostAway = this.hostSeatDropped(room.info);
     this.reportPresence();
     this.on.lobby(room.info, this.isHost);
+    this.resume();
   }
 
   private detach(): void {
+    this.stopAsking();
     for (const off of this.offs) off();
     this.offs = [];
   }
@@ -153,8 +198,12 @@ export class OnlineMatch {
   /** Move to another room (a rematch's): the old room's listeners go, the match starts afresh in the new one's lobby. */
   adopt(room: HubRoom): void {
     this.calm();
+    this.forget();
     this.host = null;
     this.view = null;
+    this.matchId = null;
+    this.viewsIn = 0;
+    this.heldInputs = [];
     this.backups = [];
     this.sentPrivate.clear();
     this.privateViews = false;
@@ -187,43 +236,136 @@ export class OnlineMatch {
   private onRoom(info: RoomInfo): void {
     const wasHost = this.isHost;
     this.isHost = this.room?.me.host ?? false;
-    if (this.isHost && !wasHost && this.playing && this.host === null) {
-      const b = freshest(this.backups);
-      this.host = b === null ? null : this.game.restore(b.d);
-    }
+    if (this.hostSeatDropped(info)) this.hostAway = true;
     this.reportPresence();
     this.on.lobby(info, this.isHost);
+    if (this.isHost && !wasHost) this.resume();
   }
 
-  private onMessage(from: number, data: Json): void {
+  private hostSeatDropped(info: RoomInfo): boolean {
+    return !this.isHost && info.seats.some((s) => s.userId === info.hostId && !s.connected);
+  }
+
+  /**
+   * The host in a match it has no state for (a reload, a closed tab, the role moved here): this device's
+   * copy of the match or the freshest backup held here, whichever is newer; else ask the guests (`want`,
+   * again each WANT_MS) until one hands it back.
+   */
+  private resume(): void {
+    const room = this.room;
+    if (room === null || !this.isHost || !this.playing || this.ended || this.host !== null) return;
+    const saved = savedCarry(this.store.getJson(this.savedKey(room)), room.info.id);
+    const backup = freshest(this.backups);
+    const best = saved !== null && (backup === null || saved.at >= backup.at) ? saved : backup;
+    if (best === null || !this.takeOver(best)) this.askForMatch(room);
+  }
+
+  /** Carry the match on from `c`: the computer keeps the seats it played and any still dropped (false: not a valid state). */
+  private takeOver(c: Carry): boolean {
+    const host = this.game.restore(c.s);
+    if (host === null) return false;
+    this.host = host;
+    this.matchId = c.m;
+    this.appliedSeq = c.q;
+    this.seqFloor = c.q;
+    const dropped = this.room?.info.seats.filter((s) => !s.connected).map((s) => s.userId) ?? [];
+    for (const seat of [...c.cs, ...dropped]) this.computerSeats.add(seat);
+    this.computerSeats.delete(this.me);
+    this.view = host.view(this.me);
+    if (!this.begun) this.begin();
+    return true;
+  }
+
+  private askForMatch(room: HubRoom): void {
+    this.stopAsking();
+    this.send(room, envelope('want', null, this.clock.now()));
+    this.askAgain = this.clock.after(WANT_MS, () => {
+      this.askAgain = null;
+      if (this.room === room && this.isHost && this.host === null && this.playing && !this.ended)
+        this.askForMatch(room);
+    });
+  }
+
+  private stopAsking(): void {
+    this.askAgain?.();
+    this.askAgain = null;
+  }
+
+  private onMessage(from: number, data: Json, seq: number): void {
     const e = parseEnvelope(data);
     if (e === null) return; // another version, or not ours: dropped, never misread
-    if (e.t === 'in' && this.isHost) this.host?.apply(from, e.d);
-    else if ((e.t === 'view' || e.t === 'pview') && !this.isHost && this.game.isView(e.d)) {
+    if (e.t === 'in' && this.isHost) {
+      if (seq <= this.seqFloor) return; // replayed to a returning host: already in the state it carried on from
+      if (this.host?.apply(from, e.d) === true) this.appliedSeq = Math.max(this.appliedSeq, seq);
+    } else if ((e.t === 'view' || e.t === 'pview') && !this.isHost && this.game.isView(e.d)) {
       if (e.t === 'view' && this.privateViews) return; // this seat gets its own view: it wins over the public one
       if (e.t === 'pview') this.privateViews = true;
       this.view = e.d;
+      this.viewsIn++;
+      if (this.hostAway) this.hostBack();
       if (!this.begun) this.begin();
     } else if (e.t === 'backup' && !this.isHost) {
-      this.backups = [...this.backups.slice(-2), { at: e.at, d: e.d }];
+      const c = carryOf(e);
+      this.backups = [...this.backups.slice(-2), c];
+      if (c.m !== null) this.matchId = c.m;
+    } else if (e.t === 'want' && !this.isHost) {
+      const b = freshest(this.backups);
+      if (b !== null && this.room !== null) this.send(this.room, carryEnvelope('handoff', b), from);
+    } else if (e.t === 'handoff' && this.isHost && this.host === null && this.playing && !this.ended) {
+      this.takeOver(carryOf(e));
     }
+  }
+
+  /** Guest: the host's views come again: the inputs made meanwhile go now, in order. */
+  private hostBack(): void {
+    this.hostAway = false;
+    const room = this.room;
+    const held = this.heldInputs;
+    this.heldInputs = [];
+    if (room === null) return;
+    for (const input of held) this.send(room, envelope('in', input, this.clock.now()));
   }
 
   private onSeat(userId: number, status: 'away' | 'back' | 'gone'): void {
     if (status === 'back') this.computerSeats.delete(userId);
     else this.computerSeats.add(userId);
+    if (status !== 'back' && !this.isHost && userId === this.room?.info.hostId) this.hostAway = true;
     this.on.seat(userId, status);
+  }
+
+  /** This device's copy of the match it hosts (one per game and account). */
+  private savedKey(room: HubRoom): string {
+    return scopedKey(room.info.game, 'online-match', this.me);
+  }
+
+  private carry(host: HostMatch, at: number): Carry {
+    return { s: host.backup(), at, m: this.matchId, q: this.appliedSeq, cs: [...this.computerSeats] };
+  }
+
+  /** Host: keep this device's copy of the match now (every backup, and as the page hides or closes). */
+  keep(): void {
+    const room = this.room;
+    if (room === null || !this.isHost || this.host === null || this.ended) return;
+    this.store.setJson(this.savedKey(room), { room: room.info.id, ...this.carry(this.host, this.clock.now()) });
+  }
+
+  /** The match is over or left: this device's copy goes. */
+  private forget(): void {
+    const room = this.room;
+    if (room !== null) this.store.remove(this.savedKey(room));
   }
 
   private onEnded(results: Json | undefined): void {
     if (this.ended) return;
     this.ended = true;
     this.playing = false;
+    this.forget();
     this.calm();
     this.on.ended(results);
   }
 
   private gone(text: string): void {
+    this.forget();
     this.detach();
     this.room = null;
     this.playing = false;
@@ -268,6 +410,9 @@ export class OnlineMatch {
     // The hub starts a room only once every guest is ready (or seated a minute): never a match it refused.
     if (lobbyReadiness(room.info, 0, hubNow(room.info, this.clock.now())).waiting.length > 0) return;
     fireAndForget(room.start());
+    this.matchId = randomSeed().toString(36);
+    this.appliedSeq = 0;
+    this.seqFloor = 0;
     const seats = room.info.seats.map((s) => s.userId);
     this.host = this.game.start({
       seats,
@@ -298,7 +443,8 @@ export class OnlineMatch {
         fireAndForget(room.end({ winners: result.winners }));
       }
     } else if (tick && input !== null && !room.me.spectator) {
-      this.send(room, envelope('in', input, this.clock.now()));
+      if (this.hostAway) this.heldInputs = [...this.heldInputs, input].slice(-HELD_INPUTS);
+      else this.send(room, envelope('in', input, this.clock.now()));
     }
   }
 
@@ -315,10 +461,11 @@ export class OnlineMatch {
       this.sentPrivate.set(s.userId, text);
       this.send(room, envelope('pview', mine, now), s.userId);
     }
-    const next = successorOf(room.info);
-    if (next !== null && now - this.lastBackup >= BACKUP_MS) {
+    if (now - this.lastBackup >= BACKUP_MS) {
       this.lastBackup = now;
-      this.send(room, envelope('backup', host.backup(), now), next);
+      this.keep();
+      const next = successorOf(room.info);
+      if (next !== null) this.send(room, carryEnvelope('backup', this.carry(host, now)), next);
     }
   }
 
@@ -331,6 +478,7 @@ export class OnlineMatch {
   leave(): void {
     const room = this.room;
     if (!room) return;
+    this.forget();
     this.detach();
     this.room = null;
     this.playing = false;

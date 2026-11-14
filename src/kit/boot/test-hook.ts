@@ -8,6 +8,7 @@ import { KIT_VERSION } from '../core/version.ts';
 import { isJson, type JsonObject } from '../core/json.ts';
 import { installTestHook, type GameHookDrivers, type GameTestHook } from '../test-hook/index.ts';
 import type { OnlineFlow } from './online-flow.ts';
+import { OnlineMatch } from '../online/match.ts';
 import type { TurnsFlow } from './turns-flow.ts';
 import { toast } from '../ui/toast.ts';
 import type { Session } from './session.ts';
@@ -22,6 +23,9 @@ function onlineDrivers(flow: OnlineFlow): GameHookDrivers['online'] {
     room: () => flow.currentRoom(),
     seats: () => flow.match.room?.info.seats.length ?? 0,
     view: () => flow.match.view,
+    matchId: () => (flow.match instanceof OnlineMatch ? flow.match.matchId : null),
+    hosting: () => flow.match instanceof OnlineMatch && flow.match.hosting,
+    views: () => (flow.match instanceof OnlineMatch ? flow.match.viewsIn : 0),
   };
 }
 

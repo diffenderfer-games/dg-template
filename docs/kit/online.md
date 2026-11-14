@@ -50,6 +50,7 @@ export const createOnline = (o: { input(): OnlineInput | null; render(v: OnlineV
 - **Reconnect.** At boot `reclaim()` takes back a seat held after a reload (6 s wait); the hub also sends a rejoin launch, whichever comes first wins. The player lands back in the same room and seat.
 - **Away seats played by the computer.** On `seat` `away` or `gone` (and `abandoned`) the seat goes into `computerSeats`; the host feeds it `computer(state, seat)` input each frame. On `back` it is handed back with no reset. A match never ends because someone left.
 - **Host loss.** The host sends its whole state to the successor (longest-seated connected non-host) every 2 s. When the host role moves, the successor restores from the freshest backup and play goes on.
+- **The host comes back (kit 1.48).** A host who reloads or closes the tab keeps its seat and the host role for the hub's grace (3 minutes in play), and nothing moves meanwhile. Back, it carries the same match on, never a restart: from this device's copy of the match (`localStorage`, written with every backup and as the page hides or closes; dropped when the match ends or the player leaves), or, with none (another phone, storage blocked), it asks the guests (`want`, every 2 s until answered) and the successor hands back its freshest backup (`handoff`). Every backup carries the match id, the room `seq` of the last input in the state (inputs the hub replays to the returning page are not applied twice) and the seats the computer plays (it keeps them, and any seat still dropped). A guest keeps the inputs it makes while the host is away (the newest `HELD_INPUTS`, 10) and sends them, in order, once the host's views come again. Nothing in the game changes: `backup()` / `restore` are the same hooks. If nobody holds the match (the host and the successor both lost it), the host page waits on the loading screen.
 - **Invites, Join, Watch.** `installLaunches` registers `onLaunch` and `onJoinInfo` at boot. `host` creates the room for the party (or shares the room you already host), `guest` joins the join info now or when it arrives, `join` and `watch` (also `via: link` or `rejoin`) join `launch.room`, watch as a spectator. Identical launches are ignored; a launch before mount waits; race launches are ignored (the hub joins races). `launch.table` options reach `start` as `m.table`. Invite links come from the hub's invite dialog or `inviteLink()`.
 - **`setBusy` and quiet.** When the match starts: `hub.mp.setBusy(true, { label: 'a match' })` (the hub asks "Leave your match?" before an invite takes the player away) and `hub.notify.setQuiet(true)`. Both are cleared when the match ends, the room closes or the player leaves. A live match never pauses.
 - **Presence.** Lobby: joinable, with the open seat count and whether anyone may join (`public`). Playing: watchable, not joinable.
@@ -68,6 +69,9 @@ Installed with the other drivers by `kit/boot` (dev, localhost or `__HUB_TEST__`
 | `room()` | The room code, or null. |
 | `seats()` | How many seats the room has. |
 | `view()` | The latest view this player draws. |
+| `matchId()` | The match's id (the same after the host's reload: not a restart); null for a live game. |
+| `hosting()` | This page runs the match (the host, with its state). |
+| `views()` | Views drawn from the host so far (a guest's; they keep coming while the match goes on). |
 
 Test ids: `online`, `online-who`, `online-play-now`, `online-friends`, `online-who-back`, `join-code`, `join-code-go`, `looking`, `quick-match`, `lobby-start`, `lobby-ready`, `lobby-status`, `lobby-share`, `lobby-rematch`, `seat-status-<id>`, `make-host-<id>`, `rematch-panel`, `rematch`, `rematch-line`, `confirm-settings`, `lobby-invite`, `lobby-bell`, `lobby-leave`, `loading-leave`, `player-<id>`, `room-code`, `seats`, `chat`, `chat-lines`, `chat-note`, `chat-input`, `chat-send`, `quick-<id>`.
 
@@ -88,19 +92,19 @@ Test ids: `online`, `online-who`, `online-play-now`, `online-friends`, `online-w
 | Export | What |
 |---|---|
 | `onlineGame(hooks)`, `OnlineHooks`, `OnlineGame`, `MatchStart`, `HostMatch` | Typed hooks bridged to the kit (`types.ts`). |
-| `OnlineMatch`, `BACKUP_MS` | One match in a hub room (host rules, resilience, backups). |
+| `OnlineMatch`, `BACKUP_MS`, `WANT_MS`, `HELD_INPUTS` | One match in a hub room (host rules, resilience, backups, the host coming back). |
 | `installLaunches(hub, routes)` | The launch adapter; returns `{ ready(), pending }`. |
 | `lobbyScreen(opts, actions)` | The lobby DOM. |
 | `chatPanel(port, mode, nameOf, { extra?, earlier? })`, `roomChat(room)`, `gamePhrases(slug, phrases)`, `sendChat`, `QUICK_PHRASES` | Chat UI and sending, for a room or an online game the hub runs. |
 | `errText(e)`, `closedText(reason)` | Errors and close reasons as words. |
-| `envelope`, `parseEnvelope`, `fits`, `successorOf`, `freshest`, `WIRE_VERSION`, `MAX_MESSAGE_BYTES` | Wire format (pure; also runs under Node). |
+| `envelope`, `parseEnvelope`, `fits`, `successorOf`, `freshest`, `carryEnvelope`, `carryOf`, `savedCarry`, `Carry`, `WIRE_VERSION`, `MAX_MESSAGE_BYTES` | Wire format (pure; also runs under Node). |
 | `rosterSync(hub)` | Own-server rosters for the People panel (`roster.ts`, imported by path; planned hub API). |
 | `OnlineFlow` (in `kit/boot`) | Lobby, match and screens in the session. |
 
 ## Tests
 
 - `tests/kit/online/online.test.ts`: wire round trip and dropped versions, the 8 KB limit, successor and freshest backup, error words, the launch adapter, `onlineGame` validation, computer seats and restore.
-- `tests/hub-events/online.test.ts` (FakeHub): rows 34 to 55 of the hub-event table: launches, rooms, host takeover, away and gone seats, kicked, ended once, closed reasons, chat, chat modes, presence and busy, `hub:rt-failed`.
+- `tests/hub-events/online.test.ts` (FakeHub): rows 34 to 55 of the hub-event table: launches, rooms, host takeover, the host coming back (its copy, the handoff, replayed inputs, a guest's held inputs), away and gone seats, kicked, ended once, closed reasons, chat, chat modes, presence and busy, `hub:rt-failed`.
 - `tests/game/online.test.ts`: the game's own rules (same seed, computer players, table options, bad input, backup restore).
 - `tests/hub/kit/online.test.ts` (real hub, browsers): the [multiplayer.md §12](../multiplayer.md#required-scenarios) scenarios against the game (skipped without `game.multiplayer`), below.
 
@@ -114,7 +118,7 @@ Test ids: `online`, `online-who`, `online-play-now`, `online-friends`, `online-w
 | 4 | Join and Watch | Join from presence only; Watch is not tested here. |
 | 5 | Pause on hub open | The live match keeps running with the hub menu open; pausing on hub open for a normal game is in `tests/hub/kit/pause.test.ts`. |
 | 6 | Chat | Rejected link keeps the draft with the hint, softened word shows softened; non-friend quick-only and `HUB_CHAT=off` are covered in `tests/hub-events/online.test.ts` row 50 (FakeHub), not in the browser. |
-| 7 | Reconnect | Yes: a reload mid-match returns to the same room and seat. |
+| 7 | Reconnect | Yes: a guest's reload mid-match returns to the same room and seat; the host's reload (7b), the host with no copy of the match getting it from the guest (7c), the host's closed tab and return (7d), the host and guest reloading together (7e) each carry the same match on while the guest keeps playing. |
 | 8 | Suspended player | Yes: friendly message, game stays playable. |
 | 9 | Resilience | A guest's tab closing: the match goes on, the computer moves the seat, the player returns to the room. Host drop is covered by hub-event row 42 (FakeHub). |
 | 10 | Invite link | A stranger takes a free seat; watch after start and revoke are not covered. |

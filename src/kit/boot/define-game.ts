@@ -158,16 +158,23 @@ export function defineGame<P extends JsonObject, R extends JsonObject>(
   const online =
     roomGame === null
       ? null
-      : new OnlineFlow(hub, roomGame, clock, screens, {
-          enter: () => session.enterOnline(),
-          showPlay: () => session.showPlay(),
-          showResult: (won) => session.showResult(won, false),
-          toTitle: () => session.toTitle(),
-          guard: () => session.guardOnline(),
-          get screen() {
-            return session.screen;
+      : new OnlineFlow(
+          hub,
+          roomGame,
+          clock,
+          screens,
+          {
+            enter: () => session.enterOnline(),
+            showPlay: () => session.showPlay(),
+            showResult: (won) => session.showResult(won, false),
+            toTitle: () => session.toTitle(),
+            guard: () => session.guardOnline(),
+            get screen() {
+              return session.screen;
+            },
           },
-        });
+          store,
+        );
   const launches =
     online === null
       ? null
@@ -289,6 +296,7 @@ export function defineGame<P extends JsonObject, R extends JsonObject>(
   // 6. page lifecycle: keep the game in progress and the profile when the page hides or closes
   const onHide = (): void => {
     session.saveForLater(true);
+    online?.keep(); // a host's copy of its match: back after a reload or a closed tab, it carries on
     void profile.flush();
   };
   const onVisibility = (): void => {

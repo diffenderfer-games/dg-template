@@ -4,6 +4,21 @@ KIT doc. One entry per kit version; per module inside. A **major** version
 means a hook's signature changed: the entry says how to move a game over.
 `npm run kit:sync` prints the entries newer than a game's `kit.json`.
 
+## 1.48 (2026-11-14)
+
+- **online 1.10:** a host who reloads mid-match (or closes the tab and comes back within the seat's grace)
+  carries the same match on; it stayed on the loading screen and nothing sent views, so the guests were stuck
+  too. Its device keeps a copy of the match (`localStorage`, with every backup and as the page hides); with
+  none, it asks the guests (`want`) and the successor hands its freshest backup back (`handoff`). Backups now
+  also carry the match id, the last input's room `seq` (inputs replayed to the returning page are not applied
+  twice) and the computer's seats. A guest holds the inputs it makes while the host is away (`HELD_INPUTS`)
+  and sends them once the host's views come again. No game changes: the same `backup()` / `restore`.
+  **boot 1.23:** the page hiding keeps the host's copy; the online drivers `matchId()`, `hosting()`, `views()`.
+  **test-hook 1.3:** their types. **hub-events 1.22:** tests for the reload, the handoff, replayed and held
+  inputs; `bootGame({ kv })`; the toy game's `input`. **hub-suites 1.16:** 7b to 7e (the host's reload, with no
+  copy, a closed tab, host and guest together). **core 1.43:** `KIT_VERSION` 1.48. **scripts 1.55:** the module
+  versions. **docs 1.54:** this entry, online.md "The host comes back".
+
 ## 1.47 (2026-11-14)
 
 - **online 1.9:** a guest who reloads mid-match comes back to play: back in a room already playing (the

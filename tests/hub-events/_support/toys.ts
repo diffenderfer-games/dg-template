@@ -28,8 +28,8 @@ const isToy = (x: Json): x is ToyState =>
 /** A valid toy view (what a host sends). */
 export const toyView = (players: ToyState['players'] = []): ToyView => ({ players, winner: null });
 
-/** A toy online game: an input `{ add: n }` adds to the sender's score. */
-export function toyOnline(): OnlineGame {
+/** A toy online game: an input `{ add: n }` adds to the sender's score (`input`: this player's, each tick). */
+export function toyOnline(o: { input?: () => { add: number } | null } = {}): OnlineGame {
   return onlineGame<ToyState, ToyView, { add: number }>({
     minPlayers: 2,
     start: (m) => ({ players: m.seats.map((id) => ({ id, score: 0 })), winner: null }),
@@ -39,7 +39,7 @@ export function toyOnline(): OnlineGame {
     },
     view: (s) => structuredClone(s),
     outcome: (s) => (s.winner === null ? null : { winners: [s.winner] }),
-    input: () => null,
+    input: () => o.input?.() ?? null,
     render: () => undefined,
     isState: isToy,
     isView: isToy,

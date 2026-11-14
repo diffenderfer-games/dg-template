@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import type { Json } from '../../../src/kit/core/index.ts';
 import {
+  carryEnvelope,
+  carryOf,
   envelope,
   errText,
   fits,
@@ -8,6 +10,7 @@ import {
   installLaunches,
   onlineGame,
   parseEnvelope,
+  savedCarry,
   successorOf,
   WIRE_VERSION,
 } from '../../../src/kit/online/index.ts';
@@ -20,6 +23,17 @@ describe('wire', () => {
     expect(parseEnvelope({ ...e, v: WIRE_VERSION + 1 })).toBeNull();
     expect(parseEnvelope({ ...e, t: 'hack' })).toBeNull();
     expect(parseEnvelope('nope')).toBeNull();
+  });
+
+  it("a backup or handoff carries the match (id, last input's seq, computer seats); a saved copy is its room's only", () => {
+    const c = { s: { n: 1 }, at: 7, m: 'abc', q: 12, cs: [3] };
+    const sent = parseEnvelope(JSON.parse(JSON.stringify(carryEnvelope('handoff', c))));
+    expect(sent === null ? null : carryOf(sent)).toEqual(c);
+    expect(carryOf(envelope('backup', { n: 2 }, 3))).toEqual({ s: { n: 2 }, at: 3, m: null, q: 0, cs: [] }); // an older kit's
+    expect(parseEnvelope({ ...envelope('want', null, 1), cs: ['x'] })).toEqual(envelope('want', null, 1));
+    expect(savedCarry({ room: 'r1', ...c }, 'r1')).toEqual(c);
+    expect(savedCarry({ room: 'r1', ...c }, 'r2')).toBeNull();
+    expect(savedCarry({ room: 'r1', at: 1 }, 'r1')).toBeNull();
   });
 
   it('8 KB per message', () => {

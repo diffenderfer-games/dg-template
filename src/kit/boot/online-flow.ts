@@ -23,6 +23,7 @@ import type { Clock } from '../core/clock.ts';
 import type { HubLike } from '../core/hub-like.ts';
 import { field, type Json } from '../core/json.ts';
 import type { KitLaunch } from '../core/planned.ts';
+import type { Store } from '../core/store.ts';
 import { face } from '../avatar/index.ts';
 import { MANIFEST } from '../core/manifest.ts';
 import { chatPanel, gamePhrases, roomChat } from '../online/chat.ts';
@@ -84,7 +85,7 @@ export class OnlineFlow {
   /** The code of the rematch room this page moved into (its lobby says so). */
   private rematchCode: string | null = null;
 
-  constructor(hub: HubLike, game: RoomGame, clock: Clock, screens: Screens, host: OnlineFlowHost) {
+  constructor(hub: HubLike, game: RoomGame, clock: Clock, screens: Screens, host: OnlineFlowHost, store?: Store) {
     this.clock = clock;
     this.hub = hub;
     this.game = game;
@@ -119,14 +120,25 @@ export class OnlineFlow {
             problem: (text) => toast(text, { kind: 'warn' }),
             closedAfterEnd: () => this.rematch?.panel.update(null),
           })
-        : new OnlineMatch(hub, game.online, clock, {
-            lobby,
-            playing,
-            ended: (results) => this.addRematch(host.showResult(this.won(results))),
-            left,
-            seat: () => undefined,
-            closedAfterEnd: () => this.rematch?.panel.update(null),
-          });
+        : new OnlineMatch(
+            hub,
+            game.online,
+            clock,
+            {
+              lobby,
+              playing,
+              ended: (results) => this.addRematch(host.showResult(this.won(results))),
+              left,
+              seat: () => undefined,
+              closedAfterEnd: () => this.rematch?.panel.update(null),
+            },
+            store,
+          );
+  }
+
+  /** The page hides or closes: a host keeps this device's copy of its match (kit/online; a live match is the server's). */
+  keep(): void {
+    if (this.match instanceof OnlineMatch) this.match.keep();
   }
 
   /** Did this player win (kit/online: the host's `{ winners }`; kit/live: the hub's `winnerId`)? */

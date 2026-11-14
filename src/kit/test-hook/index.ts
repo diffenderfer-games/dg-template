@@ -53,6 +53,12 @@ export type GameHookDrivers = {
     seats(): number;
     /** The latest view this player draws. */
     view(): Json;
+    /** kit/online: the match's id (the same after the host's reload: not a restart); null for a live game. */
+    matchId(): string | null;
+    /** kit/online: this page runs the match (the host, with its state). */
+    hosting(): boolean;
+    /** kit/online: views drawn from the host so far (a guest's). */
+    views(): number;
   };
   /** Online games the hub runs: make the game's `turns.testMove` now (false: not this player's move). */
   turnsMove(): boolean;
