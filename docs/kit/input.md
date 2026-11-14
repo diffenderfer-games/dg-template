@@ -137,7 +137,10 @@ How it behaves (`installPrompts`, which `defineGame` calls):
   the hub keeps the arrows from the page, so the browser's own wouldn't.
 - **Steppers** (`axisControl`): a focusable row whose left and right (arrows, the d-pad, the stick) step it while it
   has focus, and whose act (Enter, A) presses `confirm`. Keep it alone in its row; while it has focus the controls
-  beside it are left out of the pad's moves.
+  beside it are left out of the pad's moves. A stepper that wraps into rows (a grid of cards on a wide screen)
+  passes `rows: { can(dir), step(dir) }` (-1 up, 1 down): while `can` says it has a row that way, up and down
+  (arrows, the d-pad, the stick) call `step` and the controls that way are out of reach; from its top or bottom row
+  the focus leaves as usual. A held d-pad or stick that stepped it never also moves the focus.
 - **Left and right stay on a line** (`alongLines`, `sameLine`): the hub moves to the nearest control in a direction,
   so left or right on a full-width row used to jump to Back or Go below it (and on a stepper raced its step: the
   value changed and the highlight left). The kit hands the hub every control off the focused one's line pulled in
@@ -205,26 +208,26 @@ is a working example of all of it.
 
 ## Options / API
 
-| Export                                                                                                | What                                                                                                                            |
-| ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| `InputSpec`                                                                                           | `{ groups, virtual? }`: what the game declares.                                                                                 |
-| `defineControls(hub, spec, width)`                                                                    | Define the groups; returns a `ControlsHandle`.                                                                                  |
-| `ControlsHandle.sync({ playing, paused?, extra? })`                                                   | Enable or disable groups, only on change (`paused`: the kit's `kit:resume`).                                                    |
-| `ControlsHandle.usesPadButton(buttons, group?)`                                                       | Does a group (default `play`) read any of these pad buttons?                                                                    |
-| `padButtonsOf(mapping)`, `RESUME_GROUP`, `RESUME_INPUT`                                               | A mapping's buttons as a list; the pause screen's resume group and input.                                                       |
-| `ControlsHandle.relayout(width)`                                                                      | Re-define the touch layout if the width changed it.                                                                             |
-| `ControlsHandle.usesKey(key)`                                                                         | Does an enabled group read this key? (Esc in play is then the game's.)                                                          |
-| `installMenuNav(hub, { root, back, locked?, ownsEscape?, keys?, active?, ring? })`                    | Make the kit's menus navigable once, and Esc the same back; `back()` returns whether it went anywhere. Returns the unsubscribe. |
-| `navTargets(root)`                                                                                    | The navigable controls of the top modal or the screens.                                                                         |
-| `canvasNavElements(buttons)`                                                                          | Canvas buttons as nav targets.                                                                                                  |
-| `controlHints(hub, cb)`                                                                               | Call `cb('keys' \| 'touch' \| 'pad')` now and on every change; returns the unsubscribe.                                         |
-| `setHudInsets(hub, bands)`                                                                            | Tell the hub about HUD bands at the top or bottom.                                                                              |
-| `bindAction(el, action, { keys?, pad?, chip? })`, `glyph(actions)`, `axisControl(el, step, { act? })` | Button prompts: bind a control, a chip on its own, a stepper.                                                                   |
-| `installPrompts(hub, { root, active?, navActive?, padStyle?, arrows? })`                              | Track the device for the chips and make bound controls answer (`defineGame` calls it).                                          |
-| `setPromptBindings`, `promptBinding`, `DEFAULT_PROMPT_BINDINGS`, `KIT_ACTIONS`, `bindKitControls`     | The actions' keys and pad buttons; the kit's controls' actions.                                                                 |
-| `promptMode()`, `setPromptMode`, `padStyleOf(id)`, `pressAction(root, action)`, `actionControl`       | The chips' mode; a pad's glyph style; press an action from code.                                                                |
-| `navScope(root)`                                                                                      | The top modal, else the screens (where navigation and bindings look).                                                           |
-| `repeatPress(read, opts)`                                                                             | Held button to repeats (300 ms first, then every 90 ms by default).                                                             |
+| Export                                                                                                       | What                                                                                                                            |
+| ------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------- |
+| `InputSpec`                                                                                                  | `{ groups, virtual? }`: what the game declares.                                                                                 |
+| `defineControls(hub, spec, width)`                                                                           | Define the groups; returns a `ControlsHandle`.                                                                                  |
+| `ControlsHandle.sync({ playing, paused?, extra? })`                                                          | Enable or disable groups, only on change (`paused`: the kit's `kit:resume`).                                                    |
+| `ControlsHandle.usesPadButton(buttons, group?)`                                                              | Does a group (default `play`) read any of these pad buttons?                                                                    |
+| `padButtonsOf(mapping)`, `RESUME_GROUP`, `RESUME_INPUT`                                                      | A mapping's buttons as a list; the pause screen's resume group and input.                                                       |
+| `ControlsHandle.relayout(width)`                                                                             | Re-define the touch layout if the width changed it.                                                                             |
+| `ControlsHandle.usesKey(key)`                                                                                | Does an enabled group read this key? (Esc in play is then the game's.)                                                          |
+| `installMenuNav(hub, { root, back, locked?, ownsEscape?, keys?, active?, ring? })`                           | Make the kit's menus navigable once, and Esc the same back; `back()` returns whether it went anywhere. Returns the unsubscribe. |
+| `navTargets(root)`                                                                                           | The navigable controls of the top modal or the screens.                                                                         |
+| `canvasNavElements(buttons)`                                                                                 | Canvas buttons as nav targets.                                                                                                  |
+| `controlHints(hub, cb)`                                                                                      | Call `cb('keys' \| 'touch' \| 'pad')` now and on every change; returns the unsubscribe.                                         |
+| `setHudInsets(hub, bands)`                                                                                   | Tell the hub about HUD bands at the top or bottom.                                                                              |
+| `bindAction(el, action, { keys?, pad?, chip? })`, `glyph(actions)`, `axisControl(el, step, { act?, rows? })` | Button prompts: bind a control, a chip on its own, a stepper.                                                                   |
+| `installPrompts(hub, { root, active?, navActive?, padStyle?, arrows? })`                                     | Track the device for the chips and make bound controls answer (`defineGame` calls it).                                          |
+| `setPromptBindings`, `promptBinding`, `DEFAULT_PROMPT_BINDINGS`, `KIT_ACTIONS`, `bindKitControls`            | The actions' keys and pad buttons; the kit's controls' actions.                                                                 |
+| `promptMode()`, `setPromptMode`, `padStyleOf(id)`, `pressAction(root, action)`, `actionControl`              | The chips' mode; a pad's glyph style; press an action from code.                                                                |
+| `navScope(root)`                                                                                             | The top modal, else the screens (where navigation and bindings look).                                                           |
+| `repeatPress(read, opts)`                                                                                    | Held button to repeats (300 ms first, then every 90 ms by default).                                                             |
 
 ## Tests
 

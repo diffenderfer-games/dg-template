@@ -19,7 +19,7 @@
 import { AXIS_DEADZONE, PAD_AXIS_ACTIVITY, PAD_BUTTON, PAD_BUTTON_ACTIVITY } from '@diffenderfer-games/hub/input';
 import type { HubLike } from '../core/hub-like.ts';
 import { bindingOf, bindKitControls, type PromptBinding } from './glyphs.ts';
-import { navScope, navTargets, sameLine } from './nav.ts';
+import { axisRows, holdRowStep, navScope, navTargets, sameLine, setAxisRows, type AxisRows } from './nav.ts';
 
 /** Which chips show. */
 export type PromptMode = 'keys' | 'pad' | 'none';
@@ -122,10 +122,11 @@ function matching(root: ParentNode, match: (b: PromptBinding) => boolean): HTMLE
 export function axisControl<E extends HTMLElement>(
   el: E,
   step: (dir: -1 | 1) => void,
-  o: { act?: () => void; root?: ParentNode } = {},
+  o: { act?: () => void; root?: ParentNode; rows?: AxisRows } = {},
 ): E {
   el.setAttribute('data-nav', '');
-  el.setAttribute('data-nav-axis', 'x');
+  el.setAttribute('data-nav-axis', o.rows === undefined ? 'x' : 'xy');
+  if (o.rows !== undefined) setAxisRows(el, o.rows);
   if (!el.matches('button, a[href], input')) el.tabIndex = 0;
   el.addEventListener(STEP_EVENT, (e) => {
     const dir: unknown = e instanceof CustomEvent ? e.detail : null;
@@ -313,6 +314,14 @@ export function installPrompts(hub: Pick<HubLike, 'input' | 'overlay'>, o: Promp
         stepAxis(inScope, arrow === 'left' ? -1 : 1);
         return;
       }
+      // (a stepper's own rows: up and down inside it till its top or bottom row)
+      const rows = axisRows(inScope);
+      const dir = arrow === 'up' ? -1 : arrow === 'down' ? 1 : 0;
+      if (rows !== null && dir !== 0 && rows.can(dir)) {
+        e.preventDefault();
+        rows.step(dir);
+        return;
+      }
     }
     if (e.key === 'Escape') return; // (the kit's menu navigation: back)
     if (e.key === 'Enter') {
@@ -346,6 +355,8 @@ export function installPrompts(hub: Pick<HubLike, 'input' | 'overlay'>, o: Promp
   let held = new Set<number>();
   const stepLeft = repeater();
   const stepRight = repeater();
+  const stepUp = repeater();
+  const stepDown = repeater();
   let frame = 0;
   let stopped = false;
   const tick = (now: number): void => {
@@ -355,6 +366,7 @@ export function installPrompts(hub: Pick<HubLike, 'input' | 'overlay'>, o: Promp
     const now2 = typeof now === 'number' ? now : performance.now();
     const pressed = new Set<number>();
     let lx = 0;
+    let ly = 0;
     for (const pad of pads) {
       if (pad === null) continue;
       let busy = false;
@@ -364,6 +376,7 @@ export function installPrompts(hub: Pick<HubLike, 'input' | 'overlay'>, o: Promp
       });
       if (pad.axes.some((a) => Math.abs(a) > PAD_AXIS_ACTIVITY)) busy = true;
       if (Math.abs(pad.axes[0] ?? 0) > Math.abs(lx)) lx = pad.axes[0] ?? 0;
+      if (Math.abs(pad.axes[1] ?? 0) > Math.abs(ly)) ly = pad.axes[1] ?? 0;
       if (busy) setPromptMode('pad', fixed ?? padStyleOf(pad.id));
     }
     const rose = [...pressed].filter((b) => !held.has(b));
@@ -392,6 +405,19 @@ export function installPrompts(hub: Pick<HubLike, 'input' | 'overlay'>, o: Promp
       const goRight = stepRight(axis !== null && right && !left, now2);
       if (axis !== null && goLeft) stepAxis(axis, -1);
       if (axis !== null && goRight) stepAxis(axis, 1);
+      // its own rows (a grid of cards): up and down step inside it; held, the hub doesn't also move the focus
+      const rows = axisRows(axis);
+      const up = pressed.has(PAD_BUTTON.UP) || ly < -AXIS_DEADZONE;
+      const down = pressed.has(PAD_BUTTON.DOWN) || ly > AXIS_DEADZONE;
+      const goUp = stepUp(rows !== null && up && !down && rows.can(-1), now2);
+      const goDown = stepDown(rows !== null && down && !up && rows.can(1), now2);
+      if (rows !== null && goUp) {
+        rows.step(-1);
+        holdRowStep(axis, -1);
+      } else if (rows !== null && goDown) {
+        rows.step(1);
+        holdRowStep(axis, 1);
+      } else if (!up && !down) holdRowStep(null, null);
     }
     frame = requestAnimationFrame(tick);
   };

@@ -4,6 +4,14 @@ KIT doc. One entry per kit version; per module inside. A **major** version
 means a hook's signature changed: the entry says how to move a game over.
 `npm run kit:sync` prints the entries newer than a game's `kit.json`.
 
+## 1.50 (2026-11-14)
+
+- **input 1.8:** a stepper can have rows (`axisControl(el, step, { rows: { can, step } })`): a grid of cards on a wide
+  screen, one focus stop, now moves up and down inside it too (arrows, the d-pad, the stick), and leaves only from
+  its top or bottom row; a held d-pad that stepped it never also moves the focus (`navTargets` leaves out the
+  controls that way while it has a row there). Steppers without rows are unchanged. **core 1.45:** `KIT_VERSION`
+  1.50. **scripts 1.57:** the module versions. **docs 1.56:** this entry, input.md § Steppers.
+
 ## 1.49 (2026-11-14)
 
 - **local 1.3:** the join sheet can be a step of the game's own setup instead of a sheet over the title (Back

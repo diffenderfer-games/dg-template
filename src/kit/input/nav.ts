@@ -28,6 +28,36 @@ import type { NavElement, NavTarget } from '@diffenderfer-games/hub';
 import type { HubLike } from '../core/hub-like.ts';
 import { closeTopModal, topModal } from '../ui/modal.ts';
 
+/**
+ * A stepper's own rows (a grid of cards, `axisControl({ rows })`): while `can(dir)` (-1 up, 1 down) it has a row
+ * that way, up or down steps inside it (`step`) and the controls that way are out of reach; from its top or bottom
+ * row the focus leaves as usual.
+ */
+export type AxisRows = { can(dir: -1 | 1): boolean; step(dir: -1 | 1): void };
+
+const rowsOf = new WeakMap<Element, AxisRows>();
+/** The pad direction that just stepped a stepper's rows, held: the hub must not also move the focus with it. */
+let heldRow: { el: Element; dir: -1 | 1 } | null = null;
+
+export function setAxisRows(el: Element, rows: AxisRows): void {
+  rowsOf.set(el, rows);
+}
+
+export function axisRows(el: Element | null): AxisRows | null {
+  return el === null ? null : (rowsOf.get(el) ?? null);
+}
+
+/** The pad stepped `el`'s rows in `dir` and holds it (null: let go). */
+export function holdRowStep(el: Element | null, dir: -1 | 1 | null): void {
+  heldRow = el === null || dir === null ? null : { el, dir };
+}
+
+/** Does the focused stepper take up (-1) or down (1) itself now? */
+function takesRow(el: Element, dir: -1 | 1): boolean {
+  const rows = axisRows(el);
+  return rows !== null && (rows.can(dir) || (heldRow?.el === el && heldRow.dir === dir));
+}
+
 /** Where navigation and bound controls are: the topmost open modal, else `root` (the screens). */
 export function navScope(root: ParentNode): ParentNode {
   const modals = root.querySelectorAll<HTMLElement>('[data-modal]');
@@ -53,10 +83,13 @@ export function navTargets(root: ParentNode): HTMLElement[] {
   if (!axis || !ordered.includes(focused)) return ordered;
   const a = focused.getBoundingClientRect();
   if (a.height <= 0) return ordered;
+  // (a stepper with rows keeps up or down too while it has a row that way)
+  const up = takesRow(focused, -1);
+  const down = takesRow(focused, 1);
   return ordered.filter((el) => {
     if (el === focused) return true;
     const r = el.getBoundingClientRect();
-    return r.bottom <= a.top + 2 || r.top >= a.bottom - 2;
+    return (r.bottom <= a.top + 2 && !up) || (r.top >= a.bottom - 2 && !down);
   });
 }
 

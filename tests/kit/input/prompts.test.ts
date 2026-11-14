@@ -315,6 +315,54 @@ describe('steppers and arrows', () => {
     expect(document.activeElement).toBe(row);
   });
 
+  it('a stepper with rows (a grid of cards): up and down step inside it, then leave from its top or bottom row', () => {
+    setup();
+    const clicks: string[] = [];
+    let row = 0;
+    const moves: number[] = [];
+    const grid = axisControl(document.createElement('div'), () => undefined, {
+      rows: {
+        can: (dir) => (dir < 0 ? row > 0 : row < 1),
+        step: (dir) => {
+          row += dir;
+          moves.push(dir);
+        },
+      },
+    });
+    grid.getBoundingClientRect = () => DOMRect.fromRect({ x: 0, y: 100, width: 400, height: 200 });
+    const top = bound('Steps', null, clicks);
+    top.getBoundingClientRect = () => DOMRect.fromRect({ x: 0, y: 0, width: 400, height: 50 });
+    root.append(grid);
+    const go = bound('Go', null, clicks);
+    go.getBoundingClientRect = () => DOMRect.fromRect({ x: 0, y: 400, width: 400, height: 50 });
+    expect(grid.getAttribute('data-nav-axis')).toBe('xy');
+    grid.focus();
+    // keys: up from the top row leaves; down steps to the bottom row, then leaves
+    expect(navTargets(root)).toEqual([top, grid]);
+    key('ArrowDown', grid);
+    expect(moves).toEqual([1]);
+    expect(document.activeElement).toBe(grid);
+    expect(navTargets(root)).toEqual([grid, go]);
+    key('ArrowDown', grid);
+    expect(document.activeElement).toBe(go);
+    key('ArrowUp', go);
+    expect(document.activeElement).toBe(grid);
+    // the pad: up steps in; held, the hub moves nothing; let go and up again leaves
+    h.activate();
+    grid.focus();
+    h.pad.press(PAD_BUTTON.UP);
+    h.frame(3);
+    expect(moves).toEqual([1, -1]);
+    expect(document.activeElement).toBe(grid);
+    expect(navTargets(root)).toEqual([grid]);
+    h.pad.press(PAD_BUTTON.UP, 0);
+    h.frame();
+    expect(navTargets(root)).toEqual([top, grid]);
+    tap(PAD_BUTTON.UP);
+    expect(document.activeElement).toBe(top);
+    expect(moves).toEqual([1, -1]);
+  });
+
   it('left and right move a focused slider (the keys and the d-pad)', () => {
     setup();
     const slider = document.createElement('input');
