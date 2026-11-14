@@ -4,6 +4,15 @@ KIT doc. One entry per kit version; per module inside. A **major** version
 means a hook's signature changed: the entry says how to move a game over.
 `npm run kit:sync` prints the entries newer than a game's `kit.json`.
 
+## 1.46 (2026-11-14)
+
+- **core 1.41:** `InputLike` has the hub client's touch-skin calls (2.0.0-next.25): `setVirtualStyle(css)`,
+  `setVirtualHidden(id, hidden)` and `setVirtualHtml(id, html, part?)` with a stick's `'knob'` / `'base'`, so a
+  game calls them on `hub.input` without a guard. `KIT_VERSION` 1.46. **testing 1.22:** `FakeInput` implements
+  them and keeps what they set (`virtualStyle`, `virtualHidden`, cleared by `define` as the hub does, and
+  `virtualHtml`). **scripts 1.53:** the module versions. **docs 1.52:** this entry, devices.md § Touch controls
+  (custom skins: `chrome: false`, `baseHtml` / `knobHtml`, `setVirtualStyle`, `setVirtualHidden`, `dragLook`).
+
 ## 1.45 (2026-11-13)
 
 - **local 1.2:** the join sheet's Back and Start buttons show which press does them (Esc or B, Enter or Start), as

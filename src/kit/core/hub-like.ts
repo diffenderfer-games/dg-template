@@ -66,6 +66,9 @@ export type InputLike = PlannedSeatsExtras &
     | 'setInsets'
     | 'padButtons'
     | 'setPadButtons'
+    | 'setVirtualHtml'
+    | 'setVirtualHidden'
+    | 'setVirtualStyle'
   >;
 
 /** Show/hide the hub's menu button. */

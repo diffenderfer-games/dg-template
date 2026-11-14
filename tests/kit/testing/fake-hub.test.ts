@@ -48,6 +48,19 @@ describe('FakeHub: behaves like the hub client (fidelity)', () => {
     expect(fake.input.isEnabled('play')).toBe(false);
   });
 
+  it('input: a custom touch skin is typed and kept (setVirtualStyle, setVirtualHidden until define, setVirtualHtml parts)', () => {
+    const fake = createFakeHub({ events: new EventTarget() });
+    fake.input.setVirtualStyle('.vc-bare { color: red; }');
+    fake.input.setVirtualHtml('move', '<i></i>', 'knob');
+    fake.input.setVirtualHtml('fire', '<b></b>');
+    fake.input.setVirtualHidden('fire', true);
+    expect(fake.input.virtualStyle).toBe('.vc-bare { color: red; }');
+    expect([...fake.input.virtualHtml.keys()]).toEqual(['move:knob', 'fire']);
+    expect(fake.input.virtualHidden.has('fire')).toBe(true);
+    fake.input.define({ groups: {} });
+    expect(fake.input.virtualHidden.size).toBe(0);
+  });
+
   it('mp: a launch before onLaunch is buffered and delivered on register', () => {
     const fake = createFakeHub({ events: new EventTarget() });
     fake.mp.launch({ kind: 'join', room: 'ABCDE' });

@@ -33,6 +33,12 @@ export class FakeInput implements InputLike {
   padButtons: PadButtons = { menu: [8], act: [0], back: [1] };
   insets: Insets = {};
   touchDevice = false;
+  /** Each control's markup from `setVirtualHtml`, by `id` (a stick's parts as `id:knob` / `id:base`). */
+  virtualHtml = new Map<string, string>();
+  /** The controls `setVirtualHidden` hid. */
+  virtualHidden = new Set<string>();
+  /** The skin sheet from `setVirtualStyle` (`''` when none). */
+  virtualStyle = '';
   /** The client's local seats: absent (an older client) until `enableSeats()`. */
   seats?: (options?: KitSeatsOptions) => KitLocalSeats;
   private readonly enabled = new Set<string>();
@@ -67,6 +73,7 @@ export class FakeInput implements InputLike {
   define(config: InputConfig): void {
     this.log.record('input.define', Object.keys(config.groups));
     this.config = config;
+    this.virtualHidden.clear(); // as the hub: a define goes back to each control's declared `hidden`
     for (const [name, group] of Object.entries(config.groups)) if (group.enabled === true) this.enabled.add(name);
   }
 
@@ -132,6 +139,22 @@ export class FakeInput implements InputLike {
   setInsets(insets: Insets): void {
     this.log.record('input.setInsets', insets);
     this.insets = insets;
+  }
+
+  setVirtualHtml(id: string, html: string, part?: 'knob' | 'base'): void {
+    this.log.record('input.setVirtualHtml', { id, part });
+    this.virtualHtml.set(part ? id + ':' + part : id, html);
+  }
+
+  setVirtualHidden(id: string, isHidden: boolean): void {
+    this.log.record('input.setVirtualHidden', { id, isHidden });
+    if (isHidden) this.virtualHidden.add(id);
+    else this.virtualHidden.delete(id);
+  }
+
+  setVirtualStyle(css: string): void {
+    this.log.record('input.setVirtualStyle');
+    this.virtualStyle = css;
   }
 
   // ---- drivers -------------------------------------------------------------

@@ -107,6 +107,18 @@ action)`, `glyph(actions)` ([input.md](input.md#button-prompts)). Their
   `setHudInsets(hub, { top: [bar], bottom: [strip] })` or `hub.input.setInsets({ top })`.
 - A button that names a changing thing (the power-up in hand) updates its face
   with `hub.input.setVirtualHtml(id, html)`, dimmed while it would do nothing.
+- **A custom skin** (the game's own look, not the hub's paint): declare each control
+  `chrome: false` with its own `html` (a stick's `baseHtml` / `knobHtml`, the hub
+  still moves the knob), give the controls one sheet with
+  `hub.input.setVirtualStyle(css)` (it lands in their shadow root, so select from
+  `.vc-bare`, `[data-pressed]`, `[data-active]`, `[data-hidden]`, `var(--vc-x)`),
+  swap a stick part live with `setVirtualHtml(id, html, 'knob' | 'base')`, show or
+  hide one control without a rebuild with `hub.input.setVirtualHidden(id, hidden)`
+  (it keeps its slot; the next `define` goes back to the declared `hidden`), and
+  let one button aim while held with `dragLook: '<stick id>'`. All typed on the
+  kit's `InputLike`, and the `FakeHub` keeps them (`virtualStyle`, `virtualHidden`,
+  `virtualHtml`). Selectors and rules: [hub.md Custom skins](../hub.md#custom-skins);
+  BlasTaBits' `src/game/play/touch-skin.ts` is a worked example.
 - Hide them while there is nothing to control (loading, a countdown's
   look over the level, a menu over play) with `hub.input.setVirtualDefault(false)`,
   and give the hub's rule back with `null`. The player's own show/hide in the
