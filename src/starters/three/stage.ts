@@ -121,10 +121,16 @@ export function createThreeStage(host: HTMLElement, slug: string): ThreeStage {
   observer.observe(host);
   resize();
 
+  // (Auto resolution, remembered for this device; shots and tests always draw at the top)
   const adaptive = new AdaptiveResolution({
     min: 0.75,
     max: Math.min(preset.pixelRatio, window.devicePixelRatio || 1),
+    key: isShotMode() || isTestHarness() ? undefined : `${slug}:resolution`,
   });
+  if (adaptive.ratio !== renderer.getPixelRatio()) {
+    renderer.setPixelRatio(adaptive.ratio);
+    resize();
+  }
   let last = performance.now();
   return {
     renderer,
