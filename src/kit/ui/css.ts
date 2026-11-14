@@ -253,6 +253,9 @@ html[data-controls="touch"] #ui[data-screen="play"] .kit-toasts { bottom: auto; 
 .kit-join-slot[data-state="open"] .kit-join-name { color: var(--kit-muted); }
 .kit-join-device { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; color: var(--kit-muted); }
 .kit-join-buttons { display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap; }
+/* (short buttons: the chip follows the label, so a wide keycap like Enter never covers it) */
+html .kit-join .kit-join-buttons > .kit-btn:is(.kit-join-start, .kit-join-back) { flex-wrap: nowrap; padding-left: 18px; padding-right: 14px; }
+html .kit-join-buttons .kit-btn > .kit-glyph-on { position: static; transform: none; }
 .kit-views { position: absolute; inset: 0; pointer-events: none; }
 .kit-view { position: absolute; box-sizing: border-box; overflow: hidden; pointer-events: none; box-shadow: inset 0 0 0 2px var(--seat-color, transparent); }
 .kit-view > * { pointer-events: auto; }

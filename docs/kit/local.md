@@ -15,6 +15,9 @@ defineGame(hub, {
 });
 ```
 
+Also add `"consoleCategory": ["Local"]` to the `game` block in `package.json`: the hub's gamepad console
+lists the game on its Local shelf (docs/hub.md § "The console").
+
 Offer it where the game sets up a game, for example a "Players" row on the setup
 sheet. Show that row only when `ctx.local.available` is true. It is false on a
 touch-only device, and false when the hub client has no seats. Then:
@@ -41,6 +44,9 @@ The sheet shows one slot per seat:
 - When `min` players are in, Start on a seated pad, Enter from the keyboard
   player, or the Start button begins the game.
 - Esc, the Back button, or B while nobody is seated cancels.
+- The Back and Start buttons carry chips for these presses (Esc / B, Enter / Start), drawn for the
+  device in use; Back's B chip shows only while nobody is seated. On a pad, Start is the game's while
+  seats are open: the hub doesn't open its console with it (hub client 2.0.0-next.24).
 
 The sheet has no buttons a pad can move to. A new player's A therefore only
 ever joins; it never presses something else by accident. Theme it like every

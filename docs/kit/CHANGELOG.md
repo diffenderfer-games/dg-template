@@ -4,6 +4,15 @@ KIT doc. One entry per kit version; per module inside. A **major** version
 means a hook's signature changed: the entry says how to move a game over.
 `npm run kit:sync` prints the entries newer than a game's `kit.json`.
 
+## 1.45 (2026-11-13)
+
+- **local 1.2:** the join sheet's Back and Start buttons show which press does them (Esc or B, Enter or Start), as
+  every kit button does; B shows only while nobody is seated. Start no longer opens the hub's console from the
+  join sheet once the hub client is 2.0.0-next.24 (local seats keep Start for the game). **ui 1.19:** the join
+  sheet's chips follow the label (a wide Enter keycap covered a short Start). **core 1.40:**
+  `KIT_VERSION` 1.45. **scripts 1.52:** the module versions. **docs 1.51:** this entry, local.md (a local game adds `"consoleCategory": ["Local"]` to
+  `package.json` for the console's Local shelf).
+
 ## 1.44 (2026-11-12)
 
 - **input 1.7:** left and right stay on the focused control's line, with the pad and the arrows (`alongLines`,

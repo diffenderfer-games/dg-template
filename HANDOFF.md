@@ -93,6 +93,7 @@ sends the slug still finds the game's data. Kit games: see docs/kit/core.md
 | `image`       | no       | Tile image, path relative to project root                   |
 | `description` | no       | Falls back to `pkg.description`                             |
 | `ages`        | yes*     | Who it is for: `{ "min": 6 }` (6 and up) or `{ "min": 2, "max": 9 }`; `min` 2+. Shown on the game sheet and used by the home page's age filter (*`hub-doctor` warns without it) |
+| `consoleCategory` | no   | The gamepad console's extra library tabs it is listed under, e.g. `["Local"]`: each distinct name across the catalog is a tab after Adventure (docs/hub.md "Console categories") |
 | `hidden`      | no       | `true` skips this app from the catalog                      |
 | `hub`         | no       | `false` opts out of the shared hub menu/SDK injection       |
 | `menuPosition`| no       | Hub menu corner: `top-left` (default)/`top-right`/`bottom-left`/`bottom-right` |
@@ -130,6 +131,7 @@ sends the slug still finds the game's data. Kit games: see docs/kit/core.md
 | `image`       | no       | Tile image, path relative to project root                   |
 | `description` | no       | Falls back to `pkg.description`                             |
 | `ages`        | yes*     | Who it is for (see static table)                            |
+| `consoleCategory` | no   | Console library tabs, e.g. `["Local"]` (see static table)  |
 | `hidden`      | no       | `true` skips this app from the catalog                      |
 | `hub`         | no       | `false` opts out of the shared hub menu/SDK injection       |
 | `menuPosition`| no       | Hub menu corner (see static table)                          |

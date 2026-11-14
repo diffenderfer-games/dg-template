@@ -218,6 +218,21 @@ describe('openJoin', () => {
     expect(seats.closed).toBe(false);
   });
 
+  it('Back and Start show their presses; B only while nobody is seated', async () => {
+    const local = controller({});
+    const joined = openJoin({ hub: fake, local });
+    const chipOf = (id: string): HTMLElement | null =>
+      document.querySelector<HTMLElement>(`[data-testid="${id}"] > .kit-glyph-on`);
+    expect(chipOf('join-start')?.querySelector('.kit-g-keys')?.textContent).toBe('Enter');
+    expect(chipOf('join-start')?.querySelector('.kit-g-xbox')?.textContent).toBe('Menu');
+    expect(chipOf('join-back')?.querySelector('.kit-g-keys')?.textContent).toBe('Esc');
+    expect(chipOf('join-back')?.dataset['pad']).toBe('yes');
+    seats.join();
+    expect(chipOf('join-back')?.dataset['pad']).toBe('no');
+    key('Escape');
+    await expect(joined).resolves.toBe(false);
+  });
+
   it("Esc cancels and releases the seats (and is the sheet's, not the world box's)", async () => {
     const local = controller({});
     const joined = openJoin({ hub: fake, local });

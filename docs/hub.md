@@ -670,16 +670,38 @@ used; the menu's side is `menu/console-link.ts`):
 
 - **The menu button hides**, and **Select** opens the **console menu** instead
   of the drawer: the game with a big Resume, and tiles for Switch game, Home,
-  Resume, Daily challenges, Play online, Friends & chat, What's new,
-  Profile, Stats & boards, Settings, Controls, Share and All options (the
-  whole drawer). **Start** opens it too wherever Start does nothing else: on the
+  Resume, Daily challenges, Invite a friend (a game friends can play online:
+  `multiplayer.invites`, or `game.turns` for two or more; it opens the hub's
+  invite picker, `hub.social.openInvite`, with this game picked), Play online,
+  Friends & chat, What's new, Profile, Stats & boards, Settings, Controls,
+  Share and All options (the whole drawer). **Start** opens it too wherever Start does nothing else: on the
   catalog page, and in a game that declared its inputs while no enabled input
-  reads button 9 (a title screen, say). A zero-config game keeps Start as its
+  reads button 9 (a title screen, say) and no local seats are open
+  (`hub.input.seats`: a join screen reads Start itself). A zero-config game keeps Start as its
   `game.controls` key. Start or Select closes it; B goes back.
 - **Switch game** is the library: a 3D cover flow (the highlighted cover
   centred and big, two either side turned away and dimmer, a long library
-  wrapping round) with **Favorites**, **All games** and **Adventure** tabs
-  (LB/RB switch tabs, Y stars, X picks one at random, LT/RT jump six, A plays).
+  wrapping round) with **Favorites**, **All games** and **Adventure** tabs,
+  then one tab per **console category** the games carry (`game.consoleCategory`,
+  below; *Local* for the games with local multiplayer, say), then **By Author**
+  (LB/RB switch tabs through all of them, Y stars, X picks one at random, LT/RT
+  jump six, A plays). By Author shows a card per maker (their initial, name and
+  game count, from each game's credited `author`); A shows that maker's games, B
+  goes back to the makers, and B again leaves as usual. A tab with no games is
+  never shown (Favorites until something is starred; a category comes from the
+  games, so it always has some), and a remembered tab (`sessionStorage`
+  `dg:console-tab`) that no longer exists falls back to All games.
+- **Console categories** (`game.consoleCategory`): a list of short names,
+  `"consoleCategory": ["Local"]`. Every distinct name across the catalog (case
+  and spaces aside: `local` and `Local` are one tab, the first spelling shown)
+  becomes a tab, alphabetical, after Adventure; nothing about a name is built in,
+  so a new word in any game's package.json is a new tab. A name is 1 to 20
+  characters with no commas, at most six per game: `hub-doctor` warns about one
+  it skips (a value that isn't a list is an error), and the host skips it with a
+  warning. The registry keeps the usable ones (`RegistryEntry.consoleCategory`),
+  `GET /games` lists them (`consoleCategory`, with `authors`, the credited names
+  split), and the catalog page's tiles carry them (`data-console`,
+  `data-author-names`).
 - **Profiles ("Who's playing?")**: the face top left opens a row of the
   accounts remembered on this device, drawn from their avatars
   (`/_hub/avatar/<code>.svg`, bust; the highlighted one smiles, the others
@@ -694,7 +716,18 @@ used; the menu's side is `menu/console-link.ts`):
   its session (`HUB_SESSION_TTL_DAYS`); after that its card asks for the
   password. Guests are never remembered.
 - **Adventure Mode** (`/world`) has the console too: Select or Start opens it
-  with Game library, Find a friend, Tips and Home tiles. While a pad is in use
+  with Game library, Find a friend, Tips and Home tiles. A game picked in its
+  library plays the way a game spot plays it (in the box over the world when it
+  fits, else its page; the console asks with the cancelable `hub:world-play`
+  window event). **With a game in the world's box**, the menu is that game's
+  (*Now playing*, A resumes it) with a **Close game** tile first (back to the
+  world), and the box's bar shows the pad's ways out (*B Hold to leave*,
+  *Select Menu*). Holding B for 0.6 s still leaves. The world page and the game
+  in the box both read the pad, so one Select reaches the console twice (the
+  world's input system, and the game's `menu` message); two toggles within
+  250 ms are one press (`SAME_PRESS_MS` in `console-link.ts`), so the console
+  stays open. An Esc the page pressed for the pad (a zero-config game's Select is
+  Esc) never leaves the box; only a real Esc key or B held does. While a pad is in use
   the world's top bar shows the pad's prompts (Y Friends, Select Menu) instead
   of its buttons (`html[data-hub-pad]`, which the menu sets for the page's own UI).
 - **The catalog's console view**: Start on the catalog page shows the library
@@ -867,7 +900,8 @@ look: { gamepad: { axis: [[2, '+'], [3, '+']] } },    // several axes
 
 **Start (9)** is not one of them, but the hub uses it where it is free: it
 closes open hub UI, and opens the console where it does nothing else (see "The
-console"). A game that binds Start in an enabled group keeps it.
+console"). A game that binds Start in an enabled group keeps it, and so does a
+game with local seats open.
 
 Change them with `hub.input.setPadButtons(patch)` (merged): `{ menu:
 [PAD_BUTTON.HOME] }` frees Select for the game, `{ menu: [] }` never opens the
@@ -1780,7 +1814,8 @@ contract exports it as `GAME_LABELS`, display names in `GAME_LABEL_TITLES`):
 ```
 
 An unknown label is a warning (`hub-doctor`, the host's boot log), never an
-error; the home page ignores it. The home page's filter bar offers every label at
+error; the home page ignores it. (The gamepad console's own library tabs are a
+separate, free list, `game.consoleCategory`: see "The console".) The home page's filter bar offers every label at
 least one game uses: any label within a group matches, and every group picked
 must match (*Puzzle* or *Word*, and *Phone*).
 
@@ -2452,7 +2487,10 @@ the box, and how big it likes to be, with `game.embed`:
   gamepad focus go into the game (Tab stays in the box). **Esc leaves** unless the game
   handled the key (call `event.preventDefault()` on the Escape keydown you use, e.g.
   to pause or to go back a screen); **holding B** on a gamepad for 0.6 s leaves (a
-  short press is yours; the exit button fills a ring while it's held).
+  short press is yours; the exit button fills a ring while it's held). An Esc the hub
+  pressed for the pad (a zero-config game's Select) doesn't leave. With a pad in use the
+  bar says so (*B Hold to leave*, *Select Menu*), and the console menu Select opens over
+  the box has a **Close game** tile (docs: "The console").
 - **Audio:** the iframe is allowed to autoplay after the tap that opened it; unlock
   your `AudioContext` on the first gesture as usual. The world has no sound of its own,
   so nothing competes. Closing the box removes the iframe (the game stops).

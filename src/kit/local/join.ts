@@ -14,7 +14,7 @@
 import type { HubLike } from '../core/hub-like.ts';
 import { t } from '../core/strings.ts';
 import { face } from '../avatar/index.ts';
-import { keyGlyph, padGlyph } from '../input/glyphs.ts';
+import { glyph, keyGlyph, padGlyph } from '../input/glyphs.ts';
 import { PAD_BUTTON } from '@diffenderfer-games/hub/input';
 import { h } from '../ui/dom.ts';
 import { openModal } from '../ui/modal.ts';
@@ -59,6 +59,12 @@ function slotEl(deps: JoinDeps, index: number, player: LocalPlayer | undefined, 
   );
 }
 
+/** A chip that sits on a button (`.kit-btn > .kit-glyph-on`), shown only, not bound: the sheet reads its own presses. */
+function chip(el: HTMLElement): HTMLElement {
+  el.classList.add('kit-glyph-on');
+  return el;
+}
+
 /** Whether any pad pressed `button` since last frame (pads not seated included). */
 function padRose(held: Map<number, boolean>, button: number): boolean {
   if (typeof navigator === 'undefined' || typeof navigator.getGamepads !== 'function') return false;
@@ -86,15 +92,20 @@ export function openJoin(deps: JoinDeps): Promise<boolean> {
     let done = false;
     let frame = 0;
     const slots = h('div.kit-join-slots', { 'data-count': max });
+    // The chips say which press does it: Start (or Enter), and Esc (or B while nobody is seated).
+    const startChip = chip(glyph('confirm', { keys: ['Enter'], pad: [PAD_BUTTON.START] }));
+    const backChip = chip(glyph('back', { keys: ['Escape'], pad: [PAD_BUTTON.B] }));
     const start = h(
       'button.kit-btn.kit-primary.kit-join-start',
       { type: 'button', 'data-testid': 'join-start', disabled: true, onclick: () => finish(true) },
       h('span.kit-btn-label', {}, t('localStart')),
+      startChip,
     );
     const back = h(
       'button.kit-btn.kit-join-back',
       { type: 'button', 'data-testid': 'join-back', onclick: () => finish(false) },
       h('span.kit-btn-label', {}, t('back')),
+      backChip,
     );
     const hint = h('p.kit-join-hint', {}, t('localJoinHint', { n: min }));
     const body = h('div.kit-join', { 'data-testid': 'join' }, hint, slots, h('div.kit-join-buttons', {}, back, start));
@@ -106,6 +117,8 @@ export function openJoin(deps: JoinDeps): Promise<boolean> {
         ),
       );
       start.disabled = players.length < min;
+      // A seated pad's B gives its seat up, so B only goes back while nobody is seated.
+      backChip.dataset['pad'] = players.length === 0 ? 'yes' : 'no';
       body.dataset['ready'] = String(players.length >= min);
     };
     const modal = openModal({ title: deps.title ?? t('localWho'), body, locked: true, testid: 'join-sheet' });
