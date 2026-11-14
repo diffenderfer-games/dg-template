@@ -845,7 +845,10 @@ only declares `y`); `hub.input.vector(name)` returns
   single-axis `x`/`y` — e.g. a horizontal `pill` stick for a side-scroller),
   `color` (border/knob/pressed), `bg`,
   `text`, `opacity`, and `label`/`html`. See [Touch control layout](#touch-control-layout)
-  for where they go and how to keep them off your HUD. Controls hide when a gamepad is active (toggle in the menu's
+  for where they go and how to keep them off your HUD, and
+  [Custom skins](#custom-skins) to draw them entirely yourself (`chrome: false`,
+  a stick's `baseHtml`/`knobHtml`, `setVirtualStyle`, `setVirtualHidden`,
+  `dragLook`). Controls hide when a gamepad is active (toggle in the menu's
   **Controls**). By default, virtual controls show on touch devices and hide
   otherwise; a game that doesn't need them on touch can set a different default
   with `hub.input.setVirtualDefault(false)` (pass `true` to force-show, `null`
@@ -960,6 +963,119 @@ under it instead of over it. Without one the hub looks for the bar itself (a
 fixed, absolute or sticky element along the top edge, under the toasts); a bar
 drawn on a canvas needs the inset. `setInsets` is newer than some hub builds, so a game
 loading `/_hub/hub.js` can guard it: `hub.input.setInsets?.({ top })`.
+
+### Custom skins
+
+By default the hub paints every control (border, drop shadow, fill, a round
+knob). A game that wants its own look can take over completely; everything
+below is opt-in, and a control that uses none of it looks and behaves exactly
+as before.
+
+| Field / call | What it does |
+|---|---|
+| `chrome: false` | Drop the hub's paint for this control: no border, drop shadow, background, pressed fill, painted stick base or knob. Its box is exactly its `size` (no 2px border outside it), and its corners are yours unless you set `shape`. |
+| `html` | A button's or tap region's markup (as before). |
+| `baseHtml`, `knobHtml` | A joystick's or dpad's markup in its base and knob. The hub still moves the knob with the thumb. |
+| `className` | Extra class names on the control's element. |
+| `hidden: true` | Start hidden (see `setVirtualHidden`). |
+| `dragLook: '<stick id>'`, `dragRange` | A button that, while held, also drives that stick as the finger slides (see below). |
+| `hub.input.setVirtualStyle(css)` | Your stylesheet for the controls (replaces the last one; `''` removes it). |
+| `hub.input.setVirtualHidden(id, hidden)` | Show or hide one control without a rebuild. |
+| `hub.input.setVirtualHtml(id, html, part?)` | Swap a button's markup live, or with `part` `'knob'`/`'base'` a stick's. |
+
+**What your stylesheet can select.** The controls live in a shadow root, so
+your page's CSS never reaches them; `setVirtualStyle` puts your sheet inside
+that root, after the hub's own rules (so yours wins at equal specificity), and
+it never touches your page. Write every selector from a control:
+
+| Selector | Matches |
+|---|---|
+| `.vc`, `.vc-button`, `.vc-joystick`, `.vc-dpad`, `.vc-tap` | every control, by type |
+| `[data-id="fire"]` | one control (also `data-control-id`, as before) |
+| `.vc-bare` | a control with `chrome: false` |
+| `.your-class` | its `className` |
+| `.base`, `.knob` | a stick's two parts (the knob is the one that moves) |
+| `[data-pressed]` (and `.pressed`) | a button while held |
+| `[data-active]` | a stick while held |
+| `var(--vc-x)`, `var(--vc-y)` | a stick's reading, -1..1 (0 at rest); on a `dragLook` button while it drives |
+| `[data-dir~="up"]` (`down`, `left`, `right`) | the directions a dpad points |
+| `[data-dragging]` | a `dragLook` button while it drives its stick |
+| `[data-hidden]` | a hidden control |
+| `var(--vc-color)`, `var(--vc-bg)`, `var(--vc-opacity)` | the declared `color`, `bg` and `opacity` |
+
+Keep to these: the hub's own Controls screen, on-screen keyboard and highlight
+ring share the root and are not yours to restyle. Fonts must be loaded by your
+page (`@font-face` doesn't work inside a shadow root); `@keyframes` and
+transitions do. While the player edits the layout, every control gets the
+hub's dashed outline and hidden ones show at half opacity, whatever your sheet
+says, so they can still be found and dragged; the player's dragged spots,
+`setVirtual` size and opacity overrides work the same on a custom skin.
+
+*Why a stylesheet and not `::part()`:* `::part` can't match state attributes
+(`::part(knob)[data-active]` is invalid) or reach your markup inside a part,
+so pressed, held and hidden looks would be out of reach. A sheet inside the
+root has full selectors and still never leaks into the page.
+
+**Show and hide without a rebuild.** `setVirtualHidden(id, true)` sets
+`data-hidden` (and `aria-hidden`) on that control only: nothing is rebuilt,
+nothing else moves, and a stick the player is holding keeps its knob and its
+reading. A hidden control **keeps its slot** in the layout (the others don't
+close up, so a thumb heading for one never finds another there) and can't be
+touched. The hub's default is `visibility: hidden`; animate it in your sheet:
+
+```css
+.vc-bare { transition: opacity .2s, transform .2s, visibility .2s; }
+.vc-bare[data-hidden] { opacity: 0; transform: scale(.6); }
+```
+
+The choice lasts across the hub's own rebuilds (the player dragging a
+control) until your next `define`, which goes back to each control's declared
+`hidden`.
+
+**Hold and aim with one thumb (`dragLook`).** A button with `dragLook: 'look'`
+works as a normal button, and while it is held, sliding the finger drives the
+`look` stick (whatever reads `touch: { stick: 'look' }`) as if a joystick were
+centred where the finger went down: `dragRange` px (default 60) is a full
+deflection, and letting go centres it. A press that doesn't slide (under 6 px)
+never touches the stick, so tapping the button doesn't disturb a look stick
+held by the other thumb. If both drive the stick at once, the last one to move
+wins.
+
+**A worked example: toy blocks.**
+
+```ts
+const block = (word: string, hue: string) =>
+  `<div class="toy" style="--hue:${hue}"><div class="studs"><i></i><i></i></div><div class="face">${word}</div></div>`;
+
+hub.input.define({ groups: { play: { enabled: true, inputs: { /* … */ }, virtual: [
+  { id: 'move', type: 'joystick', place: 'bottom-left', chrome: false, className: 'tray',
+    baseHtml: '<div class="plate"></div>', knobHtml: '<div class="cap"></div>' },
+  { id: 'launch', type: 'button', place: 'bottom-right', chrome: false, html: block('Launch', '#ff5f3b'), dragLook: 'look' },
+  { id: 'scoop', type: 'button', place: 'bottom-right', chrome: false, html: block('Scoop', '#a78bfa'), hidden: true },
+] } } });
+
+hub.input.setVirtualStyle(`
+  .toy { position: relative; width: 100%; height: 100%; }
+  .toy .face { position: absolute; inset: 14px 0 0; border-radius: 10px; background: var(--hue);
+    display: grid; place-items: center; color: #fff; box-shadow: inset 0 -6px 0 #0003; }
+  .toy .studs { display: flex; justify-content: center; gap: 12px; }
+  .toy .studs i { width: 18px; height: 12px; margin-top: 4px; border-radius: 4px; background: var(--hue); }
+  .vc[data-pressed] .toy { transform: translateY(5px); }
+  .tray .plate { width: 100%; height: 100%; border-radius: 26px; background: #f2c14e; }
+  .tray .cap { width: 100%; height: 100%; border-radius: 16px; background: #2563eb;
+    transform: rotate(calc(var(--vc-x, 0) * 12deg)); }
+  .tray[data-active] .cap { background: #1d4ed8; }
+  .vc-bare { transition: opacity .2s, transform .2s, visibility .2s; }
+  .vc-bare[data-hidden] { opacity: 0; transform: scale(.6); }
+`);
+
+// Later, when the hopper fills: no rebuild, the held move stick is untouched.
+hub.input.setVirtualHidden('scoop', false);
+```
+
+These calls are newer than some hub builds; a game loading `/_hub/hub.js` can
+guard them (`hub.input.setVirtualStyle?.(css)`). An older hub ignores the new
+fields and draws its own look.
 
 ### Navigable menus (the easy way)
 
@@ -2956,6 +3072,14 @@ game is hosted; the path-segment fallback only kicks in if it's absent.
 ---
 
 ## Changelog
+
+- **2026-11-14** — **Custom touch skins.** On-screen controls can be drawn
+  entirely by the game: `chrome: false`, a stick's `baseHtml`/`knobHtml`,
+  `className`, state attributes (`data-pressed`, `data-active`, `--vc-x`/`--vc-y`,
+  `data-dir`, `data-hidden`), `hub.input.setVirtualStyle(css)`,
+  `hub.input.setVirtualHidden(id, hidden)` (no rebuild; a held stick is kept),
+  `hidden`, and `dragLook` (hold a button and aim with the same thumb). See
+  [Custom skins](#custom-skins). Opt-in: existing games look the same.
 
 - **2026-10-29** — **Game ids and slugs.** `game.id` (the permanent key,
   default the folder) and `game.slug` (the public URL, default the id), plus
