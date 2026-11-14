@@ -23,7 +23,7 @@ function srcModule(name: string, version = '1.0'): KitModuleDef {
 
 /** Every module. */
 export const KIT_MODULES: Record<string, KitModuleDef> = {
-  core: srcModule('core', '1.41'),
+  core: srcModule('core', '1.42'),
   testing: srcModule('testing', '1.22'),
   rng: srcModule('rng'),
   'daily-puzzle': srcModule('daily-puzzle', '1.1'),
@@ -41,7 +41,7 @@ export const KIT_MODULES: Record<string, KitModuleDef> = {
   ui: srcModule('ui', '1.19'),
   'settings-ui': srcModule('settings-ui', '1.1'),
   race: srcModule('race', '1.2'),
-  online: srcModule('online', '1.8'),
+  online: srcModule('online', '1.9'),
   audio: srcModule('audio', '1.1'),
   haptics: srcModule('haptics', '1.2'),
   server: srcModule('server', '1.2'),
@@ -51,9 +51,9 @@ export const KIT_MODULES: Record<string, KitModuleDef> = {
   avatar: srcModule('avatar', '1.6'),
   world: srcModule('world', '1.7'),
   local: srcModule('local', '1.2'),
-  'hub-events': { version: '1.20', paths: ['tests/hub-events'] },
+  'hub-events': { version: '1.21', paths: ['tests/hub-events'] },
   'hub-suites': { version: '1.15', paths: ['tests/hub/_kit.ts', 'tests/hub/kit'] },
-  scripts: { version: '1.53', paths: ['scripts/kit', 'tests/scripts'] },
+  scripts: { version: '1.54', paths: ['scripts/kit', 'tests/scripts'] },
   ci: { version: '1.0', paths: ['.github/workflows/deploy.yml'] },
   agents: { version: '1.1', paths: ['.claude/agents'] },
   config: {
@@ -68,7 +68,7 @@ export const KIT_MODULES: Record<string, KitModuleDef> = {
     ],
   },
   docs: {
-    version: '1.52',
+    version: '1.53',
     paths: [
       'docs/kit/look.md',
       'docs/kit/look',

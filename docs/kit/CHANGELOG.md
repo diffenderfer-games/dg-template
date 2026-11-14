@@ -4,6 +4,14 @@ KIT doc. One entry per kit version; per module inside. A **major** version
 means a hook's signature changed: the entry says how to move a game over.
 `npm run kit:sync` prints the entries newer than a game's `kit.json`.
 
+## 1.47 (2026-11-14)
+
+- **online 1.9:** a guest who reloads mid-match comes back to play: back in a room already playing (the
+  reload's reclaim, the hub's rejoin), the first view from the host shows the match. It stayed on the loading
+  screen (the match counted as playing from the moment it was back, so the view that shows play never did).
+  **hub-events 1.21:** a test for it. **core 1.42:** `KIT_VERSION` 1.47. **scripts 1.54:** the module versions.
+  **docs 1.53:** this entry.
+
 ## 1.46 (2026-11-14)
 
 - **core 1.41:** `InputLike` has the hub client's touch-skin calls (2.0.0-next.25): `setVirtualStyle(css)`,

@@ -58,6 +58,11 @@ export class OnlineMatch {
   private host: HostMatch | null = null;
   private backups: { at: number; d: Json }[] = [];
   private ended = false;
+  /**
+   * This page showed the match (`begin`). Apart from `playing`: a page that comes back into a room already
+   * playing (a reload's reclaim, a rejoin) is `playing` from the start, and still shows play on its first view.
+   */
+  private begun = false;
   private tickAcc = 0;
   private lastBackup = 0;
   /** Host: the private view last sent to each seat. */
@@ -125,6 +130,7 @@ export class OnlineMatch {
     this.me = room.me.userId;
     this.isHost = room.me.host;
     this.ended = false;
+    this.begun = false;
     this.playing = room.info.phase === 'playing';
     this.offs = [
       room.on('room', (info) => this.onRoom(info)),
@@ -197,7 +203,7 @@ export class OnlineMatch {
       if (e.t === 'view' && this.privateViews) return; // this seat gets its own view: it wins over the public one
       if (e.t === 'pview') this.privateViews = true;
       this.view = e.d;
-      if (!this.playing) this.begin();
+      if (!this.begun) this.begin();
     } else if (e.t === 'backup' && !this.isHost) {
       this.backups = [...this.backups.slice(-2), { at: e.at, d: e.d }];
     }
@@ -227,6 +233,7 @@ export class OnlineMatch {
 
   private begin(): void {
     this.playing = true;
+    this.begun = true;
     this.hub.mp.setBusy(true, { label: 'a match' });
     this.hub.notify.setQuiet(true);
     this.reportPresence();

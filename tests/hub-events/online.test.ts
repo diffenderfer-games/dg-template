@@ -139,6 +139,16 @@ describe('rooms (multiplayer.md §8)', () => {
     expect(g.hook.screen()).toBe('play');
   });
 
+  it('a reload mid-match: back in the room already playing, the first view shows play (never stuck loading)', async () => {
+    const g = await boot();
+    g.fake.rooms.open = [fakeRoomInfo({ code: 'MID', phase: 'playing', hostId: 2, seats: [fakeSeat(2)] })];
+    g.fake.mp.launch({ kind: 'join', room: 'MID', via: 'rejoin' });
+    await g.settle();
+    expect(g.hook.screen()).toBe('loading');
+    roomOf(g).receive(2, envelope('view', toyView(), 1));
+    expect(g.hook.screen()).toBe('play');
+  });
+
   it('row 44: an away or gone seat is played by the computer and handed back without a reset', async () => {
     const g = await boot();
     const room = await hostAndStart(g);
