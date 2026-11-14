@@ -274,6 +274,82 @@ describe('openJoin', () => {
     await expect(joined).resolves.toBe(true);
   });
 
+  it("a host element holds the sheet (data-hosted, filling it) and its presses stay the sheet's", async () => {
+    const host = document.createElement('div');
+    document.body.appendChild(host);
+    const local = controller({});
+    const joined = openJoin({ hub: fake, local, host });
+    const sheet = host.querySelector<HTMLElement>('[data-testid="join-sheet"]');
+    expect(sheet?.dataset['hosted']).toBe('true');
+    expect(sheet?.hasAttribute('data-modal')).toBe(true);
+    seats.join();
+    key('Escape');
+    await expect(joined).resolves.toBe(false);
+    expect(host.children).toHaveLength(0);
+    expect(seats.closed).toBe(true);
+    host.remove();
+  });
+
+  it('a signal closes it as Back does; an aborted one never opens', async () => {
+    const local = controller({});
+    const stop = new AbortController();
+    const joined = openJoin({ hub: fake, local, signal: stop.signal });
+    seats.join();
+    stop.abort();
+    await expect(joined).resolves.toBe(false);
+    expect(document.querySelector('[data-testid="join-sheet"]')).toBeNull();
+    expect(seats.closed).toBe(true);
+    await expect(openJoin({ hub: fake, local, signal: stop.signal })).resolves.toBe(false);
+    expect(document.querySelector('[data-testid="join-sheet"]')).toBeNull();
+  });
+
+  it('keep: the seats a stopped local game holds open again, players and all', async () => {
+    const local = controller({});
+    local.open();
+    seats.joining(true);
+    seats.join();
+    seats.join({ kind: 'keyboard' });
+    local.start();
+    local.hold();
+    expect(local.active).toBe(false);
+    expect(seats.closed).toBe(false);
+    const joined = openJoin({ hub: fake, local, keep: true });
+    expect(seats.count).toBe(2);
+    expect(seats.isJoining).toBe(true);
+    expect(document.querySelector('[data-testid="join-slot-1"]')?.getAttribute('data-state')).toBe('joined');
+    document.querySelector<HTMLButtonElement>('[data-testid="join-start"]')?.click();
+    await expect(joined).resolves.toBe(true);
+    // (without keep, the sheet opens fresh)
+    local.hold();
+    const fresh = openJoin({ hub: fake, local });
+    expect(seats.count).toBe(0);
+    key('Escape');
+    await expect(fresh).resolves.toBe(false);
+  });
+
+  it("the last seated pad's B only gives its seat up; the next B with nobody seated cancels", async () => {
+    const local = controller({});
+    const joined = openJoin({ hub: fake, local });
+    let result: boolean | null = null;
+    void joined.then((go) => (result = go));
+    seats.join();
+    seats.padPress(0, PAD_BUTTON.B);
+    const pad = { index: 0, buttons: Array.from({ length: 17 }, (_, i) => ({ pressed: i === PAD_BUTTON.B })) };
+    const had = Object.getOwnPropertyDescriptor(navigator, 'getGamepads');
+    Object.defineProperty(navigator, 'getGamepads', { value: () => [pad], configurable: true });
+    await new Promise((r) => requestAnimationFrame(r));
+    await new Promise((r) => requestAnimationFrame(r));
+    expect(seats.count).toBe(0);
+    expect(result).toBeNull();
+    seats.endFrame();
+    pad.buttons[PAD_BUTTON.B] = { pressed: false };
+    await new Promise((r) => requestAnimationFrame(r));
+    pad.buttons[PAD_BUTTON.B] = { pressed: true };
+    await expect(joined).resolves.toBe(false);
+    if (had) Object.defineProperty(navigator, 'getGamepads', had);
+    else Reflect.deleteProperty(navigator, 'getGamepads');
+  });
+
   it('resolves false at once where the client has no seats', async () => {
     delete fake.input.seats;
     await expect(openJoin({ hub: fake, local: controller({}) })).resolves.toBe(false);

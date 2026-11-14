@@ -43,7 +43,8 @@ The sheet shows one slot per seat:
 - B gives a seated pad's seat up. Backspace does the same for the keyboard.
 - When `min` players are in, Start on a seated pad, Enter from the keyboard
   player, or the Start button begins the game.
-- Esc, the Back button, or B while nobody is seated cancels.
+- Esc, the Back button, or B while nobody is seated cancels. The last seated pad's B only gives its seat up;
+  its next B cancels.
 - The Back and Start buttons carry chips for these presses (Esc / B, Enter / Start), drawn for the
   device in use; Back's B chip shows only while nobody is seated. On a pad, Start is the game's while
   seats are open: the hub doesn't open its console with it (hub client 2.0.0-next.24).
@@ -57,6 +58,26 @@ other sheet (look.md):
 - `.kit-join-disc` is the number disc of seats 1–3. Seat 0 shows the player's
   avatar.
 - `.kit-join-start` is the Start button.
+
+### Hosting the sheet
+
+By default the sheet opens over the page. A game whose setup is a big sheet of steps can make joining one of
+them, so the players never see the title behind it and Back goes one step back:
+
+```ts
+const stop = new AbortController();
+const go = await ctx.session.newLocal({ host: stepElement, signal: stop.signal });
+if (!go) showStep(previous); // Back, Esc, or B with nobody seated
+```
+
+- `host`: the sheet mounts inside that element (`.kit-modal[data-hosted]`: it fills the element, with no
+  dimmer and no title, so the host's own title and backdrop show). It is still the topmost modal, so a pad's A
+  only joins and the host's own buttons don't answer pads or keys while it is open. Hide the host's footer
+  while the sheet is up; its Back and Start are the sheet's.
+- `signal`: aborting closes the sheet as Back does (a tap on another step of the host, say).
+- `keep`: open with the seats a local game still holds. Back from a game's own screen before the match (a
+  character pick) calls `ctx.session.toTitle({ keepSeats: true })`, then opens the sheet with `keep: true`: the
+  same players are seated. Anything else that starts releases the seats.
 
 ## Playing
 

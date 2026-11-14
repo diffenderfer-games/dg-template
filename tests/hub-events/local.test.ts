@@ -68,6 +68,36 @@ describe('local play (hub.input.seats)', () => {
     expect(g.hook.mode()).toBeNull();
   });
 
+  it('the title with keepSeats holds the players for the join sheet again (newLocal({ keep }))', async () => {
+    const g = await bootLocal();
+    await playLocal(g, 3);
+    g.handle.session.toTitle({ keepSeats: true });
+    await g.settle();
+    expect(g.hook.screen()).toBe('title');
+    expect(g.hook.mode()).toBeNull();
+    expect(g.seats.closed).toBe(false);
+    expect(g.seats.count).toBe(3);
+    const again = g.handle.session.newLocal({ keep: true });
+    await g.settle();
+    expect(g.ui.querySelectorAll('[data-testid^="join-slot-"][data-state="joined"]')).toHaveLength(3);
+    g.press('join-start');
+    expect(await again).toBe(true);
+    expect(g.hook.mode()).toBe('local');
+    expect(g.seats.count).toBe(3);
+  });
+
+  it('the sheet can sit in an element of the game', async () => {
+    const g = await bootLocal();
+    const host = document.createElement('div');
+    g.ui.appendChild(host);
+    const started = g.handle.session.newLocal({ host });
+    await g.settle();
+    expect(host.querySelector('[data-testid="join-sheet"][data-hosted]')).not.toBeNull();
+    g.press('join-back');
+    expect(await started).toBe(false);
+    expect(g.seats.closed).toBe(true);
+  });
+
   it('backing out of the sheet starts nothing and gives the seats back', async () => {
     const g = await bootLocal();
     const started = g.handle.session.newLocal();

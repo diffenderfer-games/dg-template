@@ -56,11 +56,11 @@ function sessionApi<P extends JsonObject, R extends JsonObject>(s: Session<P, R>
     },
     newGame: () => s.newGame(),
     restart: () => s.restart(),
-    toTitle: () => s.toTitle(),
+    toTitle: (o) => s.toTitle(o),
     pause: () => s.pause(),
     resume: () => s.resume(),
     finish: (o) => s.finish(o),
-    newLocal: () => s.newLocal(),
+    newLocal: (o) => s.newLocal(o),
   };
 }
 

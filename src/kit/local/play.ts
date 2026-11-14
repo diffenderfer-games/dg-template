@@ -154,8 +154,15 @@ export class LocalController implements LocalPlay {
     return this.d.spec ?? {};
   }
 
-  /** The hub's seats, opened fresh (for the join sheet); null where the client has none. */
-  open(): KitLocalSeats | null {
+  /**
+   * The hub's seats for the join sheet: opened fresh, or with `keep` the ones still held from the local game that
+   * just stopped (`hold`), players and all. Null where the client has none.
+   */
+  open(o: { keep?: boolean } = {}): KitLocalSeats | null {
+    if (o.keep === true && this.table !== null) {
+      this.hold();
+      return this.table;
+    }
     this.close();
     const input = this.d.hub.input;
     if (this.d.spec === undefined || typeof input.seats !== 'function') return null;
@@ -201,6 +208,14 @@ export class LocalController implements LocalPlay {
   haptic(seat: number, strong = false): void {
     if (!this.isActive || !this.d.vibration()) return;
     this.table?.rumble(seat, strong ? { strength: 0.9, ms: 180 } : { strength: 0.45, ms: 70 });
+  }
+
+  /** The local game stops but its seats stay open, players and all, for the join sheet again (`open({ keep: true })`). */
+  hold(): void {
+    for (const off of this.offs.splice(0)) off();
+    this.table?.joining(false);
+    this.list = [];
+    this.isActive = false;
   }
 
   /** Local play ends (the title, another mode): the seats are released. */

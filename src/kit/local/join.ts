@@ -8,6 +8,10 @@
  * - A seated pad's Start, the keyboard player's Enter, or the Start button begins, once `min` are in.
  * - Esc, the Back button, or B on a pad while nobody is seated cancels.
  *
+ * `host` puts the sheet inside the game's own screen (a step of its setup sheet, its backdrop behind) instead of over
+ * the page; `keep` opens it with the seats the local game that just stopped still holds; `signal` closes it from
+ * outside (as Back does: resolves false, seats released).
+ *
  * The sheet has no pad-navigable buttons, so a new player's A only ever joins. The game themes it:
  * `.kit-join`, `.kit-join-slot[data-state="open"|"joined"]` with `--seat-color`, `.kit-join-start`.
  */
@@ -26,6 +30,19 @@ export type JoinDeps = {
   local: LocalController;
   /** A sheet title other than "Who's playing?". */
   title?: string;
+} & JoinOptions;
+
+/** Where the sheet sits and what it starts with (`ctx.session.newLocal(options)`; docs/kit/local.md § "Hosting the sheet"). */
+export type JoinOptions = {
+  /**
+   * Mount the sheet inside this element (`[data-hosted]`, filling it, its title hidden: the host shows its own) instead
+   * of over the page. Its presses stay the sheet's: it is the topmost modal while open.
+   */
+  host?: HTMLElement;
+  /** Open with the seats still held by the local game that just stopped (`toTitle({ keepSeats: true })`). */
+  keep?: boolean;
+  /** Aborting closes the sheet as Back does (resolves false, the seats released). */
+  signal?: AbortSignal;
 };
 
 /** One slot: an empty one asks for a press; a taken one shows the player and their device. */
@@ -84,7 +101,8 @@ function padRose(held: Map<number, boolean>, button: number): boolean {
  */
 export function openJoin(deps: JoinDeps): Promise<boolean> {
   const { local } = deps;
-  const seats = local.open();
+  if (deps.signal?.aborted === true) return Promise.resolve(false);
+  const seats = local.open({ keep: deps.keep });
   if (seats === null) return Promise.resolve(false);
   const { min, max } = seatLimits(local.spec);
   const palette = local.spec.colors ?? LOCAL_COLORS;
@@ -121,7 +139,15 @@ export function openJoin(deps: JoinDeps): Promise<boolean> {
       backChip.dataset['pad'] = players.length === 0 ? 'yes' : 'no';
       body.dataset['ready'] = String(players.length >= min);
     };
-    const modal = openModal({ title: deps.title ?? t('localWho'), body, locked: true, testid: 'join-sheet' });
+    const modal = openModal({
+      title: deps.title ?? t('localWho'),
+      body,
+      locked: true,
+      testid: 'join-sheet',
+      parent: deps.host,
+    });
+    const onAbort = (): void => finish(false);
+    deps.signal?.addEventListener('abort', onAbort);
     const offChange = seats.on('change', draw);
     const bHeld = new Map<number, boolean>();
     const onKey = (e: KeyboardEvent): void => {
@@ -141,6 +167,8 @@ export function openJoin(deps: JoinDeps): Promise<boolean> {
     const tick = (): void => {
       if (done) return;
       const anyB = padRose(bHeld, PAD_BUTTON.B);
+      // (the last seated pad's B only gives its seat up: the sheet closes on a B with nobody seated before it)
+      const nobody = seats.count === 0;
       for (let i = seats.count - 1; i >= 0; i -= 1) {
         const seat = seats.seat(i);
         if (seat.padDown(PAD_BUTTON.B)) {
@@ -152,7 +180,7 @@ export function openJoin(deps: JoinDeps): Promise<boolean> {
           return;
         }
       }
-      if (anyB && seats.count === 0) {
+      if (anyB && nobody) {
         finish(false);
         return;
       }
@@ -163,6 +191,7 @@ export function openJoin(deps: JoinDeps): Promise<boolean> {
       done = true;
       cancelAnimationFrame(frame);
       offChange();
+      deps.signal?.removeEventListener('abort', onAbort);
       window.removeEventListener('keydown', onKey, true);
       modal.close();
       if (!go) local.close();

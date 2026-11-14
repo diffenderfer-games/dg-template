@@ -42,6 +42,8 @@ export function openModal(o: {
   locked?: boolean;
   onClose?(): void;
   testid?: string;
+  /** Mount it inside this element (a game's own screen or sheet) instead of over the page: it fills the element (`data-hosted`). */
+  parent?: HTMLElement;
 }): ModalHandle {
   let locked = o.locked === true;
   let closed = false;
@@ -54,6 +56,7 @@ export function openModal(o: {
       'aria-label': o.title,
       'data-modal': true,
       'data-testid': o.testid ?? 'modal',
+      'data-hosted': o.parent === undefined ? undefined : 'true',
     },
     h('div.kit-modal-sheet', {}, h('h2.kit-modal-title', {}, o.title), h('div.kit-modal-body', {}, o.body), footer),
   );
@@ -86,7 +89,7 @@ export function openModal(o: {
       ),
     );
   }
-  ui().root.appendChild(sheet);
+  (o.parent ?? ui().root).appendChild(sheet);
   open.push(handle);
   sheet.querySelector<HTMLElement>('[data-nav]')?.focus();
   return handle;

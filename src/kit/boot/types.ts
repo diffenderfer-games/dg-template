@@ -30,6 +30,7 @@ import type { AvatarHooks } from '../avatar/types.ts';
 import type { BackGuardOptions } from '../ui/back-guard.ts';
 import type { KitChallengeLevel } from '../core/planned.ts';
 import type { LocalPlay, LocalSpec, LocalStart } from '../local/play.ts';
+import type { JoinOptions } from '../local/join.ts';
 
 /** How a game ended. */
 export type Outcome = 'won' | 'lost';
@@ -71,17 +72,21 @@ export type SessionApi<R> = {
   newGame(): Promise<void>;
   /** Start the same kind of game again (same day for a daily). */
   restart(): void;
-  /** Back to the title: leaves any daily, race or room first. */
-  toTitle(): void;
+  /**
+   * Back to the title: leaves any daily, race or room first. `keepSeats`: a local game's seats stay open, so its
+   * join sheet can open again with the same players (`newLocal({ keep: true })`); anything else started releases them.
+   */
+  toTitle(o?: { keepSeats?: boolean }): void;
   pause(): void;
   resume(): void;
   /** End the game now with this outcome (test drivers, a "give up"). */
   finish(outcome: Outcome): void;
   /**
    * Local play (needs `local` in the definition and `ctx.local.available`): the join sheet, then a new
-   * game with `mode: 'local'` and `opts.local`. Resolves false when the players backed out.
+   * game with `mode: 'local'` and `opts.local`. Resolves false when the players backed out. `host` puts the
+   * sheet in the game's own screen, `keep` reopens it with the seats still held, `signal` closes it (docs/kit/local.md).
    */
-  newLocal(): Promise<boolean>;
+  newLocal(o?: JoinOptions): Promise<boolean>;
 };
 
 /** Everything a hook can use. */

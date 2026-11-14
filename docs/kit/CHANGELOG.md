@@ -4,6 +4,20 @@ KIT doc. One entry per kit version; per module inside. A **major** version
 means a hook's signature changed: the entry says how to move a game over.
 `npm run kit:sync` prints the entries newer than a game's `kit.json`.
 
+## 1.49 (2026-11-14)
+
+- **local 1.3:** the join sheet can be a step of the game's own setup instead of a sheet over the title (Back
+  from it went straight to the title, and the title showed round it). `ctx.session.newLocal({ host, keep, signal })`:
+  `host` mounts the sheet inside the game's element (its backdrop and step bar stay round it; the sheet keeps its
+  own presses); `signal` closes it from outside as Back does; `keep` opens it with the seats a local game still
+  holds. `LocalController.hold()` and `open({ keep })`. The last seated pad's B only gives its seat up (it also
+  cancelled the sheet: one press, two levels back). No game changes: `newLocal()` is as before.
+  **boot 1.24:** `toTitle({ keepSeats: true })` leaves a local game but keeps its seats (Back from a game's own
+  pick before the match, to the join sheet with the same players); `newLocal(options)`. **ui 1.20:**
+  `openModal({ parent })` mounts a modal in an element (`[data-hosted]`: it fills it, no dimmer, no title).
+  **hub-events 1.23:** tests for both. **core 1.44:** `KIT_VERSION` 1.49. **scripts 1.56:** the module
+  versions. **docs 1.55:** this entry, local.md "Hosting the sheet".
+
 ## 1.48 (2026-11-14)
 
 - **online 1.10:** a host who reloads mid-match (or closes the tab and comes back within the seat's grace)

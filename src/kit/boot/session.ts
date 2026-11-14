@@ -45,7 +45,7 @@ import type { OnlineFlow } from './online-flow.ts';
 import type { TurnsFlow } from './turns-flow.ts';
 import type { ContinueRow, SavedHandle } from '../saved/index.ts';
 import { quickMatch } from '../world/index.ts';
-import { openJoin } from '../local/join.ts';
+import { openJoin, type JoinOptions } from '../local/join.ts';
 import type { LocalController } from '../local/play.ts';
 import {
   challengeBanner,
@@ -393,12 +393,12 @@ export class Session<P extends JsonObject, R extends JsonObject> {
 
   /**
    * Local play: the join sheet, then a game for the players who joined. The game in progress is saved
-   * and a daily paused first, as for a challenge.
+   * and a daily paused first, as for a challenge. `o`: where the sheet sits and its seats (kit/local/join.ts).
    */
-  async newLocal(): Promise<boolean> {
+  async newLocal(o: JoinOptions = {}): Promise<boolean> {
     const local = this.parts?.local ?? null;
     if (local === null || !local.available) return false;
-    const go = await openJoin({ hub: this.d.hub, local });
+    const go = await openJoin({ hub: this.d.hub, local, ...o });
     if (!go) return false;
     if (this.mode === 'normal') this.saveForLater(true);
     this.leaveSpecial();
@@ -490,7 +490,7 @@ export class Session<P extends JsonObject, R extends JsonObject> {
   // ---- leaving ---------------------------------------------------------------
 
   /** Pause a daily (it stays in Your games), leave a race or a room, when the player goes elsewhere. */
-  private leaveSpecial(): void {
+  private leaveSpecial(keepSeats = false): void {
     if (this.mode === 'daily') {
       this.parts?.daily?.leave();
       this.day = null;
@@ -499,18 +499,22 @@ export class Session<P extends JsonObject, R extends JsonObject> {
     } else if (this.mode === 'online') {
       this.parts?.online?.leave();
     } else if (this.mode === 'local') {
-      this.parts?.local.close();
+      if (keepSeats) this.parts?.local.hold();
+      else this.parts?.local.close();
     }
   }
 
-  /** Back to the title, from anywhere (an online game the hub runs stops following; the hub keeps it). */
-  toTitle(): void {
+  /**
+   * Back to the title, from anywhere (an online game the hub runs stops following; the hub keeps it). `keepSeats`:
+   * a local game's seats stay open for its join sheet again (`newLocal({ keep: true })`).
+   */
+  toTitle(o: { keepSeats?: boolean } = {}): void {
     if (this.mode === 'challenge') {
       this.leaveChallenge();
       return;
     }
     this.saveForLater(true);
-    this.leaveSpecial();
+    this.leaveSpecial(o.keepSeats === true);
     this.parts?.turns?.close();
     this.run = null;
     this.mode = null;

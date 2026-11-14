@@ -123,6 +123,10 @@ html.kit-back-guard #app, html.kit-back-guard .kit-screen[data-screen="play"] { 
 .kit-modal-title { margin: 0; font-size: 22px; }
 .kit-modal-body { color: var(--kit-fg); text-align: left; display: flex; flex-direction: column; gap: 6px; }
 .kit-modal-buttons { display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap; }
+/* A modal mounted in a game's own screen (openModal({ parent })): it fills that element, no dimmer, no title (the host has its own). */
+.kit-modal[data-hosted] { position: absolute; background: none; padding: 0; z-index: 2; }
+.kit-modal[data-hosted] > .kit-modal-sheet { width: 100%; height: 100%; max-height: none; background: none; box-shadow: none; padding: 0; justify-content: center; }
+.kit-modal[data-hosted] .kit-modal-title { display: none; }
 .kit-toasts { position: fixed; left: 50%; bottom: calc(var(--kit-bottom) + 12px); transform: translateX(-50%); display: flex;
   flex-direction: column; gap: 8px; width: min(420px, calc(100% - 32px)); z-index: 40; }
 /* Touch play: the on-screen controls own the bottom, so toasts go under the HUD. */
@@ -238,7 +242,7 @@ html[data-controls="touch"] #ui[data-screen="play"] .kit-toasts { bottom: auto; 
 .kit-chat-input { flex: 1; min-width: 0; min-height: 44px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.2);
   background: rgba(0,0,0,0.3); color: var(--kit-fg); padding: 0 10px; font: 16px var(--kit-font); }
 /* Local play (kit/local): the join sheet and the split-screen views. The game themes both. */
-.kit-modal[data-testid="join-sheet"] .kit-modal-sheet { width: min(640px, 100%); }
+.kit-modal[data-testid="join-sheet"]:not([data-hosted]) .kit-modal-sheet { width: min(640px, 100%); }
 .kit-join { display: flex; flex-direction: column; gap: 14px; }
 .kit-join-hint { margin: 0; color: var(--kit-muted); }
 .kit-join-slots { display: grid; grid-template-columns: repeat(auto-fit, minmax(128px, 1fr)); gap: 10px; }
